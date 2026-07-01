@@ -7,19 +7,16 @@ namespace BinaryNinja
 {
     internal static partial class NativeMethods
     {
+
 	    /// <summary>
-		/// bool BNRepositoryManagerCheckForUpdates(BNRepositoryManager* r)
+		/// bool BNRepositoryManagerCheckForUpdates()
 		/// </summary>
 		[DllImport(
             "binaryninjacore", 
             CallingConvention = System.Runtime.InteropServices.CallingConvention.Cdecl,
-            CharSet = CharSet.Ansi,
             EntryPoint = "BNRepositoryManagerCheckForUpdates"
         )]
 		internal static extern bool BNRepositoryManagerCheckForUpdates(
-			
-			// BNRepositoryManager* r
-		    IntPtr r  
 			
 		);
 	}

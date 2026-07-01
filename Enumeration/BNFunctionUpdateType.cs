@@ -5,7 +5,7 @@ namespace BinaryNinja
 	/// <summary>
 	/// 
 	/// </summary>
-    public enum FunctionUpdateType : uint
+    public enum FunctionUpdateType : byte
 	{
 		/// <summary>
 		/// 

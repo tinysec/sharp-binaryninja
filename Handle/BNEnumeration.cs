@@ -6,7 +6,7 @@ using Microsoft.Win32.SafeHandles;
 
 namespace BinaryNinja
 {
-	public sealed class Enumeration : AbstractSafeHandle
+	public sealed class Enumeration : AbstractSafeHandle<Enumeration>
 	{
 		public Enumeration(EnumerationType type) 
 			: base( NativeMethods.BNGetTypeEnumeration(type.DangerousGetHandle()) , true)
@@ -14,12 +14,26 @@ namespace BinaryNinja
 	        
 		}
 		
-		internal Enumeration(IntPtr handle , bool owner) 
+		internal Enumeration(IntPtr handle , bool owner)
 			: base(handle , owner)
 	    {
-	        
+
 	    }
-		
+
+        /// <summary>
+        /// Creates a new empty Enumeration by building an empty EnumerationBuilder.
+        /// Members can be added by first creating an EnumerationBuilder, populating it, and calling Build().
+        /// </summary>
+        /// <returns>A new owned Enumeration instance with no members.</returns>
+        public static Enumeration Create()
+        {
+            // 1. Create an empty builder and finalize it into an Enumeration.
+            using (EnumerationBuilder builder = new EnumerationBuilder())
+            {
+                return builder.Build();
+            }
+        }
+
 		internal static Enumeration? NewFromHandle(IntPtr handle)
 		{
 			if (handle == IntPtr.Zero)
@@ -101,16 +115,9 @@ namespace BinaryNinja
 	    {
 		    StringBuilder builder = new StringBuilder();
 
-		    for (int i = 0; i < this.Members.Length; i++)
+		    foreach (EnumerationMember member in Members)
 		    {
-			    if (i == ( this.Members.Length - 1 ))
-			    {
-				    builder.Append( this.Members[i].ToString() + ";");
-			    }
-			    else
-			    {
-				    builder.AppendLine( this.Members[i].ToString() + ";");
-			    }
+			    builder.AppendLine( member.ToString() + ";");
 		    }
 		    
 		    return builder.ToString();

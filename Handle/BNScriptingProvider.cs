@@ -5,12 +5,106 @@ using Microsoft.Win32.SafeHandles;
 
 namespace BinaryNinja
 {
-	public sealed class ScriptingProvider : AbstractSafeHandle
-	{
-		internal ScriptingProvider(IntPtr handle)
-			:base(handle , false)
-		{
-			
-		}
-	}
+    /// <summary>
+    /// Represents a registered scripting provider (e.g., Python) that can create
+    /// scripting instances for interactive script execution. ScriptingProvider handles
+    /// are always borrowed — the provider lifetime is managed by the native engine.
+    /// </summary>
+    public sealed class ScriptingProvider : AbstractSafeHandle<ScriptingProvider>
+    {
+        /// <summary>
+        /// Initializes a new ScriptingProvider wrapper around an existing borrowed handle.
+        /// The handle is never owned — the provider lifetime is managed by the native engine.
+        /// </summary>
+        /// <param name="handle">The native pointer to the BNScriptingProvider object.</param>
+        internal ScriptingProvider(IntPtr handle)
+            : base(handle, false)
+        {
+        }
+
+        /// <summary>
+        /// Borrows a native handle without taking ownership. Returns null if the handle is zero.
+        /// </summary>
+        /// <param name="handle">The native BNScriptingProvider pointer.</param>
+        /// <returns>A new ScriptingProvider instance that will not free the handle on dispose.</returns>
+        internal static ScriptingProvider? BorrowHandle(IntPtr handle)
+        {
+            if (handle == IntPtr.Zero)
+            {
+                return null;
+            }
+
+            return new ScriptingProvider(handle);
+        }
+
+        /// <summary>
+        /// Borrows a native handle without taking ownership. Throws if the handle is zero.
+        /// </summary>
+        /// <param name="handle">The native BNScriptingProvider pointer.</param>
+        /// <returns>A new ScriptingProvider instance that will not free the handle on dispose.</returns>
+        internal static ScriptingProvider MustBorrowHandle(IntPtr handle)
+        {
+            if (handle == IntPtr.Zero)
+            {
+                throw new ArgumentNullException(nameof(handle));
+            }
+
+            return new ScriptingProvider(handle);
+        }
+
+        /// <summary>
+        /// No-op release: scripting provider handles are always borrowed from the global registry
+        /// and must not be freed by this wrapper.
+        /// </summary>
+        /// <returns>True (always, since no deallocation is performed).</returns>
+        protected override bool ReleaseHandle()
+        {
+            // Provider objects are borrowed from the global registry; the native engine owns their lifetime.
+            return true;
+        }
+
+        /// <summary>
+        /// Gets the human-readable display name of this scripting provider (e.g., "Python 3").
+        /// </summary>
+        public string Name
+        {
+            get
+            {
+                // 1. Retrieve the native ANSI string pointer for the provider display name.
+                IntPtr raw = NativeMethods.BNGetScriptingProviderName(this.handle);
+
+                // 2. Copy and free the native string, returning empty on null.
+                return UnsafeUtils.TakeAnsiString(raw) ?? string.Empty;
+            }
+        }
+
+        /// <summary>
+        /// Gets the API name used to programmatically identify this scripting provider (e.g., "python3").
+        /// </summary>
+        public string ApiName
+        {
+            get
+            {
+                // 1. Retrieve the native ANSI string pointer for the provider API name.
+                IntPtr raw = NativeMethods.BNGetScriptingProviderAPIName(this.handle);
+
+                // 2. Copy and free the native string, returning empty on null.
+                return UnsafeUtils.TakeAnsiString(raw) ?? string.Empty;
+            }
+        }
+
+        /// <summary>
+        /// Creates a new scripting instance for this provider.
+        /// The caller is responsible for disposing the returned instance.
+        /// Returns null if the native engine cannot allocate a new instance.
+        /// </summary>
+        /// <returns>A new owned ScriptingInstance, or null on failure.</returns>
+        public ScriptingInstance? CreateInstance()
+        {
+            // Create a new scripting instance through the provider; the returned handle is owned.
+            return ScriptingInstance.TakeHandle(
+                NativeMethods.BNCreateScriptingProviderInstance(this.handle)
+            );
+        }
+    }
 }

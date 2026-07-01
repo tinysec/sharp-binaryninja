@@ -6,7 +6,7 @@ using Microsoft.Win32.SafeHandles;
 
 namespace BinaryNinja
 {
-	public sealed class DataBuffer : AbstractSafeHandle , IEnumerable<byte>
+	public sealed class DataBuffer : AbstractSafeHandle<DataBuffer> , IEnumerable<byte>
 	{
 		public DataBuffer()
 			:this( Array.Empty<byte>() )
@@ -167,6 +167,57 @@ namespace BinaryNinja
 	    public void Clear()
 	    {
 		    NativeMethods.BNClearDataBuffer(this.handle);
+	    }
+
+	    /// <summary>
+	    /// Convert the data buffer contents to a base64-encoded string.
+	    /// </summary>
+	    public string ToBase64()
+	    {
+		    return UnsafeUtils.TakeAnsiString(
+			    NativeMethods.BNDataBufferToBase64(this.handle)
+		    );
+	    }
+
+	    /// <summary>
+	    /// Convert the data buffer contents to an escaped string representation.
+	    /// </summary>
+	    public string ToEscapedString(bool nullTerminates = false , bool escapePrintable = false)
+	    {
+		    return UnsafeUtils.TakeAnsiString(
+			    NativeMethods.BNDataBufferToEscapedString(this.handle , nullTerminates , escapePrintable)
+		    );
+	    }
+
+	    public DataBuffer GetSlice(ulong start , ulong length)
+	    {
+		    return DataBuffer.MustTakeHandle(
+			    NativeMethods.BNGetDataBufferSlice(this.handle , start , length)
+		    );
+	    }
+
+	    /// <summary>
+	    /// Append the contents of another data buffer to this buffer.
+	    /// </summary>
+	    public void Append(DataBuffer other)
+	    {
+		    NativeMethods.BNAppendDataBuffer(this.handle , other.DangerousGetHandle());
+	    }
+
+	    /// <summary>
+	    /// Append raw byte data to this buffer.
+	    /// </summary>
+	    public void AppendBytes(byte[] data)
+	    {
+		    NativeMethods.BNAppendDataBufferContents(this.handle , data , (ulong)data.Length);
+	    }
+
+	    /// <summary>
+	    /// Replace this buffer's contents with the contents of another data buffer.
+	    /// </summary>
+	    public void Assign(DataBuffer other)
+	    {
+		    NativeMethods.BNAssignDataBuffer(this.handle , other.DangerousGetHandle());
 	    }
 	}
 }

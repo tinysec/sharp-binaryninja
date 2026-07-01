@@ -5,7 +5,7 @@ using Microsoft.Win32.SafeHandles;
 
 namespace BinaryNinja
 {
-	public sealed class FileMetadata : AbstractSafeHandle
+	public sealed class FileMetadata : AbstractSafeHandle<FileMetadata>
 	{
 		public FileMetadata()
 			: this(NativeMethods.BNCreateFileMetadata() , true)
@@ -419,6 +419,150 @@ namespace BinaryNinja
 			    NativeMethods.BNOpenDatabaseForConfiguration(this.handle , filename)
 		    );
 	    }
-	    
+
+	    /// <summary>
+	    /// Clears all undo and redo entries from this file's undo history.
+	    /// </summary>
+	    public void ClearUndoEntries()
+	    {
+		    NativeMethods.BNClearUndoEntries(this.handle);
+	    }
+
+	    /// <summary>
+	    /// Gets the last redo entry from the undo history.
+	    /// Returns null if there is no redo entry available.
+	    /// </summary>
+	    /// <returns>An owned UndoEntry instance, or null if the redo stack is empty.</returns>
+	    public UndoEntry? GetLastRedoEntry()
+	    {
+		    // Retrieve a borrowed handle from the native API; wrap with NewFromHandle to addref.
+		    return UndoEntry.NewFromHandle(
+			    NativeMethods.BNGetLastRedoEntry(this.handle)
+		    );
+	    }
+
+	    /// <summary>
+	    /// Gets the last undo entry from the undo history.
+	    /// Returns null if there is no undo entry available.
+	    /// </summary>
+	    /// <returns>An owned UndoEntry instance, or null if the undo stack is empty.</returns>
+	    public UndoEntry? GetLastUndoEntry()
+	    {
+		    // Retrieve a borrowed handle from the native API; wrap with NewFromHandle to addref.
+		    return UndoEntry.NewFromHandle(
+			    NativeMethods.BNGetLastUndoEntry(this.handle)
+		    );
+	    }
+
+	    // TODO: SetNavigationHandler requires a BNNavigationHandler callback struct.
+	    //       The BNNavigationHandler contains function pointer fields (getCurrentView,
+	    //       getCurrentOffset, navigate) that need managed delegate wrappers.
+	    //       Implement when callback infrastructure is in place.
+
+	    /// <summary>
+	    /// Gets the title of the last redo entry in the undo history.
+	    /// </summary>
+	    /// <returns>The title string of the last redo entry.</returns>
+	    public string GetLastRedoEntryTitle()
+	    {
+		    return UnsafeUtils.TakeAnsiString(
+			    NativeMethods.BNGetLastRedoEntryTitle(this.handle)
+		    );
+	    }
+
+	    /// <summary>
+	    /// Gets the title of the last undo entry in the undo history.
+	    /// </summary>
+	    /// <returns>The title string of the last undo entry.</returns>
+	    public string GetLastUndoEntryTitle()
+	    {
+		    return UnsafeUtils.TakeAnsiString(
+			    NativeMethods.BNGetLastUndoEntryTitle(this.handle)
+		    );
+	    }
+
+	    /// <summary>
+	    /// Gets the list of users who have contributed to this file.
+	    /// </summary>
+	    /// <returns>An array of User objects.</returns>
+	    public unsafe User[] GetUsers()
+	    {
+		    // 1. Stack-allocate the count variable.
+		    ulong count = 0;
+
+		    // 2. Call the native function to retrieve the user handle array.
+		    IntPtr arrayPointer = NativeMethods.BNGetUsers(
+			    this.handle ,
+			    (IntPtr)(&count)
+		    );
+
+		    // 3. Convert the handle array to managed User objects and free.
+		    return UnsafeUtils.TakeHandleArrayEx<User>(
+			    arrayPointer ,
+			    count ,
+			    User.MustNewFromHandle ,
+			    NativeMethods.BNFreeUserList
+		    );
+	    }
+
+	    /// <summary>
+	    /// Applies snapshot data to this file from a key-value store with optional progress reporting.
+	    /// </summary>
+	    /// <param name="view">The binary view to apply the snapshot to.</param>
+	    /// <param name="data">The key-value store containing snapshot data.</param>
+	    /// <param name="cache">The key-value store containing cached data.</param>
+	    /// <param name="openForConfiguration">Whether to open the view in configuration mode.</param>
+	    /// <param name="restoreRawView">Whether to restore the raw binary view.</param>
+	    /// <param name="progress">Optional progress callback, or null for no progress reporting.</param>
+	    public void ApplySnapshotData(
+		    BinaryView view ,
+		    KeyValueStore data ,
+		    KeyValueStore cache ,
+		    bool openForConfiguration ,
+		    bool restoreRawView ,
+		    ProgressDelegate? progress = null
+	    )
+	    {
+		    NativeMethods.BNApplySnapshotData(
+			    this.handle ,
+			    view.DangerousGetHandle() ,
+			    data.DangerousGetHandle() ,
+			    cache.DangerousGetHandle() ,
+			    IntPtr.Zero ,
+			    null == progress
+				    ? IntPtr.Zero
+				    : Marshal.GetFunctionPointerForDelegate<NativeDelegates.BNProgressFunction>(
+					    UnsafeUtils.WrapProgressDelegate(progress)
+				    ) ,
+			    openForConfiguration ,
+			    restoreRawView
+		    );
+	    }
+
+	    /// <summary>
+	    /// Retrieves snapshot data from this file into a key-value store with optional progress reporting.
+	    /// </summary>
+	    /// <param name="data">The key-value store to receive snapshot data.</param>
+	    /// <param name="cache">The key-value store to receive cached data.</param>
+	    /// <param name="progress">Optional progress callback, or null for no progress reporting.</param>
+	    public void GetSnapshotData(
+		    KeyValueStore data ,
+		    KeyValueStore cache ,
+		    ProgressDelegate? progress = null
+	    )
+	    {
+		    NativeMethods.BNGetSnapshotData(
+			    this.handle ,
+			    data.DangerousGetHandle() ,
+			    cache.DangerousGetHandle() ,
+			    IntPtr.Zero ,
+			    null == progress
+				    ? IntPtr.Zero
+				    : Marshal.GetFunctionPointerForDelegate<NativeDelegates.BNProgressFunction>(
+					    UnsafeUtils.WrapProgressDelegate(progress)
+				    )
+		    );
+	    }
+
 	}
 }

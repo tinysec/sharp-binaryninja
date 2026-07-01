@@ -209,6 +209,18 @@ namespace BinaryNinja
 
 			{ HighLevelILOperation.HLIL_VAR_PHI, 1 },               // varVersions(list)
 			{ HighLevelILOperation.HLIL_MEM_PHI, 1 },               // memVersions(list)
+
+			{ HighLevelILOperation.HLIL_ABS, 1 },                   // src
+			{ HighLevelILOperation.HLIL_BSWAP, 1 },                 // src
+			{ HighLevelILOperation.HLIL_CLS, 1 },                   // src
+			{ HighLevelILOperation.HLIL_CLZ, 1 },                   // src
+			{ HighLevelILOperation.HLIL_CTZ, 1 },                   // src
+			{ HighLevelILOperation.HLIL_POPCNT, 1 },                // src
+			{ HighLevelILOperation.HLIL_RBIT, 1 },                  // src
+			{ HighLevelILOperation.HLIL_MAXS, 2 },                  // left, right
+			{ HighLevelILOperation.HLIL_MAXU, 2 },                  // left, right
+			{ HighLevelILOperation.HLIL_MINS, 2 },                  // left, right
+			{ HighLevelILOperation.HLIL_MINU, 2 },                  // left, right
 		};
 
 		
@@ -815,9 +827,29 @@ namespace BinaryNinja
 				{
 					return new HLILMemoryPhi(ilFunction, expressionIndex , native);
 				}
+				case HighLevelILOperation.HLIL_ABS:
+				case HighLevelILOperation.HLIL_BSWAP:
+				case HighLevelILOperation.HLIL_CLS:
+				case HighLevelILOperation.HLIL_CLZ:
+				case HighLevelILOperation.HLIL_CTZ:
+				case HighLevelILOperation.HLIL_POPCNT:
+				case HighLevelILOperation.HLIL_RBIT:
+				{
+					return new HLILGenericUnary(ilFunction, expressionIndex , native);
+				}
+				case HighLevelILOperation.HLIL_MAXS:
+				case HighLevelILOperation.HLIL_MAXU:
+				case HighLevelILOperation.HLIL_MINS:
+				case HighLevelILOperation.HLIL_MINU:
+				{
+					return new HLILGenericBinary(ilFunction, expressionIndex , native);
+				}
 				default:
 				{
-					throw new NotSupportedException("not supported operation");
+					// Unknown / not-yet-typed operation (e.g. PASS_BY_REF, RETURN_BY_REF,
+					// VAR_SSA_PARTIAL, or an op from a newer core). Degrade to a generic
+					// wrapper instead of throwing so navigation/iteration stays robust.
+					return new HLILGeneric(ilFunction, expressionIndex , native);
 				}
 			}
 		}
@@ -1253,52 +1285,8 @@ namespace BinaryNinja
 				return this.ILFunction.GetInstruction((HighLevelILInstructionIndex)index);
 			}
 		}
-		
-		
-		public LowLevelILInstruction[] LowLevelILExpressions
-		{
-			get
-			{
-				List<LowLevelILInstruction> lowExprs = new List<LowLevelILInstruction>();
 
-				foreach (MediumLevelILInstruction mediumExpr in this.MediumLevelILExpressions)
-				{
-					foreach (LowLevelILInstruction lowExpr in mediumExpr.LowLevelILExpressions)
-					{
-						if (!lowExprs.Contains(lowExpr))
-						{
-							lowExprs.Add(lowExpr);
-						}
-					}
-				}
-				
-				return lowExprs.ToArray();
-			}
-		}
-		
-		public LowLevelILInstruction[] LowLevelILInstructions
-		{
-			get
-			{
-				List<LowLevelILInstruction> lowInstrs = new List<LowLevelILInstruction>();
-
-				foreach (MediumLevelILInstruction mediumExpr in this.MediumLevelILExpressions)
-				{
-					foreach (LowLevelILInstruction lowInstr in mediumExpr.LowLevelILInstructions)
-					{
-						if (!lowInstrs.Contains(lowInstr))
-						{
-							lowInstrs.Add(lowInstr);
-						}
-					}
-				}
-				
-				return lowInstrs.ToArray();
-			}
-		}
-		
-
-		public MediumLevelILInstruction? MediumLevelILExpression
+		public MediumLevelILInstruction? MediumLevelIL
 		{
 			get
 			{
@@ -1323,13 +1311,13 @@ namespace BinaryNinja
 			}
 		}
 		
-		public MediumLevelILInstruction[] MediumLevelILExpressions
+		public MediumLevelILInstruction[] MediumLevelILs
 		{
 			get
 			{
-				MediumLevelILFunction? mediumIL = this.ILFunction.MediumLevelIL;
+				MediumLevelILFunction? mediumLevelIl = this.ILFunction.MediumLevelIL;
 
-				if (null == mediumIL)
+				if (null == mediumLevelIl)
 				{
 					return Array.Empty<MediumLevelILInstruction>();
 				}
@@ -1346,43 +1334,21 @@ namespace BinaryNinja
 					NativeMethods.BNFreeILInstructionList
 				);
 				
-				List<MediumLevelILInstruction> mediumExprs = new List<MediumLevelILInstruction>();
+				List<MediumLevelILInstruction> targets = new List<MediumLevelILInstruction>();
 
 				foreach (MediumLevelILExpressionIndex index in indexes)
 				{
-					mediumExprs.Add(mediumIL.MustGetExpression(index));
+					targets.Add(mediumLevelIl.MustGetExpression(index));
 				}
 				
-				return mediumExprs.ToArray();
-			}
-		}
-		
-		public MediumLevelILInstruction[] MediumLevelILInstructions
-		{
-			get
-			{
-				List<MediumLevelILInstruction> mediumInstrs = new List<MediumLevelILInstruction>();
-
-				foreach (MediumLevelILInstruction mediumExpr in this.MediumLevelILExpressions)
-				{
-					MediumLevelILInstruction mediumInstr = mediumExpr.ILFunction.MustGetInstruction(
-						mediumExpr.InstructionIndex
-					);
-
-					if (!mediumInstrs.Contains(mediumInstr))
-					{
-						mediumInstrs.Add(mediumInstr);
-					}
-				}
-				
-				return mediumInstrs.ToArray();
+				return targets.ToArray();
 			}
 		}
 
 		public DisassemblyTextLine[] GetLanguageRepresentationLinearLines(
-			bool asFullAst = false,
 			DisassemblySettings? settings = null ,
-			string language = "Pseudo C"
+			string language = "Pseudo C",
+			bool asFullAst = false
 		)
 		{
 			LanguageRepresentationFunction? pseudo = this.ILFunction.GetLanguageRepresentation(language);
@@ -1423,16 +1389,9 @@ namespace BinaryNinja
 			{
 				StringBuilder builder = new StringBuilder();
 
-				for (int i = 0; i < this.PseudoCLinearLines.Length; i++)
+				foreach (DisassemblyTextLine line in this.PseudoCLinearLines)
 				{
-					if (i == ( this.PseudoCLinearLines.Length - 1) )
-					{
-						builder.Append(this.PseudoCLinearLines[i].ToString());
-					}
-					else
-					{
-						builder.AppendLine(this.PseudoCLinearLines[i].ToString());
-					}
+					builder.AppendLine(line.ToString());
 				}
 				
 				return builder.ToString();
@@ -1440,10 +1399,10 @@ namespace BinaryNinja
 		}
 		
 		public DisassemblyTextLine[] GetLanguageRepresentationExpressionLines(
+			DisassemblySettings? settings = null,
 			bool asFullAst = false,
 			OperatorPrecedence precedence = OperatorPrecedence.TopLevelOperatorPrecedence,
 			bool statement = false,
-			DisassemblySettings? settings = null,
 			string language = "Pseudo C"
 		)
 		{
@@ -1489,16 +1448,9 @@ namespace BinaryNinja
 			{
 				StringBuilder builder = new StringBuilder();
 
-				for (int i = 0; i < this.PseudoCExpressionLines.Length; i++)
+				foreach (DisassemblyTextLine line in this.PseudoCExpressionLines)
 				{
-					if (i == ( this.PseudoCExpressionLines.Length - 1) )
-					{
-						builder.Append(this.PseudoCExpressionLines[i].ToString());
-					}
-					else
-					{
-						builder.AppendLine(this.PseudoCExpressionLines[i].ToString());
-					}
+					builder.AppendLine(line.ToString());
 				}
 				
 				return builder.ToString();
@@ -1523,12 +1475,12 @@ namespace BinaryNinja
 		{
 			get
 			{
-				if (null == this.MediumLevelILExpression)
+				if (null == this.MediumLevelIL)
 				{
 					return new RegisterValue();
 				}
 				
-				return this.MediumLevelILExpression.Value;
+				return this.MediumLevelIL.Value;
 			}
 		}
 		
@@ -1536,23 +1488,23 @@ namespace BinaryNinja
 		{
 			get
 			{
-				if (null == this.MediumLevelILExpression)
+				if (null == this.MediumLevelIL)
 				{
 					return new PossibleValueSet();
 				}
 				
-				return this.MediumLevelILExpression.PossibleValues;
+				return this.MediumLevelIL.PossibleValues;
 			}
 		}
 
 		public PossibleValueSet GetPossibleValues(DataFlowQueryOption[] options)
 		{
-			if (null == this.MediumLevelILExpression)
+			if (null == this.MediumLevelIL)
 			{
 				return new PossibleValueSet();
 			}
 			
-			return this.MediumLevelILExpression.GetPossibleValues(options);
+			return this.MediumLevelIL.GetPossibleValues(options);
 		}
 		
 		public TypeWithConfidence Type
@@ -1607,5 +1559,129 @@ namespace BinaryNinja
 				);
 			}
 		}
+
+		/// <summary>
+		/// The <see cref="HighLevelILFunction"/> that owns this instruction.
+		/// Mirrors Python <c>HighLevelILInstruction.function</c>.
+		/// </summary>
+		public HighLevelILFunction Function
+		{
+			get
+			{
+				return this.ILFunction;
+			}
+		}
+
+		/// <summary>
+		/// The text tokens of this expression (flattened from <see cref="ExpressionLines"/>).
+		/// Mirrors Python <c>HighLevelILInstruction.tokens</c>.
+		/// </summary>
+		public InstructionTextToken[] Tokens
+		{
+			get
+			{
+				List<InstructionTextToken> tokens = new List<InstructionTextToken>();
+
+				foreach (DisassemblyTextLine line in this.ExpressionLines)
+				{
+					tokens.AddRange(line.Tokens);
+				}
+
+				return tokens.ToArray();
+			}
+		}
+
+		/// <summary>
+		/// The parent expression of this instruction, or <c>null</c> at the top level.
+		/// Mirrors Python <c>HighLevelILInstruction.parent</c>.
+		/// </summary>
+		public HighLevelILInstruction? Parent
+		{
+			get
+			{
+				if (this.RawParent >= this.ILFunction.ExpressionCount)
+				{
+					return null;
+				}
+
+				return this.ILFunction.GetExpression(
+					(HighLevelILExpressionIndex)this.RawParent
+				);
+			}
+		}
+
+		/// <summary>
+		/// The enclosing statement (instruction) that contains this expression.
+		/// Mirrors Python <c>HighLevelILInstruction.instr</c>.
+		/// </summary>
+		public HighLevelILInstruction Instr
+		{
+			get
+			{
+				return this.ILFunction.MustGetInstruction(this.InstructionIndex);
+			}
+		}
+
+		/// <summary>
+		/// SSA form of this expression. Alias of <see cref="SSAExpression"/> to match
+		/// the Python/C++ <c>ssa_form</c> naming.
+		/// </summary>
+		public HighLevelILInstruction? SsaForm
+		{
+			get
+			{
+				return this.SSAExpression;
+			}
+		}
+
+		/// <summary>
+		/// Non-SSA form of this expression. Alias of <see cref="NonSSAExpression"/> to
+		/// match the Python/C++ <c>non_ssa_form</c> naming.
+		/// </summary>
+		public HighLevelILInstruction? NonSsaForm
+		{
+			get
+			{
+				return this.NonSSAExpression;
+			}
+		}
+
+		/// <summary>
+		/// The corresponding Low Level IL expression (via Medium Level IL), or
+		/// <c>null</c>. Mirrors Python <c>HighLevelILInstruction.llil</c>.
+		/// </summary>
+		public LowLevelILInstruction? LowLevelIL
+		{
+			get
+			{
+				return this.MediumLevelIL?.LowLevelILInstruction;
+			}
+		}
+
+		/// <summary>
+		/// Every Low Level IL expression that maps to this High Level IL expression
+		/// (via Medium Level IL). Mirrors Python <c>HighLevelILInstruction.llils</c>.
+		/// </summary>
+		public LowLevelILInstruction[] LowLevelILs
+		{
+			get
+			{
+				List<LowLevelILInstruction> targets = new List<LowLevelILInstruction>();
+
+				foreach (MediumLevelILInstruction mediumLevelIL in this.MediumLevelILs)
+				{
+					LowLevelILInstruction? lowLevelIL = mediumLevelIL.LowLevelILInstruction;
+
+					if (null != lowLevelIL)
+					{
+						targets.Add(lowLevelIL);
+					}
+				}
+
+				return targets.ToArray();
+			}
+		}
+
+
     }
 }

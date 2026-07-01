@@ -5,7 +5,7 @@ namespace BinaryNinja
 	/// <summary>
 	/// 
 	/// </summary>
-    public enum TypeParserOption : uint
+    public enum TypeParserOption : byte
 	{
 		/// <summary>
 		/// 

@@ -11,77 +11,87 @@ namespace BinaryNinja
 		/// <summary>
 		/// void* context
 		/// </summary>
-		public IntPtr context;
-		
+		internal IntPtr context;
+
 		/// <summary>
-		/// void** destroyInstance
+		/// void (*destroyInstance)(void* ctxt)
 		/// </summary>
-		public IntPtr destroyInstance;
-		
+		internal IntPtr destroyInstance;
+
 		/// <summary>
-		/// void** externalRefTaken
+		/// void (*externalRefTaken)(void* ctxt)
 		/// </summary>
-		public IntPtr externalRefTaken;
-		
+		internal IntPtr externalRefTaken;
+
 		/// <summary>
-		/// void** externalRefReleased
+		/// void (*externalRefReleased)(void* ctxt)
 		/// </summary>
-		public IntPtr externalRefReleased;
-		
+		internal IntPtr externalRefReleased;
+
 		/// <summary>
-		/// void** executeScriptInput
+		/// BNScriptingProviderExecuteResult (*executeScriptInput)(void* ctxt, const char* input)
 		/// </summary>
-		public IntPtr executeScriptInput;
-		
+		internal IntPtr executeScriptInput;
+
 		/// <summary>
-		/// void** executeScriptInputFromFilename
+		/// BNScriptingProviderExecuteResult (*executeScriptInputFromFilename)(void *ctxt, const char* input)
 		/// </summary>
-		public IntPtr executeScriptInputFromFilename;
-		
+		internal IntPtr executeScriptInputFromFilename;
+
 		/// <summary>
-		/// void** cancelScriptInput
+		/// void (*cancelScriptInput)(void* ctxt)
 		/// </summary>
-		public IntPtr cancelScriptInput;
-		
+		internal IntPtr cancelScriptInput;
+
 		/// <summary>
-		/// void** releaseBinaryView
+		/// void (*releaseBinaryView)(void* ctxt, BNBinaryView* view)
 		/// </summary>
-		public IntPtr releaseBinaryView;
-		
+		internal IntPtr releaseBinaryView;
+
 		/// <summary>
-		/// void** setCurrentBinaryView
+		/// void (*setCurrentBinaryView)(void* ctxt, BNBinaryView* view)
 		/// </summary>
-		public IntPtr setCurrentBinaryView;
-		
+		internal IntPtr setCurrentBinaryView;
+
 		/// <summary>
-		/// void** setCurrentFunction
+		/// void (*setCurrentFunction)(void* ctxt, BNFunction* func)
 		/// </summary>
-		public IntPtr setCurrentFunction;
-		
+		internal IntPtr setCurrentFunction;
+
 		/// <summary>
-		/// void** setCurrentBasicBlock
+		/// void (*setCurrentBasicBlock)(void* ctxt, BNBasicBlock* block)
 		/// </summary>
-		public IntPtr setCurrentBasicBlock;
-		
+		internal IntPtr setCurrentBasicBlock;
+
 		/// <summary>
-		/// void** setCurrentAddress
+		/// void (*setCurrentAddress)(void* ctxt, uint64_t addr)
 		/// </summary>
-		public IntPtr setCurrentAddress;
-		
+		internal IntPtr setCurrentAddress;
+
 		/// <summary>
-		/// void** setCurrentSelection
+		/// void (*setCurrentSelection)(void* ctxt, uint64_t begin, uint64_t end)
 		/// </summary>
-		public IntPtr setCurrentSelection;
-		
+		internal IntPtr setCurrentSelection;
+
 		/// <summary>
-		/// void** completeInput
+		/// char* (*completeInput)(void* ctxt, const char* text, uint64_t state)
 		/// </summary>
-		public IntPtr completeInput;
-		
+		internal IntPtr completeInput;
+
 		/// <summary>
-		/// void** stop
+		/// void (*stop)(void* ctxt)
 		/// </summary>
-		public IntPtr stop;
+		internal IntPtr stop;
+
+		/// <summary>
+		/// bool (*canCompleteArguments)(void* ctx, const char* text)
+		/// </summary>
+		internal IntPtr canCompleteArguments;
+
+		/// <summary>
+		/// char* (*completeArguments)(void* ctxt, const char* text, uint64_t* argumentStart)
+		/// </summary>
+		internal IntPtr completeArguments;
 	}
 
     public class ScriptingInstanceCallbacks 

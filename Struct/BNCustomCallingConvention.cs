@@ -11,108 +11,207 @@ namespace BinaryNinja
 		/// <summary>
 		/// void* context
 		/// </summary>
-		public IntPtr context;
-		
+		internal IntPtr context;
+
 		/// <summary>
-		/// void** freeObject
+		/// void (*freeObject)(void* ctxt)
 		/// </summary>
-		public IntPtr freeObject;
-		
+		internal IntPtr freeObject;
+
 		/// <summary>
-		/// void** getCallerSavedRegisters
+		/// uint32_t* (*getCallerSavedRegisters)(void* ctxt, size_t* count)
 		/// </summary>
-		public IntPtr getCallerSavedRegisters;
-		
+		internal IntPtr getCallerSavedRegisters;
+
 		/// <summary>
-		/// void** getCalleeSavedRegisters
+		/// uint32_t* (*getCalleeSavedRegisters)(void* ctxt, size_t* count)
 		/// </summary>
-		public IntPtr getCalleeSavedRegisters;
-		
+		internal IntPtr getCalleeSavedRegisters;
+
 		/// <summary>
-		/// void** getIntegerArgumentRegisters
+		/// uint32_t* (*getIntegerArgumentRegisters)(void* ctxt, size_t* count)
 		/// </summary>
-		public IntPtr getIntegerArgumentRegisters;
-		
+		internal IntPtr getIntegerArgumentRegisters;
+
 		/// <summary>
-		/// void** getFloatArgumentRegisters
+		/// uint32_t* (*getFloatArgumentRegisters)(void* ctxt, size_t* count)
 		/// </summary>
-		public IntPtr getFloatArgumentRegisters;
-		
+		internal IntPtr getFloatArgumentRegisters;
+
 		/// <summary>
-		/// void** freeRegisterList
+		/// uint32_t* (*getRequiredArgumentRegisters)(void* ctxt, size_t* count)
 		/// </summary>
-		public IntPtr freeRegisterList;
-		
+		internal IntPtr getRequiredArgumentRegisters;
+
 		/// <summary>
-		/// void** areArgumentRegistersSharedIndex
+		/// uint32_t* (*getRequiredClobberedRegisters)(void* ctxt, size_t* count)
 		/// </summary>
-		public IntPtr areArgumentRegistersSharedIndex;
-		
+		internal IntPtr getRequiredClobberedRegisters;
+
 		/// <summary>
-		/// void** isStackReservedForArgumentRegisters
+		/// void (*freeRegisterList)(void* ctxt, uint32_t* regs, size_t len)
 		/// </summary>
-		public IntPtr isStackReservedForArgumentRegisters;
-		
+		internal IntPtr freeRegisterList;
+
 		/// <summary>
-		/// void** isStackAdjustedOnReturn
+		/// bool (*areArgumentRegistersSharedIndex)(void* ctxt)
 		/// </summary>
-		public IntPtr isStackAdjustedOnReturn;
-		
+		internal IntPtr areArgumentRegistersSharedIndex;
+
 		/// <summary>
-		/// void** isEligibleForHeuristics
+		/// bool (*isStackReservedForArgumentRegisters)(void* ctxt)
 		/// </summary>
-		public IntPtr isEligibleForHeuristics;
-		
+		internal IntPtr isStackReservedForArgumentRegisters;
+
 		/// <summary>
-		/// void** getIntegerReturnValueRegister
+		/// bool (*isStackAdjustedOnReturn)(void* ctxt)
 		/// </summary>
-		public IntPtr getIntegerReturnValueRegister;
-		
+		internal IntPtr isStackAdjustedOnReturn;
+
 		/// <summary>
-		/// void** getHighIntegerReturnValueRegister
+		/// bool (*isEligibleForHeuristics)(void* ctxt)
 		/// </summary>
-		public IntPtr getHighIntegerReturnValueRegister;
-		
+		internal IntPtr isEligibleForHeuristics;
+
 		/// <summary>
-		/// void** getFloatReturnValueRegister
+		/// uint32_t (*getIntegerReturnValueRegister)(void* ctxt)
 		/// </summary>
-		public IntPtr getFloatReturnValueRegister;
-		
+		internal IntPtr getIntegerReturnValueRegister;
+
 		/// <summary>
-		/// void** getGlobalPointerRegister
+		/// uint32_t (*getHighIntegerReturnValueRegister)(void* ctxt)
 		/// </summary>
-		public IntPtr getGlobalPointerRegister;
-		
+		internal IntPtr getHighIntegerReturnValueRegister;
+
 		/// <summary>
-		/// void** getImplicitlyDefinedRegisters
+		/// uint32_t (*getFloatReturnValueRegister)(void* ctxt)
 		/// </summary>
-		public IntPtr getImplicitlyDefinedRegisters;
-		
+		internal IntPtr getFloatReturnValueRegister;
+
 		/// <summary>
-		/// void** getIncomingRegisterValue
+		/// uint32_t* (*getGlobalPointerRegisters)(void* ctxt, size_t* count)
 		/// </summary>
-		public IntPtr getIncomingRegisterValue;
-		
+		internal IntPtr getGlobalPointerRegisters;
+
 		/// <summary>
-		/// void** getIncomingFlagValue
+		/// uint32_t* (*getImplicitlyDefinedRegisters)(void* ctxt, size_t* count)
 		/// </summary>
-		public IntPtr getIncomingFlagValue;
-		
+		internal IntPtr getImplicitlyDefinedRegisters;
+
 		/// <summary>
-		/// void** getIncomingVariableForParameterVariable
+		/// void (*getIncomingRegisterValue)(void* ctxt, uint32_t reg, BNFunction* func, BNRegisterValue* result)
 		/// </summary>
-		public IntPtr getIncomingVariableForParameterVariable;
-		
+		internal IntPtr getIncomingRegisterValue;
+
 		/// <summary>
-		/// void** getParameterVariableForIncomingVariable
+		/// void (*getIncomingFlagValue)(void* ctxt, uint32_t flag, BNFunction* func, BNRegisterValue* result)
 		/// </summary>
-		public IntPtr getParameterVariableForIncomingVariable;
-		
+		internal IntPtr getIncomingFlagValue;
+
 		/// <summary>
-		/// void** areArgumentRegistersUsedForVarArgs
+		/// bool (*isReturnTypeRegisterCompatible)(void* ctxt, BNBinaryView* view, BNType* type)
 		/// </summary>
-		public IntPtr areArgumentRegistersUsedForVarArgs;
-		
+		internal IntPtr isReturnTypeRegisterCompatible;
+
+		/// <summary>
+		/// void (*getIndirectReturnValueLocation)(void* ctxt, BNVariable* outVar)
+		/// </summary>
+		internal IntPtr getIndirectReturnValueLocation;
+
+		/// <summary>
+		/// bool (*getReturnedIndirectReturnValuePointer)(void* ctxt, BNVariable* outVar)
+		/// </summary>
+		internal IntPtr getReturnedIndirectReturnValuePointer;
+
+		/// <summary>
+		/// bool (*isArgumentTypeRegisterCompatible)(void* ctxt, BNBinaryView* view, BNType* type)
+		/// </summary>
+		internal IntPtr isArgumentTypeRegisterCompatible;
+
+		/// <summary>
+		/// bool (*isNonRegisterArgumentIndirect)(void* ctxt, BNBinaryView* view, BNType* type)
+		/// </summary>
+		internal IntPtr isNonRegisterArgumentIndirect;
+
+		/// <summary>
+		/// bool (*areStackArgumentsNaturallyAligned)(void* ctxt)
+		/// </summary>
+		internal IntPtr areStackArgumentsNaturallyAligned;
+
+		/// <summary>
+		/// bool (*areStackArgumentsPushedLeftToRight)(void* ctxt)
+		/// </summary>
+		internal IntPtr areStackArgumentsPushedLeftToRight;
+
+		/// <summary>
+		/// void (*getIncomingVariableForParameterVariable)( void* ctxt, const BNVariable* var, BNFunction* func, BNVariable* result)
+		/// </summary>
+		internal IntPtr getIncomingVariableForParameterVariable;
+
+		/// <summary>
+		/// void (*getParameterVariableForIncomingVariable)( void* ctxt, const BNVariable* var, BNFunction* func, BNVariable* result)
+		/// </summary>
+		internal IntPtr getParameterVariableForIncomingVariable;
+
+		/// <summary>
+		/// bool (*areArgumentRegistersUsedForVarArgs)(void* ctxt)
+		/// </summary>
+		internal IntPtr areArgumentRegistersUsedForVarArgs;
+
+		/// <summary>
+		/// void (*getCallLayout)(void* ctxt, BNBinaryView* view, BNReturnValue* returnValue, BNFunctionParameter* params, size_t paramCount, bool hasPermittedRegs, uint32_t* permittedRegs, size_t permittedRegCount, BNCallLayout* result)
+		/// </summary>
+		internal IntPtr getCallLayout;
+
+		/// <summary>
+		/// void (*freeCallLayout)(void* ctxt, BNCallLayout* layout)
+		/// </summary>
+		internal IntPtr freeCallLayout;
+
+		/// <summary>
+		/// void (*getReturnValueLocation)( void* ctxt, BNBinaryView* view, BNReturnValue* returnValue, BNValueLocation* outLocation)
+		/// </summary>
+		internal IntPtr getReturnValueLocation;
+
+		/// <summary>
+		/// void (*freeValueLocation)(void* ctxt, BNValueLocation* location)
+		/// </summary>
+		internal IntPtr freeValueLocation;
+
+		/// <summary>
+		/// BNValueLocation* (*getParameterLocations)(void* ctxt, BNBinaryView* view, BNValueLocation* returnValue, BNFunctionParameter* params, size_t paramCount, bool hasPermittedRegs, uint32_t* permittedRegs, size_t permittedRegCount, size_t* outLocationCount)
+		/// </summary>
+		internal IntPtr getParameterLocations;
+
+		/// <summary>
+		/// void (*freeParameterLocations)(void* ctxt, BNValueLocation* locations, size_t count)
+		/// </summary>
+		internal IntPtr freeParameterLocations;
+
+		/// <summary>
+		/// BNVariable* (*getParameterOrderingForVariables)( void* ctxt, BNBinaryView* view, BNVariable* vars, BNType** types, size_t paramCount, size_t* outCount)
+		/// </summary>
+		internal IntPtr getParameterOrderingForVariables;
+
+		/// <summary>
+		/// void (*freeVariableList)(void* ctxt, BNVariable* vars, size_t count)
+		/// </summary>
+		internal IntPtr freeVariableList;
+
+		/// <summary>
+		/// int64_t (*getStackAdjustmentForLocations)(void* ctxt, BNBinaryView* view, BNValueLocation* returnValue, BNValueLocation* locations, BNType** types, size_t paramCount)
+		/// </summary>
+		internal IntPtr getStackAdjustmentForLocations;
+
+		/// <summary>
+		/// size_t (*getRegisterStackAdjustments)(void* ctxt, BNBinaryView* view, BNValueLocation* returnValue, BNValueLocation* params, size_t paramCount, uint32_t** outRegs, int32_t** outAdjust)
+		/// </summary>
+		internal IntPtr getRegisterStackAdjustments;
+
+		/// <summary>
+		/// void (*freeRegisterStackAdjustments)(void* ctxt, uint32_t* regs, int32_t* adjust, size_t count)
+		/// </summary>
+		internal IntPtr freeRegisterStackAdjustments;
 	}
 
     public class CustomCallingConvention 

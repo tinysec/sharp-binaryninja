@@ -5,7 +5,7 @@ namespace BinaryNinja
 	/// <summary>
 	/// 
 	/// </summary>
-    public enum PluginType : uint
+    public enum PluginType : byte
 	{
 		/// <summary>
 		/// 

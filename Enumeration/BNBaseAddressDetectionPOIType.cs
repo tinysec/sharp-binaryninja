@@ -5,7 +5,7 @@ namespace BinaryNinja
 	/// <summary>
 	/// 
 	/// </summary>
-    public enum BaseAddressDetectionPOIType : uint
+    public enum BaseAddressDetectionPOIType : byte
 	{
 		/// <summary>
 		/// 

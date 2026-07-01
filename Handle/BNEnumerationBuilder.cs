@@ -5,7 +5,7 @@ using Microsoft.Win32.SafeHandles;
 
 namespace BinaryNinja
 {
-	public sealed class EnumerationBuilder :  AbstractSafeHandle
+	public sealed class EnumerationBuilder :  AbstractSafeHandle<EnumerationBuilder>
 	{
 		public EnumerationBuilder() 
 			: this(NativeMethods.BNCreateEnumerationBuilder() , true)

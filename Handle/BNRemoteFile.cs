@@ -5,7 +5,7 @@ using Microsoft.Win32.SafeHandles;
 
 namespace BinaryNinja
 {
-	public sealed class RemoteFile : AbstractSafeHandle
+	public sealed class RemoteFile : AbstractSafeHandle<RemoteFile>
 	{
 	    internal RemoteFile(IntPtr handle , bool owner) 
 		    : base(handle , owner)

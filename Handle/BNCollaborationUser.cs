@@ -5,7 +5,7 @@ using Microsoft.Win32.SafeHandles;
 
 namespace BinaryNinja
 {
-	public sealed class CollaborationUser : AbstractSafeHandle
+	public sealed class CollaborationUser : AbstractSafeHandle<CollaborationUser>
 	{
 	    internal CollaborationUser(IntPtr handle , bool owner) 
 		    : base(handle , owner)

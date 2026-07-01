@@ -7,8 +7,9 @@ namespace BinaryNinja
 {
     internal static partial class NativeMethods
     {
+
 	    /// <summary>
-		/// BNRepository* BNRepositoryGetRepositoryByPath(BNRepositoryManager* r, const char* repoPath)
+		/// BNRepository* BNRepositoryGetRepositoryByPath(const char* repoPath)
 		/// </summary>
 		[DllImport(
             "binaryninjacore", 
@@ -18,12 +19,8 @@ namespace BinaryNinja
         )]
 		internal static extern IntPtr BNRepositoryGetRepositoryByPath(
 			
-			// BNRepositoryManager* r
-		    IntPtr r  , 
-			
 			// const char* repoPath
 		    string repoPath  
-			
 		);
 	}
 }

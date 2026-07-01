@@ -5,7 +5,7 @@ using Microsoft.Win32.SafeHandles;
 
 namespace BinaryNinja
 {
-	public sealed class Transform : AbstractSafeHandle
+	public sealed class Transform : AbstractSafeHandle<Transform>
 	{
 		internal Transform(IntPtr handle)
 			:base(handle , false)

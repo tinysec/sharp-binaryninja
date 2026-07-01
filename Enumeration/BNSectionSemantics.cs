@@ -5,7 +5,7 @@ namespace BinaryNinja
 	/// <summary>
 	/// 
 	/// </summary>
-    public enum SectionSemantics : uint
+    public enum SectionSemantics : byte
 	{
 		/// <summary>
 		/// 

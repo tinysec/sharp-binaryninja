@@ -47,6 +47,11 @@ namespace BinaryNinja
 		/// uint32_t MaxPointersPerCluster
 		/// </summary>
 		public uint MaxPointersPerCluster;
+
+		/// <summary>
+		/// BNBaseAddressDetectionAnalysisMode AnalysisMode
+		/// </summary>
+		public BaseAddressDetectionAnalysisMode AnalysisMode;
 	}
 
     public sealed class BaseAddressDetectionSettings 
@@ -67,8 +72,11 @@ namespace BinaryNinja
 			BaseAddressDetectionPOISetting.POIAnalysisStringsOnly;
 		
 		public uint MaxPointersPerCluster { get; set; } = 0;
-		
-		public BaseAddressDetectionSettings() 
+
+		public BaseAddressDetectionAnalysisMode AnalysisMode { get; set; } =
+			BaseAddressDetectionAnalysisMode.InstructionAnalysisBaseAddressDetection;
+
+		public BaseAddressDetectionSettings()
 		{
 		    
 		}

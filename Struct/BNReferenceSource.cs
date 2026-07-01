@@ -32,9 +32,45 @@ namespace BinaryNinja
 		
 		public ulong Address { get; set; } = 0;
 		
-		public ReferenceSource() 
+		public ReferenceSource()
 		{
-		   
+
+		}
+
+		/// <summary>
+		/// The Low Level IL instruction at this reference, or <c>null</c>.
+		/// Mirrors Python <c>ReferenceSource.llil</c>.
+		/// </summary>
+		public LowLevelILInstruction? Llil
+		{
+			get
+			{
+				return this.Function?.GetLowLevelILAt(this.Address , this.Architecture);
+			}
+		}
+
+		/// <summary>
+		/// The Medium Level IL instruction at this reference, or <c>null</c>.
+		/// Mirrors Python <c>ReferenceSource.mlil</c>.
+		/// </summary>
+		public MediumLevelILInstruction? Mlil
+		{
+			get
+			{
+				return this.Function?.GetMediumLevelILAt(this.Address , this.Architecture);
+			}
+		}
+
+		/// <summary>
+		/// The High Level IL instruction at this reference, or <c>null</c>.
+		/// Mirrors Python <c>ReferenceSource.hlil</c>.
+		/// </summary>
+		public HighLevelILInstruction? Hlil
+		{
+			get
+			{
+				return this.Function?.GetHighLevelILAt(this.Address , this.Architecture);
+			}
 		}
 
 		internal static ReferenceSource FromNative(BNReferenceSource raw)

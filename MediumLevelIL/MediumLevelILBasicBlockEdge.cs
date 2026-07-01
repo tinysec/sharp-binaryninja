@@ -4,7 +4,7 @@ using System.Runtime.InteropServices;
 
 namespace BinaryNinja
 {
-	public sealed class MediumLevelILBasicBlockEdge : AbstractBasicBlockEdge<MediumLevelILBasicBlock>
+	public sealed class MediumLevelILBasicBlockEdge : AbstractBasicBlockEdge<MediumLevelILBasicBlockEdge,MediumLevelILBasicBlock>
     {
 	    internal MediumLevelILBasicBlockEdge( 
 		    BNBasicBlockEdge native ,

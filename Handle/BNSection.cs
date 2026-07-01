@@ -5,7 +5,7 @@ using Microsoft.Win32.SafeHandles;
 
 namespace BinaryNinja
 {
-	public sealed class Section : AbstractSafeHandle
+	public sealed class Section : AbstractSafeHandle<Section>
 	{
 	    internal Section(IntPtr handle , bool owner) 
 		    : base(handle , owner)
@@ -130,7 +130,7 @@ namespace BinaryNinja
 	    {
 		    get
 		    {
-			    return this.Start + this.Length;
+			    return NativeMethods.BNSectionGetEnd(this.handle);
 		    }
 	    }
 	    

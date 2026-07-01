@@ -7,7 +7,7 @@ using Microsoft.Win32.SafeHandles;
 
 namespace BinaryNinja
 {
-	public sealed class BinaryReader : AbstractSafeHandle
+	public sealed class BinaryReader : AbstractSafeHandle<Architecture>
 	{
 		public BinaryReader(BinaryView view)
 			: this(NativeMethods.BNCreateBinaryReader(view.DangerousGetHandle()) , true)
@@ -756,6 +756,29 @@ namespace BinaryNinja
 	    public ulong? PeekULong(ulong? offset = null)
 	    {
 		    return this.PeekUInt64(offset);
+	    }
+
+	    public void SeekRelative(long offset)
+	    {
+		    NativeMethods.BNSeekBinaryReaderRelative(this.handle , offset);
+	    }
+
+	    /// <summary>
+	    /// Reads a 64-bit unsigned integer from the current position.
+	    /// Returns null if the read fails (e.g., end of data).
+	    /// </summary>
+	    /// <returns>The 64-bit unsigned integer value, or null on failure.</returns>
+	    public ulong? Read64()
+	    {
+		    // Attempt to read a 64-bit value from the current stream position.
+		    bool ok = NativeMethods.BNRead64(this.handle , out ulong result);
+
+		    if (!ok)
+		    {
+			    return null;
+		    }
+
+		    return result;
 	    }
 	}
 }

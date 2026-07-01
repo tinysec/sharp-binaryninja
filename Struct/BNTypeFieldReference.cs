@@ -54,5 +54,10 @@ namespace BinaryNinja
 		    this.Size = native.size;
 		    this.IncomingType = TypeWithConfidence.FromNative(native.incomingType);
 		}
+
+		internal static TypeFieldReference FromNative(BNTypeFieldReference native)
+		{
+		    return new TypeFieldReference(native);
+		}
     }
 }

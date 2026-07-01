@@ -5,7 +5,7 @@ namespace BinaryNinja
 	/// <summary>
 	/// 
 	/// </summary>
-    public enum BinaryViewEventType : uint
+    public enum BinaryViewEventType : byte
 	{
 		/// <summary>
 		/// 

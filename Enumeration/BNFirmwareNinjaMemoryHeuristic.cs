@@ -5,7 +5,7 @@ namespace BinaryNinja
 	/// <summary>
 	/// 
 	/// </summary>
-    public enum FirmwareNinjaMemoryHeuristic : uint
+    public enum FirmwareNinjaMemoryHeuristic : byte
 	{
 		/// <summary>
 		/// 

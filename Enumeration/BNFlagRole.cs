@@ -5,7 +5,7 @@ namespace BinaryNinja
 	/// <summary>
 	/// 
 	/// </summary>
-    public enum FlagRole : uint
+    public enum FlagRole : byte
 	{
 		/// <summary>
 		/// 

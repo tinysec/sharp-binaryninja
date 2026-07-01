@@ -5,7 +5,7 @@ namespace BinaryNinja
 	/// <summary>
 	/// 
 	/// </summary>
-    public enum AnalysisWarningActionType : uint
+    public enum AnalysisWarningActionType : byte
 	{
 		/// <summary>
 		/// 

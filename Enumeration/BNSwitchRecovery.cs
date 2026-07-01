@@ -5,7 +5,7 @@ namespace BinaryNinja
 	/// <summary>
 	/// 
 	/// </summary>
-    public enum SwitchRecovery : uint
+    public enum SwitchRecovery : byte
 	{
 		/// <summary>
 		/// 

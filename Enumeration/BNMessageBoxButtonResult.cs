@@ -5,7 +5,7 @@ namespace BinaryNinja
 	/// <summary>
 	/// 
 	/// </summary>
-    public enum MessageBoxButtonResult : uint
+    public enum MessageBoxButtonResult : byte
 	{
 		/// <summary>
 		/// 

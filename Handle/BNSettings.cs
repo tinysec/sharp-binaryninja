@@ -5,7 +5,7 @@ using Microsoft.Win32.SafeHandles;
 
 namespace BinaryNinja
 {
-	public sealed class Settings : AbstractSafeHandle
+	public sealed class Settings : AbstractSafeHandle<Settings>
 	{
 		public Settings(string schemaId = "default") 
 			: this(NativeMethods.BNCreateSettings(schemaId)  , true)
@@ -519,18 +519,129 @@ namespace BinaryNinja
 	    public bool SetJson(
 		    string key,
 		    string value,
-		    BinaryView? view, 
+		    BinaryView? view,
 		    Function? function,
 		    SettingsScope scope = SettingsScope.SettingsAutoScope
 	    )
 	    {
 		    return NativeMethods.BNSettingsSetJson(
-			    this.handle, 
+			    this.handle,
 			    null == view ? IntPtr.Zero : view.DangerousGetHandle() ,
 			    null == function ? IntPtr.Zero : function.DangerousGetHandle(),
 			    scope ,
 			    key,
 			    value
+		    );
+	    }
+
+	    /// <summary>
+	    /// Get a 64-bit signed integer setting value.
+	    /// </summary>
+	    public long GetInt64(
+		    string key,
+		    BinaryView? view = null,
+		    Function? func = null,
+		    IntPtr scope = default
+	    )
+	    {
+		    return NativeMethods.BNSettingsGetInt64(
+			    this.handle,
+			    key ,
+			    null == view ? IntPtr.Zero : view.DangerousGetHandle() ,
+			    null == func ? IntPtr.Zero : func.DangerousGetHandle(),
+			    scope
+		    );
+	    }
+
+	    /// <summary>
+	    /// Set a 64-bit signed integer setting value.
+	    /// </summary>
+	    public bool SetInt64(
+		    string key,
+		    long value,
+		    BinaryView? view = null,
+		    Function? func = null,
+		    SettingsScope scope = SettingsScope.SettingsAutoScope
+	    )
+	    {
+		    return NativeMethods.BNSettingsSetInt64(
+			    this.handle,
+			    null == view ? IntPtr.Zero : view.DangerousGetHandle() ,
+			    null == func ? IntPtr.Zero : func.DangerousGetHandle(),
+			    scope ,
+			    key,
+			    value
+		    );
+	    }
+
+	    /// <summary>
+	    /// Update a boolean property of a setting.
+	    /// </summary>
+	    public bool UpdateBoolProperty(string key , string property , bool value)
+	    {
+		    return NativeMethods.BNSettingsUpdateBoolProperty(this.handle , key , property , value);
+	    }
+
+	    /// <summary>
+	    /// Update a double property of a setting.
+	    /// </summary>
+	    public bool UpdateDoubleProperty(string key , string property , double value)
+	    {
+		    return NativeMethods.BNSettingsUpdateDoubleProperty(this.handle , key , property , value);
+	    }
+
+	    /// <summary>
+	    /// Update a 64-bit signed integer property of a setting.
+	    /// </summary>
+	    public bool UpdateInt64Property(string key , string property , long value)
+	    {
+		    return NativeMethods.BNSettingsUpdateInt64Property(this.handle , key , property , value);
+	    }
+
+	    /// <summary>
+	    /// Update a string property of a setting.
+	    /// </summary>
+	    public bool UpdateStringProperty(string key , string property , string value)
+	    {
+		    return NativeMethods.BNSettingsUpdateStringProperty(this.handle , key , property , value);
+	    }
+
+	    /// <summary>
+	    /// Update a 64-bit unsigned integer property of a setting.
+	    /// </summary>
+	    public bool UpdateUInt64Property(string key , string property , ulong value)
+	    {
+		    return NativeMethods.BNSettingsUpdateUInt64Property(this.handle , key , property , value);
+	    }
+
+	    /// <summary>
+	    /// Update a string list property of a setting.
+	    /// </summary>
+	    public bool UpdateStringListProperty(string key , string property , string[] value)
+	    {
+		    return NativeMethods.BNSettingsUpdateStringListProperty(
+			    this.handle , key , property , value , (ulong)value.Length
+		    );
+	    }
+
+	    /// <summary>
+	    /// Loads settings from a file, applying them at the specified scope.
+	    /// </summary>
+	    /// <param name="fileName">The path to the settings file to load.</param>
+	    /// <param name="scope">The settings scope to apply the loaded values to.</param>
+	    /// <param name="view">Optional binary view context; null for global scope.</param>
+	    /// <returns>True if the file was loaded successfully; false on error.</returns>
+	    public bool LoadSettingsFile(
+		    string fileName ,
+		    SettingsScope scope = SettingsScope.SettingsAutoScope ,
+		    BinaryView? view = null)
+	    {
+		    // Forward to the native API with handle, filename, scope, and optional view.
+		    return NativeMethods.BNLoadSettingsFile(
+			    this.handle ,
+			    fileName ,
+			    scope ,
+			    (view != null) ? view.DangerousGetHandle() : IntPtr.Zero
 		    );
 	    }
 	}

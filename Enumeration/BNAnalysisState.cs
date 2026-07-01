@@ -5,7 +5,7 @@ namespace BinaryNinja
 	/// <summary>
 	/// 
 	/// </summary>
-    public enum AnalysisState : uint
+    public enum AnalysisState : byte
 	{
 		/// <summary>
 		/// 

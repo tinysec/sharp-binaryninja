@@ -5,7 +5,7 @@ namespace BinaryNinja
 	/// <summary>
 	/// 
 	/// </summary>
-    public enum SymbolBinding : uint
+    public enum SymbolBinding : byte
 	{
 		/// <summary>
 		/// 

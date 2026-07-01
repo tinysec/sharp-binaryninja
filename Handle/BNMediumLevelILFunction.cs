@@ -9,7 +9,7 @@ using Microsoft.Win32.SafeHandles;
 
 namespace BinaryNinja
 {
-	public sealed class MediumLevelILFunction : AbstractSafeHandle
+	public sealed class MediumLevelILFunction : AbstractSafeHandle<MediumLevelILFunction>
 	{
 		public bool IsSSAForm { get; } = false;
 		
@@ -537,20 +537,13 @@ namespace BinaryNinja
 			    out ulong arrayLength
 			);
 		    
-		    ulong[] indexes = UnsafeUtils.TakeNumberArray<ulong>(
+		    MediumLevelILInstructionIndex[] indexs = UnsafeUtils.TakeNumberArray<MediumLevelILInstructionIndex>(
 			    arrayPointer ,
 			    arrayLength ,
 			    NativeMethods.BNFreeILInstructionList
 		    );
 
-		    List<MediumLevelILInstruction> instructions = new List<MediumLevelILInstruction>();
-
-		    foreach (MediumLevelILInstructionIndex index in indexes)
-		    {
-			    instructions.Add( this.MustGetInstruction(index) );
-		    }
-
-		    return instructions.ToArray();
+		    return this.MustGetInstructions(indexs);
 	    }
 	    
 	    public MediumLevelILInstruction[] GetSSAMemoryUses( ulong version)
@@ -561,20 +554,13 @@ namespace BinaryNinja
 			    out ulong arrayLength
 		    );
 
-		    ulong[] indexes = UnsafeUtils.TakeNumberArray<ulong>(
+		    MediumLevelILInstructionIndex[] indexs = UnsafeUtils.TakeNumberArray<MediumLevelILInstructionIndex>(
 			    arrayPointer ,
 			    arrayLength ,
 			    NativeMethods.BNFreeILInstructionList
 		    );
 		    
-		    List<MediumLevelILInstruction> instructions = new List<MediumLevelILInstruction>();
-
-		    foreach (MediumLevelILInstructionIndex index in indexes)
-		    {
-			    instructions.Add( this.MustGetInstruction(index) );
-		    }
-
-		    return instructions.ToArray();
+		    return this.MustGetInstructions(indexs);
 	    }
 	    
 	    public bool IsSSAVariableLive(Variable variable , ulong version)
@@ -613,20 +599,13 @@ namespace BinaryNinja
 			    out ulong arrayLength
 		    );
 
-		    ulong[] indexes = UnsafeUtils.TakeNumberArray<ulong>(
+		    MediumLevelILInstructionIndex[] indexs = UnsafeUtils.TakeNumberArray<MediumLevelILInstructionIndex>(
 			    arrayPointer ,
 			    arrayLength ,
 			    NativeMethods.BNFreeILInstructionList
 		    );
 		    
-		    List<MediumLevelILInstruction> instructions = new List<MediumLevelILInstruction>();
-
-		    foreach (MediumLevelILInstructionIndex index in indexes)
-		    {
-			    instructions.Add( this.MustGetInstruction(index) );
-		    }
-
-		    return instructions.ToArray();
+		    return this.MustGetInstructions(indexs);
 	    }
 	    
 	    public MediumLevelILInstruction[] GetVariableUses(Variable variable )
@@ -637,20 +616,13 @@ namespace BinaryNinja
 			    out ulong arrayLength
 		    );
 
-		    ulong[] indexes = UnsafeUtils.TakeNumberArray<ulong>(
+		    MediumLevelILInstructionIndex[] indexs = UnsafeUtils.TakeNumberArray<MediumLevelILInstructionIndex>(
 			    arrayPointer ,
 			    arrayLength ,
 			    NativeMethods.BNFreeILInstructionList
 		    );
 		    
-		    List<MediumLevelILInstruction> instructions = new List<MediumLevelILInstruction>();
-
-		    foreach (MediumLevelILInstructionIndex index in indexes)
-		    {
-			    instructions.Add( this.MustGetInstruction(index) );
-		    }
-
-		    return instructions.ToArray();
+		    return this.MustGetInstructions(indexs);
 	    }
 	    
 	    public MediumLevelILInstruction[] GetLiveInstructionsForVariable(
@@ -665,20 +637,13 @@ namespace BinaryNinja
 			    out ulong arrayLength
 		    );
 
-		    MediumLevelILInstructionIndex[] indexes = UnsafeUtils.TakeNumberArray<MediumLevelILInstructionIndex>(
+		    MediumLevelILInstructionIndex[] indexs = UnsafeUtils.TakeNumberArray<MediumLevelILInstructionIndex>(
 			    arrayPointer ,
 			    arrayLength ,
 			    NativeMethods.BNFreeILInstructionList
 		    );
 		    
-		    List<MediumLevelILInstruction> instructions = new List<MediumLevelILInstruction>();
-
-		    foreach (MediumLevelILInstructionIndex index in indexes)
-		    {
-			    instructions.Add( this.MustGetInstruction(index) );
-		    }
-
-		    return instructions.ToArray();
+		    return this.MustGetInstructions(indexs);
 	    }
 	    
 	    public RegisterValue GetSSAVariableValue(Variable variable ,  ulong version)
@@ -2450,7 +2415,7 @@ namespace BinaryNinja
 	    )
 	    {
 		    return this.AddExpression(
-			    MediumLevelILOperation.MLIL_CALL_OUTPUT,
+			    MediumLevelILOperation.MLIL_VAR_OUTPUT,
 			    location,
 			    0,
 			    (ulong)outputs.Length,
@@ -3242,6 +3207,79 @@ namespace BinaryNinja
 			    (ulong)right
 		    );
 	    }
+
+	    // ===================================================================
+	    // Instruction text and mutation
+	    // ===================================================================
+
+	    /// <summary>
+	    /// Retrieves the text tokens for the specified MLIL instruction index.
+	    /// </summary>
+	    /// <param name="instruction">The instruction index to get text for.</param>
+	    /// <param name="arch">Optional architecture override. Uses the owner function's architecture when null.</param>
+	    /// <param name="settings">Optional disassembly settings controlling display.</param>
+	    /// <returns>An array of InstructionTextToken objects, or empty if retrieval failed.</returns>
+	    public unsafe InstructionTextToken[] GetInstructionText(
+		    ulong instruction ,
+		    Architecture? arch = null ,
+		    DisassemblySettings? settings = null
+	    )
+	    {
+		    IntPtr tokensPtr = IntPtr.Zero;
+		    ulong count = 0;
+
+		    bool ok = NativeMethods.BNGetMediumLevelILInstructionText(
+			    this.handle ,
+			    this.OwnerFunction.DangerousGetHandle() ,
+			    null == arch ? this.OwnerFunction.Architecture.DangerousGetHandle() : arch.DangerousGetHandle() ,
+			    instruction ,
+			    (IntPtr)(&tokensPtr) ,
+			    (IntPtr)(&count) ,
+			    null == settings ? IntPtr.Zero : settings.DangerousGetHandle()
+		    );
+
+		    if (!ok)
+		    {
+			    return Array.Empty<InstructionTextToken>();
+		    }
+
+		    return UnsafeUtils.TakeStructArrayEx<BNInstructionTextToken , InstructionTextToken>(
+			    tokensPtr ,
+			    count ,
+			    InstructionTextToken.FromNative ,
+			    NativeMethods.BNFreeInstructionText
+		    );
+	    }
+
+	    /// <summary>
+	    /// Marks the specified MLIL instruction for removal during finalization.
+	    /// </summary>
+	    /// <param name="instr">The instruction index to mark for removal.</param>
+	    public void MarkInstructionForRemoval(ulong instr)
+	    {
+		    NativeMethods.BNMarkMediumLevelILInstructionForRemoval(this.handle , instr);
+	    }
+
+	    /// <summary>
+	    /// Replaces the specified MLIL instruction with a different expression.
+	    /// </summary>
+	    /// <param name="instr">The instruction index to replace.</param>
+	    /// <param name="expr">The expression index to use as the replacement.</param>
+	    public void ReplaceInstruction(ulong instr , ulong expr)
+	    {
+		    NativeMethods.BNReplaceMediumLevelILInstruction(this.handle , instr , expr);
+	    }
+
+	    /// <summary>
+	    /// Updates a specific operand of an MLIL instruction to a new value.
+	    /// </summary>
+	    /// <param name="instr">The instruction index to modify.</param>
+	    /// <param name="operandIndex">The operand index within the instruction.</param>
+	    /// <param name="value">The new value for the operand.</param>
+	    public void UpdateOperand(ulong instr , ulong operandIndex , ulong value)
+	    {
+		    NativeMethods.BNUpdateMediumLevelILOperand(this.handle , instr , operandIndex , value);
+	    }
 	}
-	
+
 }

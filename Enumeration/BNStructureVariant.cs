@@ -5,7 +5,7 @@ namespace BinaryNinja
 	/// <summary>
 	/// 
 	/// </summary>
-    public enum StructureVariant : uint
+    public enum StructureVariant : byte
 	{
 		/// <summary>
 		/// 

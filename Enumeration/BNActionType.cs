@@ -5,7 +5,7 @@ namespace BinaryNinja
 	/// <summary>
 	/// 
 	/// </summary>
-    public enum ActionType : uint
+    public enum ActionType : byte
 	{
 		/// <summary>
 		/// 

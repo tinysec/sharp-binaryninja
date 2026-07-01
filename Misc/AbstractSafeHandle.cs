@@ -3,9 +3,10 @@ using Microsoft.Win32.SafeHandles;
 
 namespace BinaryNinja
 {
-	public abstract class AbstractSafeHandle : SafeHandleZeroOrMinusOneIsInvalid , 
-		IEquatable<AbstractSafeHandle>, 
-		IComparable<AbstractSafeHandle>
+	public abstract class AbstractSafeHandle<T_SELF> : SafeHandleZeroOrMinusOneIsInvalid , 
+		IEquatable<T_SELF>, 
+		IComparable<T_SELF>
+		where T_SELF : AbstractSafeHandle<T_SELF>
 	{
 		internal AbstractSafeHandle(bool owner) : base(owner)
 		{
@@ -19,7 +20,7 @@ namespace BinaryNinja
 		
 		public override bool Equals(object? other)
 		{
-			AbstractSafeHandle? otherNative = other as AbstractSafeHandle;
+			T_SELF? otherNative = other as T_SELF;
 			
 			if (otherNative is null)
 			{
@@ -34,7 +35,7 @@ namespace BinaryNinja
 			return this.handle == otherNative.handle;
 		}
 
-		public bool Equals(AbstractSafeHandle? other)
+		public bool Equals(T_SELF? other)
 		{
 			if (other is null)
 			{
@@ -55,7 +56,7 @@ namespace BinaryNinja
 			return HashCode.Combine<IntPtr>( (IntPtr)this.handle);
 		}
 
-		public static bool operator ==(AbstractSafeHandle? left, AbstractSafeHandle? right)
+		public static bool operator ==(AbstractSafeHandle<T_SELF>? left, AbstractSafeHandle<T_SELF>? right)
 		{
 			if (left is null)
 			{
@@ -65,12 +66,12 @@ namespace BinaryNinja
 			return left.Equals(right);
 		}
 
-		public static bool operator !=(AbstractSafeHandle? left, AbstractSafeHandle? right)
+		public static bool operator !=(AbstractSafeHandle<T_SELF>? left, AbstractSafeHandle<T_SELF>? right)
 		{
 			return !(left == right);
 		}
 
-		public int CompareTo(AbstractSafeHandle? other)
+		public int CompareTo(T_SELF? other)
 		{
 			if (other is null)
 			{

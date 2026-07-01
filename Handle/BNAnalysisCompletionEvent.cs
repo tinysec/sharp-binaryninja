@@ -5,7 +5,7 @@ using Microsoft.Win32.SafeHandles;
 
 namespace BinaryNinja
 {
-	public sealed class AnalysisCompletionEvent : AbstractSafeHandle
+	public sealed class AnalysisCompletionEvent : AbstractSafeHandle<AnalysisCompletionEvent>
 	{
 	    internal AnalysisCompletionEvent(IntPtr handle , bool owner) 
 		    : base(handle , owner)
@@ -79,15 +79,31 @@ namespace BinaryNinja
 		    return new AnalysisCompletionEvent(handle, false);
 	    }
 
-	    protected override bool ReleaseHandle()
-	    {
-	        if ( !this.IsInvalid )
-	        {
-	            NativeMethods.BNFreeAnalysisCompletionEvent(this.handle);
-	            this.SetHandleAsInvalid();
-	        }
-	        
-	        return true;
-	    }
-	}
+        /// <summary>
+        /// Releases the native BNAnalysisCompletionEvent handle when this instance is disposed or finalized.
+        /// </summary>
+        /// <returns>True if the handle was successfully released.</returns>
+        protected override bool ReleaseHandle()
+        {
+            if (!this.IsInvalid)
+            {
+                // Free the native event handle and mark it invalid to prevent double-free.
+                NativeMethods.BNFreeAnalysisCompletionEvent(this.handle);
+                this.SetHandleAsInvalid();
+            }
+
+            return true;
+        }
+
+        /// <summary>
+        /// Cancels this analysis completion event, preventing its callback from firing.
+        /// Call this to unregister the event before the analysis completes if the callback
+        /// is no longer needed.
+        /// </summary>
+        public void Cancel()
+        {
+            // Instruct the native layer to remove this event from the completion callback list.
+            NativeMethods.BNCancelAnalysisCompletionEvent(this.handle);
+        }
+    }
 }

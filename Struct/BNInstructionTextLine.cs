@@ -20,7 +20,7 @@ namespace BinaryNinja
 		public ulong count;
 	}
 
-    public sealed class InstructionTextLine
+    public sealed class InstructionTextLine 
     {
 		public InstructionTextToken[] Tokens { get; } = Array.Empty<InstructionTextToken>();
 	

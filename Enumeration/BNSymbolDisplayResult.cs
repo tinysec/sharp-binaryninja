@@ -5,7 +5,7 @@ namespace BinaryNinja
 	/// <summary>
 	/// 
 	/// </summary>
-    public enum SymbolDisplayResult : uint
+    public enum SymbolDisplayResult : byte
 	{
 		/// <summary>
 		/// 

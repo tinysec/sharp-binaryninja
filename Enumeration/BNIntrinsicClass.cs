@@ -5,7 +5,7 @@ namespace BinaryNinja
 	/// <summary>
 	/// 
 	/// </summary>
-    public enum IntrinsicClass : uint
+    public enum IntrinsicClass : byte
 	{
 		/// <summary>
 		/// 

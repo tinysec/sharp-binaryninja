@@ -135,19 +135,17 @@ namespace BinaryNinja
 		{
 			get
 			{
+				ulong arrayLength = 0;
+
 				IntPtr arrayPointer = NativeMethods.BNGetFlowGraphNodeIncomingEdges(
 					this.handle ,
-					out ulong arrayLength
+					out arrayLength
 				);
 
 				return UnsafeUtils.TakeStructArrayEx<BNFlowGraphEdge , MediumLevelILFlowGraphEdge>(
 					arrayPointer ,
 					arrayLength ,
-					(_native) => MediumLevelILFlowGraphEdge.FromNativeEx(
-						_native,
-						this,
-						false
-					) ,
+					(_native) => MediumLevelILFlowGraphEdge.FromNativeEx(this.ILFunction , _native) ,
 					NativeMethods.BNFreeFlowGraphNodeEdgeList
 				);
 			}
@@ -157,19 +155,17 @@ namespace BinaryNinja
 		{
 			get
 			{
+				ulong arrayLength = 0;
+
 				IntPtr arrayPointer = NativeMethods.BNGetFlowGraphNodeOutgoingEdges(
 					this.handle ,
-					out ulong arrayLength
+					out arrayLength
 				);
 
 				return UnsafeUtils.TakeStructArrayEx<BNFlowGraphEdge , MediumLevelILFlowGraphEdge>(
 					arrayPointer ,
 					arrayLength ,
-					(_native) => MediumLevelILFlowGraphEdge.FromNativeEx(
-						_native,
-						this,
-						true
-					) ,
+					(_native) => MediumLevelILFlowGraphEdge.FromNativeEx(this.ILFunction , _native) ,
 					NativeMethods.BNFreeFlowGraphNodeEdgeList
 				);
 			}

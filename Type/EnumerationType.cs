@@ -24,5 +24,17 @@ namespace BinaryNinja
 				);
 			}
 		}
+
+		/// <summary>
+		/// The members of the underlying enumeration. Convenience forwarder for
+		/// <c>Enumeration.Members</c> (Python <c>EnumerationType.members</c>).
+		/// </summary>
+		public EnumerationMember[] Members
+		{
+			get
+			{
+				return this.Enumeration.Members;
+			}
+		}
 	}
 }

@@ -5,7 +5,7 @@ namespace BinaryNinja
 	/// <summary>
 	/// 
 	/// </summary>
-    public enum TransformCapabilities : uint
+    public enum TransformCapabilities : byte
 	{
 		/// <summary>
 		/// 

@@ -6,7 +6,7 @@ using Microsoft.Win32.SafeHandles;
 
 namespace BinaryNinja
 {
-	public sealed class BinaryWriter : AbstractSafeHandle
+	public sealed class BinaryWriter : AbstractSafeHandle<BinaryWriter>
 	{
 		public BinaryWriter(BinaryView view)
 			: this(NativeMethods.BNCreateBinaryWriter(view.DangerousGetHandle()) , true)
@@ -222,14 +222,19 @@ namespace BinaryNinja
 		    {
 			    encoding = Encoding.UTF8;
 		    }
-		    
+
 		    byte[] data = encoding.GetBytes(text);
-		    
+
 		    return NativeMethods.BNWriteData(
 			    this.handle ,
-			    data , 
+			    data ,
 			    (ulong)data.Length
 		    );
+	    }
+
+	    public void SeekRelative(long offset)
+	    {
+		    NativeMethods.BNSeekBinaryWriterRelative(this.handle , offset);
 	    }
 
 	}

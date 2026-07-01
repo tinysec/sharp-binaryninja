@@ -5,7 +5,7 @@ namespace BinaryNinja
 	/// <summary>
 	/// 
 	/// </summary>
-    public enum MemberScope : uint
+    public enum MemberScope : byte
 	{
 		/// <summary>
 		/// 

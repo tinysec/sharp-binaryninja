@@ -7,8 +7,9 @@ namespace BinaryNinja
 {
     internal static partial class NativeMethods
     {
+
 	    /// <summary>
-		/// bool BNPluginInstall(BNRepoPlugin* p)
+		/// bool BNPluginInstall(BNPlugin* p, const char* versionID)
 		/// </summary>
 		[DllImport(
             "binaryninjacore", 
@@ -18,9 +19,11 @@ namespace BinaryNinja
         )]
 		internal static extern bool BNPluginInstall(
 			
-			// BNRepoPlugin* p
-		    IntPtr p  
+			// BNPlugin* p
+		    IntPtr p   , 
 			
+			// const char* versionID
+		    string versionID  
 		);
 	}
 }

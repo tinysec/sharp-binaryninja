@@ -11,272 +11,282 @@ namespace BinaryNinja
 		/// <summary>
 		/// void* context
 		/// </summary>
-		public IntPtr context;
-		
+		internal IntPtr context;
+
 		/// <summary>
-		/// void** notificationBarrier
+		/// uint64_t (*notificationBarrier)(void*ctxt, BNBinaryView* view)
 		/// </summary>
-		public IntPtr notificationBarrier;
-		
+		internal IntPtr notificationBarrier;
+
 		/// <summary>
-		/// void** dataWritten
+		/// void (*dataWritten)(void* ctxt, BNBinaryView* view, uint64_t offset, size_t len)
 		/// </summary>
-		public IntPtr dataWritten;
-		
+		internal IntPtr dataWritten;
+
 		/// <summary>
-		/// void** dataInserted
+		/// void (*dataInserted)(void* ctxt, BNBinaryView* view, uint64_t offset, size_t len)
 		/// </summary>
-		public IntPtr dataInserted;
-		
+		internal IntPtr dataInserted;
+
 		/// <summary>
-		/// void** dataRemoved
+		/// void (*dataRemoved)(void* ctxt, BNBinaryView* view, uint64_t offset, uint64_t len)
 		/// </summary>
-		public IntPtr dataRemoved;
-		
+		internal IntPtr dataRemoved;
+
 		/// <summary>
-		/// void** functionAdded
+		/// void (*functionAdded)(void* ctxt, BNBinaryView* view, BNFunction* func)
 		/// </summary>
-		public IntPtr functionAdded;
-		
+		internal IntPtr functionAdded;
+
 		/// <summary>
-		/// void** functionRemoved
+		/// void (*functionRemoved)(void* ctxt, BNBinaryView* view, BNFunction* func)
 		/// </summary>
-		public IntPtr functionRemoved;
-		
+		internal IntPtr functionRemoved;
+
 		/// <summary>
-		/// void** functionUpdated
+		/// void (*functionUpdated)(void* ctxt, BNBinaryView* view, BNFunction* func)
 		/// </summary>
-		public IntPtr functionUpdated;
-		
+		internal IntPtr functionUpdated;
+
 		/// <summary>
-		/// void** functionUpdateRequested
+		/// void (*functionUpdateRequested)(void* ctxt, BNBinaryView* view, BNFunction* func)
 		/// </summary>
-		public IntPtr functionUpdateRequested;
-		
+		internal IntPtr functionUpdateRequested;
+
 		/// <summary>
-		/// void** dataVariableAdded
+		/// void (*dataVariableAdded)(void* ctxt, BNBinaryView* view, BNDataVariable* var)
 		/// </summary>
-		public IntPtr dataVariableAdded;
-		
+		internal IntPtr dataVariableAdded;
+
 		/// <summary>
-		/// void** dataVariableRemoved
+		/// void (*dataVariableRemoved)(void* ctxt, BNBinaryView* view, BNDataVariable* var)
 		/// </summary>
-		public IntPtr dataVariableRemoved;
-		
+		internal IntPtr dataVariableRemoved;
+
 		/// <summary>
-		/// void** dataVariableUpdated
+		/// void (*dataVariableUpdated)(void* ctxt, BNBinaryView* view, BNDataVariable* var)
 		/// </summary>
-		public IntPtr dataVariableUpdated;
-		
+		internal IntPtr dataVariableUpdated;
+
 		/// <summary>
-		/// void** dataMetadataUpdated
+		/// void (*dataMetadataUpdated)(void* ctxt, BNBinaryView* view, uint64_t offset)
 		/// </summary>
-		public IntPtr dataMetadataUpdated;
-		
+		internal IntPtr dataMetadataUpdated;
+
 		/// <summary>
-		/// void** tagTypeUpdated
+		/// void (*tagTypeUpdated)(void* ctxt, BNBinaryView* view, BNTagType* tagType)
 		/// </summary>
-		public IntPtr tagTypeUpdated;
-		
+		internal IntPtr tagTypeUpdated;
+
 		/// <summary>
-		/// void** tagAdded
+		/// void (*tagAdded)(void* ctxt, BNBinaryView* view, BNTagReference* tagRef)
 		/// </summary>
-		public IntPtr tagAdded;
-		
+		internal IntPtr tagAdded;
+
 		/// <summary>
-		/// void** tagRemoved
+		/// void (*tagRemoved)(void* ctxt, BNBinaryView* view, BNTagReference* tagRef)
 		/// </summary>
-		public IntPtr tagRemoved;
-		
+		internal IntPtr tagRemoved;
+
 		/// <summary>
-		/// void** tagUpdated
+		/// void (*tagUpdated)(void* ctxt, BNBinaryView* view, BNTagReference* tagRef)
 		/// </summary>
-		public IntPtr tagUpdated;
-		
+		internal IntPtr tagUpdated;
+
 		/// <summary>
-		/// void** symbolAdded
+		/// void (*symbolAdded)(void* ctxt, BNBinaryView* view, BNSymbol* sym)
 		/// </summary>
-		public IntPtr symbolAdded;
-		
+		internal IntPtr symbolAdded;
+
 		/// <summary>
-		/// void** symbolRemoved
+		/// void (*symbolRemoved)(void* ctxt, BNBinaryView* view, BNSymbol* sym)
 		/// </summary>
-		public IntPtr symbolRemoved;
-		
+		internal IntPtr symbolRemoved;
+
 		/// <summary>
-		/// void** symbolUpdated
+		/// void (*symbolUpdated)(void* ctxt, BNBinaryView* view, BNSymbol* sym)
 		/// </summary>
-		public IntPtr symbolUpdated;
-		
+		internal IntPtr symbolUpdated;
+
 		/// <summary>
-		/// void** stringFound
+		/// void (*stringFound)(void* ctxt, BNBinaryView* view, BNStringType type, uint64_t offset, size_t len)
 		/// </summary>
-		public IntPtr stringFound;
-		
+		internal IntPtr stringFound;
+
 		/// <summary>
-		/// void** stringRemoved
+		/// void (*stringRemoved)(void* ctxt, BNBinaryView* view, BNStringType type, uint64_t offset, size_t len)
 		/// </summary>
-		public IntPtr stringRemoved;
-		
+		internal IntPtr stringRemoved;
+
 		/// <summary>
-		/// void** typeDefined
+		/// void (*derivedStringFound)(void* ctxt, BNBinaryView* view, BNDerivedString* str)
 		/// </summary>
-		public IntPtr typeDefined;
-		
+		internal IntPtr derivedStringFound;
+
 		/// <summary>
-		/// void** typeUndefined
+		/// void (*derivedStringRemoved)(void* ctxt, BNBinaryView* view, BNDerivedString* str)
 		/// </summary>
-		public IntPtr typeUndefined;
-		
+		internal IntPtr derivedStringRemoved;
+
 		/// <summary>
-		/// void** typeReferenceChanged
+		/// void (*typeDefined)(void* ctxt, BNBinaryView* view, BNQualifiedName* name, BNType* type)
 		/// </summary>
-		public IntPtr typeReferenceChanged;
-		
+		internal IntPtr typeDefined;
+
 		/// <summary>
-		/// void** typeFieldReferenceChanged
+		/// void (*typeUndefined)(void* ctxt, BNBinaryView* view, BNQualifiedName* name, BNType* type)
 		/// </summary>
-		public IntPtr typeFieldReferenceChanged;
-		
+		internal IntPtr typeUndefined;
+
 		/// <summary>
-		/// void** segmentAdded
+		/// void (*typeReferenceChanged)(void* ctxt, BNBinaryView* view, BNQualifiedName* name, BNType* type)
 		/// </summary>
-		public IntPtr segmentAdded;
-		
+		internal IntPtr typeReferenceChanged;
+
 		/// <summary>
-		/// void** segmentRemoved
+		/// void (*typeFieldReferenceChanged)(void* ctxt, BNBinaryView* view, BNQualifiedName* name, uint64_t offset)
 		/// </summary>
-		public IntPtr segmentRemoved;
-		
+		internal IntPtr typeFieldReferenceChanged;
+
 		/// <summary>
-		/// void** segmentUpdated
+		/// void (*segmentAdded)(void* ctxt, BNBinaryView* view, BNSegment* segment)
 		/// </summary>
-		public IntPtr segmentUpdated;
-		
+		internal IntPtr segmentAdded;
+
 		/// <summary>
-		/// void** sectionAdded
+		/// void (*segmentRemoved)(void* ctxt, BNBinaryView* view, BNSegment* segment)
 		/// </summary>
-		public IntPtr sectionAdded;
-		
+		internal IntPtr segmentRemoved;
+
 		/// <summary>
-		/// void** sectionRemoved
+		/// void (*segmentUpdated)(void* ctxt, BNBinaryView* view, BNSegment* segment)
 		/// </summary>
-		public IntPtr sectionRemoved;
-		
+		internal IntPtr segmentUpdated;
+
 		/// <summary>
-		/// void** sectionUpdated
+		/// void (*sectionAdded)(void* ctxt, BNBinaryView* view, BNSection* section)
 		/// </summary>
-		public IntPtr sectionUpdated;
-		
+		internal IntPtr sectionAdded;
+
 		/// <summary>
-		/// void** componentNameUpdated
+		/// void (*sectionRemoved)(void* ctxt, BNBinaryView* view, BNSection* section)
 		/// </summary>
-		public IntPtr componentNameUpdated;
-		
+		internal IntPtr sectionRemoved;
+
 		/// <summary>
-		/// void** componentAdded
+		/// void (*sectionUpdated)(void* ctxt, BNBinaryView* view, BNSection* section)
 		/// </summary>
-		public IntPtr componentAdded;
-		
+		internal IntPtr sectionUpdated;
+
 		/// <summary>
-		/// void** componentMoved
+		/// void (*componentNameUpdated)(void* ctxt, BNBinaryView* view, char* previousName, BNComponent* component)
 		/// </summary>
-		public IntPtr componentMoved;
-		
+		internal IntPtr componentNameUpdated;
+
 		/// <summary>
-		/// void** componentRemoved
+		/// void (*componentAdded)(void*ctxt, BNBinaryView* view, BNComponent* component)
 		/// </summary>
-		public IntPtr componentRemoved;
-		
+		internal IntPtr componentAdded;
+
 		/// <summary>
-		/// void** componentFunctionAdded
+		/// void (*componentMoved)(void*ctxt, BNBinaryView* view, BNComponent* formerParent, BNComponent* newParent, BNComponent* component)
 		/// </summary>
-		public IntPtr componentFunctionAdded;
-		
+		internal IntPtr componentMoved;
+
 		/// <summary>
-		/// void** componentFunctionRemoved
+		/// void (*componentRemoved)(void*ctxt, BNBinaryView* view, BNComponent* formerParent, BNComponent* component)
 		/// </summary>
-		public IntPtr componentFunctionRemoved;
-		
+		internal IntPtr componentRemoved;
+
 		/// <summary>
-		/// void** componentDataVariableAdded
+		/// void (*componentFunctionAdded)(void*ctxt, BNBinaryView* view, BNComponent* component, BNFunction* function)
 		/// </summary>
-		public IntPtr componentDataVariableAdded;
-		
+		internal IntPtr componentFunctionAdded;
+
 		/// <summary>
-		/// void** componentDataVariableRemoved
+		/// void (*componentFunctionRemoved)(void*ctxt, BNBinaryView* view, BNComponent* component, BNFunction* function)
 		/// </summary>
-		public IntPtr componentDataVariableRemoved;
-		
+		internal IntPtr componentFunctionRemoved;
+
 		/// <summary>
-		/// void** externalLibraryAdded
+		/// void (*componentDataVariableAdded)(void*ctxt, BNBinaryView* view, BNComponent* component, BNDataVariable* var)
 		/// </summary>
-		public IntPtr externalLibraryAdded;
-		
+		internal IntPtr componentDataVariableAdded;
+
 		/// <summary>
-		/// void** externalLibraryUpdated
+		/// void (*componentDataVariableRemoved)(void*ctxt, BNBinaryView* view, BNComponent* component, BNDataVariable* var)
 		/// </summary>
-		public IntPtr externalLibraryUpdated;
-		
+		internal IntPtr componentDataVariableRemoved;
+
 		/// <summary>
-		/// void** externalLibraryRemoved
+		/// void (*externalLibraryAdded)(void* ctxt, BNBinaryView* data, BNExternalLibrary* library)
 		/// </summary>
-		public IntPtr externalLibraryRemoved;
-		
+		internal IntPtr externalLibraryAdded;
+
 		/// <summary>
-		/// void** externalLocationAdded
+		/// void (*externalLibraryUpdated)(void* ctxt, BNBinaryView* data, BNExternalLibrary* library)
 		/// </summary>
-		public IntPtr externalLocationAdded;
-		
+		internal IntPtr externalLibraryUpdated;
+
 		/// <summary>
-		/// void** externalLocationUpdated
+		/// void (*externalLibraryRemoved)(void* ctxt, BNBinaryView* data, BNExternalLibrary* library)
 		/// </summary>
-		public IntPtr externalLocationUpdated;
-		
+		internal IntPtr externalLibraryRemoved;
+
 		/// <summary>
-		/// void** externalLocationRemoved
+		/// void (*externalLocationAdded)(void* ctxt, BNBinaryView* data, BNExternalLocation* location)
 		/// </summary>
-		public IntPtr externalLocationRemoved;
-		
+		internal IntPtr externalLocationAdded;
+
 		/// <summary>
-		/// void** typeArchiveAttached
+		/// void (*externalLocationUpdated)(void* ctxt, BNBinaryView* data, BNExternalLocation* location)
 		/// </summary>
-		public IntPtr typeArchiveAttached;
-		
+		internal IntPtr externalLocationUpdated;
+
 		/// <summary>
-		/// void** typeArchiveDetached
+		/// void (*externalLocationRemoved)(void* ctxt, BNBinaryView* data, BNExternalLocation* location)
 		/// </summary>
-		public IntPtr typeArchiveDetached;
-		
+		internal IntPtr externalLocationRemoved;
+
 		/// <summary>
-		/// void** typeArchiveConnected
+		/// void (*typeArchiveAttached)(void* ctxt, BNBinaryView* view, const char* id, const char* path)
 		/// </summary>
-		public IntPtr typeArchiveConnected;
-		
+		internal IntPtr typeArchiveAttached;
+
 		/// <summary>
-		/// void** typeArchiveDisconnected
+		/// void (*typeArchiveDetached)(void* ctxt, BNBinaryView* view, const char* id, const char* path)
 		/// </summary>
-		public IntPtr typeArchiveDisconnected;
-		
+		internal IntPtr typeArchiveDetached;
+
 		/// <summary>
-		/// void** undoEntryAdded
+		/// void (*typeArchiveConnected)(void* ctxt, BNBinaryView* view, BNTypeArchive* archive)
 		/// </summary>
-		public IntPtr undoEntryAdded;
-		
+		internal IntPtr typeArchiveConnected;
+
 		/// <summary>
-		/// void** undoEntryTaken
+		/// void (*typeArchiveDisconnected)(void* ctxt, BNBinaryView* view, BNTypeArchive* archive)
 		/// </summary>
-		public IntPtr undoEntryTaken;
-		
+		internal IntPtr typeArchiveDisconnected;
+
 		/// <summary>
-		/// void** redoEntryTaken
+		/// void (*undoEntryAdded)(void* ctxt, BNBinaryView* view, BNUndoEntry* entry)
 		/// </summary>
-		public IntPtr redoEntryTaken;
-		
+		internal IntPtr undoEntryAdded;
+
 		/// <summary>
-		/// void** rebased
+		/// void (*undoEntryTaken)(void* ctxt, BNBinaryView* view, BNUndoEntry* entry)
 		/// </summary>
-		public IntPtr rebased;
+		internal IntPtr undoEntryTaken;
+
+		/// <summary>
+		/// void (*redoEntryTaken)(void* ctxt, BNBinaryView* view, BNUndoEntry* entry)
+		/// </summary>
+		internal IntPtr redoEntryTaken;
+
+		/// <summary>
+		/// void (*rebased)(void* ctxt, BNBinaryView* oldView, BNBinaryView* newView)
+		/// </summary>
+		internal IntPtr rebased;
 	}
 
     public class BinaryDataNotification 

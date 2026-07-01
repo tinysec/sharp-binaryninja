@@ -3,14 +3,27 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
-using System.Threading;
-using System.Threading.Tasks;
 using Microsoft.Win32.SafeHandles;
 
 namespace BinaryNinja
 {
-	public sealed class BinaryView : AbstractSafeHandle
+	public sealed class BinaryView : AbstractSafeHandle<BinaryView> , IEnumerable<Function>
 	{
+		/// <summary>
+		/// Iterates the analysis functions in this view, so that
+		/// <c>foreach (Function function in view)</c> works. Mirrors Python's
+		/// <c>for func in bv</c>.
+		/// </summary>
+		public IEnumerator<Function> GetEnumerator()
+		{
+			return ((IEnumerable<Function>)this.Functions).GetEnumerator();
+		}
+
+		System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator()
+		{
+			return this.GetEnumerator();
+		}
+
 		internal BinaryView(IntPtr handle , bool owner) 
 			: base(handle , owner)
 		{
@@ -135,9 +148,9 @@ namespace BinaryNinja
 		}
 
 		public BinaryView? Load(
-			bool updateAnalysis = false ,
-			string options = "",
-			ProgressDelegate? progress = null
+			bool updateAnalysis ,
+			string options ,
+			ProgressDelegate? progress
 		)
 		{
 			return BinaryView.TakeHandle(
@@ -152,63 +165,6 @@ namespace BinaryNinja
 							) ,
 					IntPtr.Zero
 				)
-			);
-		}
-		
-		public Task<BinaryView?> LoadAsync(
-			bool updateAnalysis = false,
-			string options = "" ,
-			CancellationToken? cancellationToken = null
-		)
-		{
-			return Task.Run(() =>
-				{
-					bool cancelled = false;
-
-					ProgressDelegate progress = (param2 , param3) =>
-					{
-						if (null != cancellationToken)
-						{
-							if (cancellationToken.GetValueOrDefault().IsCancellationRequested)
-							{
-								cancelled = true;
-
-								return false;
-							}
-						}
-
-						return true;
-					};
-
-					if (cancelled)
-					{
-						return null;
-					}
-					
-					BinaryView? view =  BinaryView.TakeHandle(
-						NativeMethods.BNLoadBinaryView(
-							this.handle ,
-							updateAnalysis ,
-							options ,
-							Marshal.GetFunctionPointerForDelegate<NativeDelegates.BNProgressFunction>(
-								UnsafeUtils.WrapProgressDelegate(progress)
-							),
-							IntPtr.Zero
-						)
-					);
-
-					if (null == view)
-					{
-						return null;
-					}
-					
-					if (cancelled && ( null != cancellationToken) )
-					{
-						cancellationToken.GetValueOrDefault().ThrowIfCancellationRequested();
-					}
-
-					return view;
-				}
 			);
 		}
 
@@ -241,64 +197,7 @@ namespace BinaryNinja
 			);
 		}
 
-		public static Task<BinaryView?> LoadFileAsync(
-			string filename ,
-			bool updateAnalysis = false ,
-			string options = "",
-			CancellationToken? cancellationToken = null
-		)
-		{
-			return Task.Run(() =>
-				{
-					bool cancelled = false;
-
-					ProgressDelegate progress = (param2 , param3) =>
-					{
-						if (null != cancellationToken)
-						{
-							if (cancellationToken.GetValueOrDefault().IsCancellationRequested)
-							{
-								cancelled = true;
-
-								return false;
-							}
-						}
-
-						return true;
-					};
-
-					if (cancelled)
-					{
-						return null;
-					}
-					
-					BinaryView? view =  BinaryView.TakeHandle(
-						NativeMethods.BNLoadFilename(
-							filename ,
-							updateAnalysis ,
-							options ,
-							Marshal.GetFunctionPointerForDelegate<NativeDelegates.BNProgressFunction>(
-									UnsafeUtils.WrapProgressDelegate(progress)) ,
-							IntPtr.Zero
-						)
-					);
-
-					if (null == view)
-					{
-						return null;
-					}
-					
-					if (cancelled && ( null != cancellationToken) )
-					{
-						cancellationToken.GetValueOrDefault().ThrowIfCancellationRequested();
-					}
-
-					return view;
-				}
-			);
-		}
-
-		public static BinaryView? OpenExistingDatabase(string filename , ProgressDelegate? progress = null)
+		public static BinaryView? OpenExisting(string filename , ProgressDelegate? progress = null)
 		{
 			FileMetadata file = new FileMetadata(filename);
 			
@@ -324,62 +223,6 @@ namespace BinaryNinja
 					)
 				);
 			}
-		}
-		
-		public static Task<BinaryView?> OpenExistingDatabaseAsync(
-			string filename ,
-			CancellationToken? cancellationToken = null
-		)
-		{
-			return Task.Run(() =>
-				{
-					bool cancelled = false;
-
-					ProgressDelegate progress = (param2 , param3) =>
-					{
-						if (null != cancellationToken)
-						{
-							if (cancellationToken.GetValueOrDefault().IsCancellationRequested)
-							{
-								cancelled = true;
-
-								return false;
-							}
-						}
-
-						return true;
-					};
-
-					if (cancelled)
-					{
-						return null;
-					}
-					
-					FileMetadata file = new FileMetadata(filename);
-					
-					BinaryView? view =  BinaryView.TakeHandle(
-						NativeMethods.BNOpenExistingDatabaseWithProgress(
-							file.DangerousGetHandle() ,
-							filename ,
-							Marshal.GetFunctionPointerForDelegate<NativeDelegates.BNProgressFunction>(
-								UnsafeUtils.WrapProgressDelegate(progress)) ,
-							IntPtr.Zero
-						)
-					);
-
-					if (null == view)
-					{
-						return null;
-					}
-					
-					if (cancelled && ( null != cancellationToken) )
-					{
-						cancellationToken.GetValueOrDefault().ThrowIfCancellationRequested();
-					}
-
-					return view;
-				}
-			);
 		}
 		
 		public BinaryView? Parent
@@ -559,7 +402,7 @@ namespace BinaryNinja
 				}
 			}
 		}
-
+		
 		public IEnumerable<LowLevelILFunction> LowLevelILFunctions
 		{
 			get
@@ -1040,7 +883,7 @@ namespace BinaryNinja
 				return UnsafeUtils.TakeStructArrayEx<BNDataVariable , DataVariable>(
 					arrayPointer ,
 					arrayLength ,
-					DataVariable.FromNative ,
+					native => DataVariable.FromNative(native , this) ,
 					NativeMethods.BNFreeDataVariables
 				);
 			}
@@ -1264,35 +1107,57 @@ namespace BinaryNinja
 			}
 		}
 
-		public RegisterValueWithConfidence GlobalPointerValue
+		public RegisterValueWithConfidenceAndRegister[] GlobalPointerValues
 		{
 			get
 			{
-				return RegisterValueWithConfidence.FromNative(
-					NativeMethods.BNGetGlobalPointerValue(this.handle)
+				IntPtr arrayPointer = NativeMethods.BNGetGlobalPointerValues(
+					this.handle ,
+					out ulong arrayLength
+				);
+
+				return UnsafeUtils.TakeStructArray<BNRegisterValueWithConfidenceAndRegister , RegisterValueWithConfidenceAndRegister>(
+					arrayPointer ,
+					arrayLength ,
+					RegisterValueWithConfidenceAndRegister.FromNative ,
+					NativeMethods.BNFreeRegisterValueWithConfidenceAndRegisterList
 				);
 			}
 
 			set
 			{
-				NativeMethods.BNSetUserGlobalPointerValue(
-					this.handle ,
-					value.ToNative()
-				);
+				using (ScopedAllocator allocator = new ScopedAllocator())
+				{
+					BNRegisterValueWithConfidenceAndRegister[] natives =
+						new BNRegisterValueWithConfidenceAndRegister[value.Length];
+
+					for (int i = 0; i < value.Length; i++)
+					{
+						natives[i] = value[i].ToNative();
+					}
+
+					IntPtr nativePtr = allocator.AllocStructArray(natives);
+
+					NativeMethods.BNSetUserGlobalPointerValues(
+						this.handle ,
+						nativePtr ,
+						(UIntPtr)value.Length
+					);
+				}
 			}
 		}
 
-		public bool UserGlobalPointerValueSet
+		public bool UserGlobalPointerValuesSet
 		{
 			get
 			{
-				return NativeMethods.BNUserGlobalPointerValueSet(this.handle);
+				return NativeMethods.BNUserGlobalPointerValuesSet(this.handle);
 			}
 		}
 
-		public void ClearUserGlobalPointerValue()
+		public void ClearUserGlobalPointerValues()
 		{
-			NativeMethods.BNClearUserGlobalPointerValue(this.handle);
+			NativeMethods.BNClearUserGlobalPointerValues(this.handle);
 		}
 
 
@@ -1842,7 +1707,7 @@ namespace BinaryNinja
 				return null;
 			}
 
-			return DataVariable.TakeNative(native);
+			return DataVariable.TakeNative(native , this);
 		}
 
 		public Function[] GetFunctionsContainingAddress(ulong address)
@@ -2096,6 +1961,64 @@ namespace BinaryNinja
 			);
 		}
 		
+		/// <summary>
+		/// Code references made from <paramref name="address"/>. When no function is
+		/// supplied, every function containing the address is considered (mirroring
+		/// Python <c>get_code_refs_from(addr, func=None, arch=None)</c>).
+		/// </summary>
+		public ulong[] GetCodeReferencesFrom(
+			ulong address ,
+			Function? function = null ,
+			Architecture? arch = null
+		)
+		{
+			HashSet<ulong> targets = new HashSet<ulong>();
+
+			foreach (ReferenceSource source in this.BuildReferenceSources(address , function , arch))
+			{
+				foreach (ulong reference in this.GetCodeReferencesFrom(source))
+				{
+					targets.Add(reference);
+				}
+			}
+
+			return targets.ToArray();
+		}
+
+		private ReferenceSource[] BuildReferenceSources(
+			ulong address ,
+			Function? function ,
+			Architecture? arch
+		)
+		{
+			if (null != function)
+			{
+				return new ReferenceSource[]
+				{
+					new ReferenceSource()
+					{
+						Function = function ,
+						Architecture = arch ?? function.Architecture ,
+						Address = address
+					}
+				};
+			}
+
+			List<ReferenceSource> sources = new List<ReferenceSource>();
+
+			foreach (Function containing in this.GetFunctionsContainingAddress(address))
+			{
+				sources.Add(new ReferenceSource()
+				{
+					Function = containing ,
+					Architecture = arch ?? containing.Architecture ,
+					Address = address
+				});
+			}
+
+			return sources.ToArray();
+		}
+
 		public ulong[] GetCodeReferencesFromInRange(ReferenceSource source , ulong length)
 		{
 			IntPtr arrayPointer = NativeMethods.BNGetCodeReferencesFromInRange(
@@ -2730,7 +2653,7 @@ namespace BinaryNinja
 			IntPtr arrayPointer = NativeMethods.BNGetCallees(
 				this.handle ,
 				callSite.ToNative() ,
-				out ulong arrayLength 
+				out ulong arrayLength
 			);
 
 			return UnsafeUtils.TakeNumberArray<ulong>(
@@ -2738,6 +2661,30 @@ namespace BinaryNinja
 				arrayLength ,
 				NativeMethods.BNFreeAddressList
 			);
+		}
+
+		/// <summary>
+		/// The call targets of the call site at <paramref name="address"/>. When no
+		/// function is supplied, every function containing the address is considered
+		/// (mirrors Python <c>get_callees(addr, func=None, arch=None)</c>).
+		/// </summary>
+		public ulong[] GetCallees(
+			ulong address ,
+			Function? function = null ,
+			Architecture? arch = null
+		)
+		{
+			HashSet<ulong> targets = new HashSet<ulong>();
+
+			foreach (ReferenceSource source in this.BuildReferenceSources(address , function , arch))
+			{
+				foreach (ulong target in this.GetCallees(source))
+				{
+					targets.Add(target);
+				}
+			}
+
+			return targets.ToArray();
 		}
 
 		public Symbol? GetSymbolByAddress(ulong address , NameSpace? ns = null)
@@ -2864,10 +2811,7 @@ namespace BinaryNinja
 
 				foreach (Symbol symbol in this.Symbols)
 				{
-					if (!items.Contains(symbol.RawName))
-					{
-						items.Add(symbol.RawName);
-					}
+					items.Add(symbol.RawName);
 				}
 
 				return items.ToArray();
@@ -2882,10 +2826,7 @@ namespace BinaryNinja
 
 				foreach (Symbol symbol in this.Symbols)
 				{
-					if (!items.Contains(symbol.FullName))
-					{
-						items.Add(symbol.FullName);
-					}
+					items.Add(symbol.FullName);
 				}
 
 				return items.ToArray();
@@ -3214,9 +3155,53 @@ namespace BinaryNinja
 				);
 			}
 		}
-		
-		
-		
+
+		/// <summary>
+		/// Retrieves all tag references of a specific type from this binary view.
+		/// </summary>
+		/// <param name="tagType">The tag type to filter references by.</param>
+		/// <returns>An array of matching TagReference objects.</returns>
+		public unsafe TagReference[] GetAllTagReferencesOfType(TagType tagType)
+		{
+			ulong count = 0;
+
+			IntPtr ptr = NativeMethods.BNGetAllTagReferencesOfType(
+				this.handle ,
+				tagType.DangerousGetHandle() ,
+				(IntPtr)(&count)
+			);
+
+			return UnsafeUtils.TakeStructArrayEx<BNTagReference , TagReference>(
+				ptr ,
+				count ,
+				TagReference.FromNative ,
+				NativeMethods.BNFreeTagReferences
+			);
+		}
+
+		/// <summary>
+		/// Retrieves tag references of a specific type from this binary view.
+		/// </summary>
+		/// <param name="tagType">The tag type to filter references by.</param>
+		/// <returns>An array of matching TagReference objects.</returns>
+		public unsafe TagReference[] GetTagReferencesOfType(TagType tagType)
+		{
+			ulong count = 0;
+
+			IntPtr ptr = NativeMethods.BNGetTagReferencesOfType(
+				this.handle ,
+				tagType.DangerousGetHandle() ,
+				(IntPtr)(&count)
+			);
+
+			return UnsafeUtils.TakeStructArrayEx<BNTagReference , TagReference>(
+				ptr ,
+				count ,
+				TagReference.FromNative ,
+				NativeMethods.BNFreeTagReferences
+			);
+		}
+
 		public Tag[] GetDataTags(ulong address)
 		{
 			IntPtr arrayPointer = NativeMethods.BNGetDataTags(
@@ -5749,12 +5734,10 @@ namespace BinaryNinja
 
 	    public Symbol? ChooseSymbol(string prompt = "Choose" , string title = "Choose a symbol")
 	    {
-		    string[] names = this.SymbolNames;
-		    
 		    int? index = Core.GetLargeChoiceInput(
 			    prompt ,
 			    title ,
-			    names
+			    this.SymbolNames
 		    );
 
 		    if (null == index)
@@ -5762,17 +5745,15 @@ namespace BinaryNinja
 			    return null;
 		    }
 		    
-		    return this.GetSymbolByRawName(names[(int)index]);
+		    return this.GetSymbolByRawName(this.SymbolNames[(int)index]);
 	    }
 	    
 	    public Function? ChooseFunction(string prompt = "Choose" , string title = "Choose a function")
 	    {
-		    string[] names = this.SymbolNames;
-		    
 		    int? index = Core.GetLargeChoiceInput(
 			    prompt ,
 			    title ,
-			    names
+			    this.SymbolNames
 		    );
 
 		    if (null == index)
@@ -5780,8 +5761,1177 @@ namespace BinaryNinja
 			    return null;
 		    }
 		    
-		    return this.GetFunctionByRawName(names[(int)index]);
+		    return this.GetFunctionByRawName(this.SymbolNames[(int)index]);
+	    }
+
+	    // ─── Type archive association methods ────────────────────────────────────
+
+	    /// <summary>
+	    /// Disassociates a type in this binary view from its corresponding type archive entry.
+	    /// After disassociation the type is treated as a local type with no archive link.
+	    /// </summary>
+	    /// <param name="typeId">The analysis type ID to disassociate from its archive type.</param>
+	    /// <returns>True if the disassociation succeeded, false otherwise.</returns>
+	    public bool DisassociateTypeArchiveType(string typeId)
+	    {
+		    // Forward the disassociation request to the native API.
+		    return NativeMethods.BNBinaryViewDisassociateTypeArchiveType(
+			    this.handle ,
+			    typeId
+		    );
+	    }
+
+	    /// <summary>
+	    /// Retrieves the synchronisation status of the given type with respect to its
+	    /// associated type archive entry.
+	    /// </summary>
+	    /// <param name="typeId">The analysis type ID to query.</param>
+	    /// <returns>The current SyncStatus value for the type.</returns>
+	    public SyncStatus GetTypeArchiveSyncStatus(string typeId)
+	    {
+		    // Query the native sync status for the given analysis type.
+		    return NativeMethods.BNBinaryViewGetTypeArchiveSyncStatus(
+			    this.handle ,
+			    typeId
+		    );
+	    }
+
+	    /// <summary>
+	    /// Looks up a type name by its GUID string.
+	    /// </summary>
+	    /// <param name="guid">The GUID identifying the type.</param>
+	    /// <returns>The qualified name corresponding to the GUID.</returns>
+	    public QualifiedName GetTypeNameByGuid(string guid)
+	    {
+		    // Retrieve the native BNQualifiedName struct and convert to managed form.
+		    return QualifiedName.TakeNative(
+			    NativeMethods.BNBinaryViewGetTypeNameByGuid(
+				    this.handle ,
+				    guid
+			    )
+		    );
+	    }
+
+	    /// <summary>
+	    /// Removes the external location mapping for the given source symbol.
+	    /// After removal the symbol no longer maps to an external target.
+	    /// </summary>
+	    /// <param name="sourceSymbol">The source symbol whose external location should be removed.</param>
+	    public void RemoveExternalLocation(Symbol sourceSymbol)
+	    {
+		    // Forward the removal request to the native API.
+		    NativeMethods.BNBinaryViewRemoveExternalLocation(
+			    this.handle ,
+			    sourceSymbol.DangerousGetHandle()
+		    );
+	    }
+
+	    /// <summary>
+	    /// Gets the external location mapping for the given source symbol, if one exists.
+	    /// </summary>
+	    /// <param name="sourceSymbol">The source symbol to query.</param>
+	    /// <returns>The ExternalLocation for the symbol, or null if none is set.</returns>
+	    public ExternalLocation? GetExternalLocation(Symbol sourceSymbol)
+	    {
+		    // Retrieve the handle and take ownership; returns null when the handle is zero.
+		    return ExternalLocation.TakeHandle(
+			    NativeMethods.BNBinaryViewGetExternalLocation(
+				    this.handle ,
+				    sourceSymbol.DangerousGetHandle()
+			    )
+		    );
+	    }
+
+	    /// <summary>
+	    /// Adds an external location mapping from a source symbol to a target in an
+	    /// external library.
+	    /// </summary>
+	    /// <param name="sourceSymbol">The import stub or reference symbol in this binary.</param>
+	    /// <param name="library">The external library that contains the target.</param>
+	    /// <param name="targetSymbol">The symbol name within the external library.</param>
+	    /// <param name="targetAddress">Pointer to the target address, or IntPtr.Zero if unset.</param>
+	    /// <param name="isAuto">True if the location was auto-discovered, false if user-defined.</param>
+	    /// <returns>The newly created ExternalLocation, or null on failure.</returns>
+	    public ExternalLocation? AddExternalLocation(
+		    Symbol sourceSymbol ,
+		    ExternalLibrary library ,
+		    string targetSymbol ,
+		    IntPtr targetAddress ,
+		    bool isAuto = false
+	    )
+	    {
+		    // Create the native external location and take ownership of the returned handle.
+		    return ExternalLocation.TakeHandle(
+			    NativeMethods.BNBinaryViewAddExternalLocation(
+				    this.handle ,
+				    sourceSymbol.DangerousGetHandle() ,
+				    library.DangerousGetHandle() ,
+				    targetSymbol ,
+				    targetAddress ,
+				    isAuto
+			    )
+		    );
+	    }
+
+	    /// <summary>
+	    /// Retrieves all external locations defined in this binary view.
+	    /// </summary>
+	    /// <returns>An array of ExternalLocation objects.</returns>
+	    public unsafe ExternalLocation[] GetExternalLocations()
+	    {
+		    // 1. Stack-allocate the count variable and retrieve the native handle array.
+		    ulong count = 0;
+
+		    IntPtr ptr = NativeMethods.BNBinaryViewGetExternalLocations(
+			    this.handle ,
+			    (IntPtr)(&count)
+		    );
+
+		    // 2. Convert the handle array to managed objects and free the native list.
+		    return UnsafeUtils.TakeHandleArrayEx<ExternalLocation>(
+			    ptr ,
+			    count ,
+			    ExternalLocation.MustNewFromHandle ,
+			    NativeMethods.BNFreeExternalLocationList
+		    );
+	    }
+
+	    // ─── Type archive association query methods ──────────────────────────────
+
+	    /// <summary>
+	    /// Given an archive ID and an archive type ID, retrieves the corresponding
+	    /// analysis type ID in this binary view.
+	    /// </summary>
+	    /// <param name="archiveId">The type archive identifier.</param>
+	    /// <param name="archiveTypeId">The type ID within the archive.</param>
+	    /// <param name="typeId">On success, receives the analysis type ID.</param>
+	    /// <returns>True if the mapping was found, false otherwise.</returns>
+	    public bool GetAssociatedTypeArchiveTypeSource(
+		    string archiveId ,
+		    string archiveTypeId ,
+		    out string typeId
+	    )
+	    {
+		    // 1. Prepare a single-element array to receive the out string from the native layer.
+		    string[] typeIdArray = new string[1];
+
+		    // 2. Call the native function with the array-based out parameter.
+		    bool ok = NativeMethods.BNBinaryViewGetAssociatedTypeArchiveTypeSource(
+			    this.handle ,
+			    archiveId ,
+			    archiveTypeId ,
+			    typeIdArray
+		    );
+
+		    // 3. On success, extract the result; on failure, return empty.
+		    typeId = ok ? typeIdArray[0] : string.Empty;
+
+		    return ok;
+	    }
+
+	    /// <summary>
+	    /// Given an analysis type ID, retrieves the archive ID and archive type ID it
+	    /// is associated with.
+	    /// </summary>
+	    /// <param name="typeId">The analysis type ID to look up.</param>
+	    /// <param name="archiveId">On success, receives the archive identifier.</param>
+	    /// <param name="archiveTypeId">On success, receives the type ID within the archive.</param>
+	    /// <returns>True if the mapping was found, false otherwise.</returns>
+	    public bool GetAssociatedTypeArchiveTypeTarget(
+		    string typeId ,
+		    out string archiveId ,
+		    out string archiveTypeId
+	    )
+	    {
+		    // 1. Prepare single-element arrays for both out parameters.
+		    string[] archiveIdArray = new string[1];
+		    string[] archiveTypeIdArray = new string[1];
+
+		    // 2. Call the native function with the array-based out parameters.
+		    bool ok = NativeMethods.BNBinaryViewGetAssociatedTypeArchiveTypeTarget(
+			    this.handle ,
+			    typeId ,
+			    archiveIdArray ,
+			    archiveTypeIdArray
+		    );
+
+		    // 3. On success, extract the results; on failure, return empty strings.
+		    archiveId = ok ? archiveIdArray[0] : string.Empty;
+		    archiveTypeId = ok ? archiveTypeIdArray[0] : string.Empty;
+
+		    return ok;
+	    }
+
+	    // ─── Type archive pull / push methods ───────────────────────────────────
+
+	    /// <summary>
+	    /// Pulls (imports) types from a type archive into this binary view. Returns
+	    /// the updated archive type IDs and the corresponding analysis type IDs that
+	    /// were created or refreshed.
+	    /// </summary>
+	    /// <param name="archiveId">The type archive identifier to pull from.</param>
+	    /// <param name="archiveTypeIds">The archive type IDs to pull.</param>
+	    /// <param name="updatedArchiveTypeIds">On success, receives the archive type IDs that were updated.</param>
+	    /// <param name="updatedAnalysisTypeIds">On success, receives the analysis type IDs that were updated.</param>
+	    /// <returns>True if the pull operation succeeded, false otherwise.</returns>
+	    public unsafe bool PullTypeArchiveTypes(
+		    string archiveId ,
+		    string[] archiveTypeIds ,
+		    out string[] updatedArchiveTypeIds ,
+		    out string[] updatedAnalysisTypeIds
+	    )
+	    {
+		    // 1. Stack-allocate locals for the native out-params.
+		    ulong count = 0;
+		    IntPtr updatedArchiveTypeIdsPtr = IntPtr.Zero;
+		    IntPtr updatedAnalysisTypeIdsPtr = IntPtr.Zero;
+
+		    // 2. Call the native pull function with pointers to the locals.
+		    bool ok = NativeMethods.BNBinaryViewPullTypeArchiveTypes(
+			    this.handle ,
+			    archiveId ,
+			    archiveTypeIds ,
+			    (ulong)archiveTypeIds.Length ,
+			    (IntPtr)(&updatedArchiveTypeIdsPtr) ,
+			    (IntPtr)(&updatedAnalysisTypeIdsPtr) ,
+			    (IntPtr)(&count)
+		    );
+
+		    // 3. On success, convert the native string arrays to managed arrays.
+		    if (ok)
+		    {
+			    updatedArchiveTypeIds = UnsafeUtils.TakeAnsiStringArray(
+				    updatedArchiveTypeIdsPtr ,
+				    count ,
+				    NativeMethods.BNFreeStringList
+			    );
+
+			    updatedAnalysisTypeIds = UnsafeUtils.TakeAnsiStringArray(
+				    updatedAnalysisTypeIdsPtr ,
+				    count ,
+				    NativeMethods.BNFreeStringList
+			    );
+		    }
+		    else
+		    {
+			    // 4. On failure, return empty arrays.
+			    updatedArchiveTypeIds = Array.Empty<string>();
+			    updatedAnalysisTypeIds = Array.Empty<string>();
+		    }
+
+		    return ok;
+	    }
+
+	    /// <summary>
+	    /// Pushes (exports) types from this binary view into a type archive. Returns
+	    /// the updated analysis type IDs and the corresponding archive type IDs that
+	    /// were created or refreshed.
+	    /// </summary>
+	    /// <param name="archiveId">The type archive identifier to push to.</param>
+	    /// <param name="typeIds">The analysis type IDs to push.</param>
+	    /// <param name="updatedAnalysisTypeIds">On success, receives the analysis type IDs that were updated.</param>
+	    /// <param name="updatedArchiveTypeIds">On success, receives the archive type IDs that were updated.</param>
+	    /// <returns>True if the push operation succeeded, false otherwise.</returns>
+	    public unsafe bool PushTypeArchiveTypes(
+		    string archiveId ,
+		    string[] typeIds ,
+		    out string[] updatedAnalysisTypeIds ,
+		    out string[] updatedArchiveTypeIds
+	    )
+	    {
+		    // 1. Stack-allocate locals for the native out-params.
+		    ulong count = 0;
+		    IntPtr updatedAnalysisTypeIdsPtr = IntPtr.Zero;
+		    IntPtr updatedArchiveTypeIdsPtr = IntPtr.Zero;
+
+		    // 2. Call the native push function with pointers to the locals.
+		    bool ok = NativeMethods.BNBinaryViewPushTypeArchiveTypes(
+			    this.handle ,
+			    archiveId ,
+			    typeIds ,
+			    (ulong)typeIds.Length ,
+			    (IntPtr)(&updatedAnalysisTypeIdsPtr) ,
+			    (IntPtr)(&updatedArchiveTypeIdsPtr) ,
+			    (IntPtr)(&count)
+		    );
+
+		    // 3. On success, convert the native string arrays to managed arrays.
+		    if (ok)
+		    {
+			    updatedAnalysisTypeIds = UnsafeUtils.TakeAnsiStringArray(
+				    updatedAnalysisTypeIdsPtr ,
+				    count ,
+				    NativeMethods.BNFreeStringList
+			    );
+
+			    updatedArchiveTypeIds = UnsafeUtils.TakeAnsiStringArray(
+				    updatedArchiveTypeIdsPtr ,
+				    count ,
+				    NativeMethods.BNFreeStringList
+			    );
+		    }
+		    else
+		    {
+			    // 4. On failure, return empty arrays.
+			    updatedAnalysisTypeIds = Array.Empty<string>();
+			    updatedArchiveTypeIds = Array.Empty<string>();
+		    }
+
+		    return ok;
+	    }
+
+	    // ─── Type archive bulk query methods ─────────────────────────────────────
+
+	    /// <summary>
+	    /// Retrieves all type archive associations for this binary view, returning
+	    /// triples of analysis type ID, archive ID, and archive type ID.
+	    /// </summary>
+	    /// <param name="typeIds">On return, the analysis type IDs that have archive associations.</param>
+	    /// <param name="archiveIds">On return, the archive IDs for each association.</param>
+	    /// <param name="archiveTypeIds">On return, the archive type IDs for each association.</param>
+	    /// <returns>The number of associations returned.</returns>
+	    public unsafe ulong GetAssociatedTypeArchiveTypes(
+		    out string[] typeIds ,
+		    out string[] archiveIds ,
+		    out string[] archiveTypeIds
+	    )
+	    {
+		    // 1. Stack-allocate locals for the native out-param pointers.
+		    IntPtr typeIdsPtr = IntPtr.Zero;
+		    IntPtr archiveIdsPtr = IntPtr.Zero;
+		    IntPtr archiveTypeIdsPtr = IntPtr.Zero;
+
+		    // 2. Call the native function to retrieve all associated type triples.
+		    ulong count = NativeMethods.BNBinaryViewGetAssociatedTypeArchiveTypes(
+			    this.handle ,
+			    (IntPtr)(&typeIdsPtr) ,
+			    (IntPtr)(&archiveIdsPtr) ,
+			    (IntPtr)(&archiveTypeIdsPtr)
+		    );
+
+		    // 3. Convert each native string array to a managed array and free the native memory.
+		    typeIds = UnsafeUtils.TakeAnsiStringArray(
+			    typeIdsPtr ,
+			    count ,
+			    NativeMethods.BNFreeStringList
+		    );
+
+		    archiveIds = UnsafeUtils.TakeAnsiStringArray(
+			    archiveIdsPtr ,
+			    count ,
+			    NativeMethods.BNFreeStringList
+		    );
+
+		    archiveTypeIds = UnsafeUtils.TakeAnsiStringArray(
+			    archiveTypeIdsPtr ,
+			    count ,
+			    NativeMethods.BNFreeStringList
+		    );
+
+		    return count;
+	    }
+
+	    /// <summary>
+	    /// Retrieves all type associations from a specific archive, returning pairs of
+	    /// analysis type ID and archive type ID.
+	    /// </summary>
+	    /// <param name="archiveId">The type archive identifier to query.</param>
+	    /// <param name="typeIds">On return, the analysis type IDs associated with the archive.</param>
+	    /// <param name="archiveTypeIds">On return, the archive type IDs for each association.</param>
+	    /// <returns>The number of associations returned.</returns>
+	    public unsafe ulong GetAssociatedTypesFromArchive(
+		    string archiveId ,
+		    out string[] typeIds ,
+		    out string[] archiveTypeIds
+	    )
+	    {
+		    // 1. Stack-allocate locals for the native out-param pointers.
+		    IntPtr typeIdsPtr = IntPtr.Zero;
+		    IntPtr archiveTypeIdsPtr = IntPtr.Zero;
+
+		    // 2. Call the native function to retrieve associations for the given archive.
+		    ulong count = NativeMethods.BNBinaryViewGetAssociatedTypesFromArchive(
+			    this.handle ,
+			    archiveId ,
+			    (IntPtr)(&typeIdsPtr) ,
+			    (IntPtr)(&archiveTypeIdsPtr)
+		    );
+
+		    // 3. Convert the native string arrays and free the native memory.
+		    typeIds = UnsafeUtils.TakeAnsiStringArray(
+			    typeIdsPtr ,
+			    count ,
+			    NativeMethods.BNFreeStringList
+		    );
+
+		    archiveTypeIds = UnsafeUtils.TakeAnsiStringArray(
+			    archiveTypeIdsPtr ,
+			    count ,
+			    NativeMethods.BNFreeStringList
+		    );
+
+		    return count;
+	    }
+
+	    /// <summary>
+	    /// Retrieves the list of all type names that have type archive associations.
+	    /// </summary>
+	    /// <returns>An array of qualified names with archive associations.</returns>
+	    public unsafe QualifiedName[] GetTypeArchiveTypeNameList()
+	    {
+		    // 1. Stack-allocate a local for the native BNQualifiedName* out-param.
+		    IntPtr namesPtr = IntPtr.Zero;
+
+		    // 2. Call the native function; it returns the count and fills the pointer.
+		    ulong count = NativeMethods.BNBinaryViewGetTypeArchiveTypeNameList(
+			    this.handle ,
+			    (IntPtr)(&namesPtr)
+		    );
+
+		    // 3. Convert the native BNQualifiedName array to managed QualifiedName objects.
+		    return UnsafeUtils.TakeStructArrayEx<BNQualifiedName , QualifiedName>(
+			    namesPtr ,
+			    count ,
+			    QualifiedName.FromNative ,
+			    NativeMethods.BNFreeTypeNameList
+		    );
+	    }
+
+	    /// <summary>
+	    /// Given a type name, retrieves all type archive associations for that name,
+	    /// returning pairs of archive ID and archive type ID.
+	    /// </summary>
+	    /// <param name="name">The qualified type name to query.</param>
+	    /// <param name="archiveIds">On return, the archive IDs for each association.</param>
+	    /// <param name="archiveTypeIds">On return, the archive type IDs for each association.</param>
+	    /// <returns>The number of associations returned.</returns>
+	    public unsafe ulong GetTypeArchiveTypeNames(
+		    QualifiedName name ,
+		    out string[] archiveIds ,
+		    out string[] archiveTypeIds
+	    )
+	    {
+		    using (ScopedAllocator allocator = new ScopedAllocator())
+		    {
+			    // 1. Stack-allocate locals for the native out-param pointers.
+			    IntPtr archiveIdsPtr = IntPtr.Zero;
+			    IntPtr archiveTypeIdsPtr = IntPtr.Zero;
+
+			    // 2. Call the native function with the marshalled name pointer.
+			    ulong count = NativeMethods.BNBinaryViewGetTypeArchiveTypeNames(
+				    this.handle ,
+				    allocator.AllocStruct<BNQualifiedName>(name.ToNativeEx(allocator)) ,
+				    (IntPtr)(&archiveIdsPtr) ,
+				    (IntPtr)(&archiveTypeIdsPtr)
+			    );
+
+			    // 3. Convert the native string arrays and free the native memory.
+			    archiveIds = UnsafeUtils.TakeAnsiStringArray(
+				    archiveIdsPtr ,
+				    count ,
+				    NativeMethods.BNFreeStringList
+			    );
+
+			    archiveTypeIds = UnsafeUtils.TakeAnsiStringArray(
+				    archiveTypeIdsPtr ,
+				    count ,
+				    NativeMethods.BNFreeStringList
+			    );
+
+			    return count;
+		    }
+	    }
+
+	    // ─── Tag data methods ────────────────────────────────────────────────────
+
+	    /// <summary>
+	    /// Adds an auto data tag at the specified address.
+	    /// </summary>
+	    /// <param name="addr">The address to add the tag at.</param>
+	    /// <param name="tag">The tag to add.</param>
+	    public void AddAutoDataTag(ulong addr , Tag tag)
+	    {
+		    NativeMethods.BNAddAutoDataTag(
+			    this.handle ,
+			    addr ,
+			    tag.DangerousGetHandle()
+		    );
+	    }
+
+	    /// <summary>
+	    /// Returns the total count of all tag references of the given tag type across the binary view.
+	    /// </summary>
+	    /// <param name="tagType">The tag type to count references for.</param>
+	    /// <returns>The number of tag references of the specified type.</returns>
+	    public ulong GetAllTagReferencesOfTypeCount(TagType tagType)
+	    {
+		    return NativeMethods.BNGetAllTagReferencesOfTypeCount(
+			    this.handle ,
+			    tagType.DangerousGetHandle()
+		    );
+	    }
+
+	    /// <summary>
+	    /// Retrieves data tags of a specific type at the given address.
+	    /// </summary>
+	    /// <param name="addr">The address to query tags at.</param>
+	    /// <param name="tagType">The tag type to filter by.</param>
+	    /// <returns>An array of matching Tag objects.</returns>
+	    public unsafe Tag[] GetDataTagsOfType(ulong addr , TagType tagType)
+	    {
+		    // 1. Stack-allocate the count variable and retrieve the native handle array.
+		    ulong count = 0;
+
+		    IntPtr ptr = NativeMethods.BNGetDataTagsOfType(
+			    this.handle ,
+			    addr ,
+			    tagType.DangerousGetHandle() ,
+			    (IntPtr)(&count)
+		    );
+
+		    // 2. Convert the handle array to managed Tag objects and free the native list.
+		    return UnsafeUtils.TakeHandleArrayEx<Tag>(
+			    ptr ,
+			    count ,
+			    Tag.MustNewFromHandle ,
+			    NativeMethods.BNFreeTagList
+		    );
+	    }
+
+	    /// <summary>
+	    /// Retrieves auto data tags of a specific type at the given address.
+	    /// </summary>
+	    /// <param name="addr">The address to query tags at.</param>
+	    /// <param name="tagType">The tag type to filter by.</param>
+	    /// <returns>An array of matching Tag objects.</returns>
+	    public unsafe Tag[] GetAutoDataTagsOfType(ulong addr , TagType tagType)
+	    {
+		    // 1. Stack-allocate the count variable and retrieve the native handle array.
+		    ulong count = 0;
+
+		    IntPtr ptr = NativeMethods.BNGetAutoDataTagsOfType(
+			    this.handle ,
+			    addr ,
+			    tagType.DangerousGetHandle() ,
+			    (IntPtr)(&count)
+		    );
+
+		    // 2. Convert the handle array to managed Tag objects and free the native list.
+		    return UnsafeUtils.TakeHandleArrayEx<Tag>(
+			    ptr ,
+			    count ,
+			    Tag.MustNewFromHandle ,
+			    NativeMethods.BNFreeTagList
+		    );
+	    }
+
+	    /// <summary>
+	    /// Retrieves user data tags of a specific type at the given address.
+	    /// </summary>
+	    /// <param name="addr">The address to query tags at.</param>
+	    /// <param name="tagType">The tag type to filter by.</param>
+	    /// <returns>An array of matching Tag objects.</returns>
+	    public unsafe Tag[] GetUserDataTagsOfType(ulong addr , TagType tagType)
+	    {
+		    // 1. Stack-allocate the count variable and retrieve the native handle array.
+		    ulong count = 0;
+
+		    IntPtr ptr = NativeMethods.BNGetUserDataTagsOfType(
+			    this.handle ,
+			    addr ,
+			    tagType.DangerousGetHandle() ,
+			    (IntPtr)(&count)
+		    );
+
+		    // 2. Convert the handle array to managed Tag objects and free the native list.
+		    return UnsafeUtils.TakeHandleArrayEx<Tag>(
+			    ptr ,
+			    count ,
+			    Tag.MustNewFromHandle ,
+			    NativeMethods.BNFreeTagList
+		    );
+	    }
+
+	    // ─── Debug info methods ──────────────────────────────────────────────────
+
+	    /// <summary>
+	    /// Retrieves all debug info parsers applicable to this binary view.
+	    /// </summary>
+	    /// <returns>An array of DebugInfoParser objects.</returns>
+	    public unsafe DebugInfoParser[] GetDebugInfoParsersForView()
+	    {
+		    // 1. Stack-allocate the count variable and retrieve the native handle array.
+		    ulong count = 0;
+
+		    IntPtr ptr = NativeMethods.BNGetDebugInfoParsersForView(
+			    this.handle ,
+			    (IntPtr)(&count)
+		    );
+
+		    // 2. Convert the handle array to managed objects and free the native list.
+		    return UnsafeUtils.TakeHandleArrayEx<DebugInfoParser>(
+			    ptr ,
+			    count ,
+			    DebugInfoParser.MustNewFromHandle ,
+			    NativeMethods.BNFreeDebugInfoParserList
+		    );
+	    }
+
+	    // ─── Relocation methods ──────────────────────────────────────────────────
+
+	    /// <summary>
+	    /// Defines a relocation with a numeric target address.
+	    /// </summary>
+	    /// <param name="arch">The architecture for the relocation.</param>
+	    /// <param name="info">The relocation info describing the relocation parameters.</param>
+	    /// <param name="target">The target address of the relocation.</param>
+	    /// <param name="reloc">The address of the relocation entry.</param>
+	    internal void DefineRelocation(Architecture arch , BNRelocationInfo info , ulong target , ulong reloc)
+	    {
+		    using (ScopedAllocator allocator = new ScopedAllocator())
+		    {
+			    NativeMethods.BNDefineRelocation(
+				    this.handle ,
+				    arch.DangerousGetHandle() ,
+				    allocator.AllocStruct<BNRelocationInfo>(info) ,
+				    target ,
+				    reloc
+			    );
+		    }
+	    }
+
+	    /// <summary>
+	    /// Defines a relocation with a symbol as the target.
+	    /// </summary>
+	    /// <param name="arch">The architecture for the relocation.</param>
+	    /// <param name="info">The relocation info describing the relocation parameters.</param>
+	    /// <param name="target">The target symbol of the relocation.</param>
+	    /// <param name="reloc">The address of the relocation entry.</param>
+	    internal void DefineSymbolRelocation(Architecture arch , BNRelocationInfo info , Symbol target , ulong reloc)
+	    {
+		    using (ScopedAllocator allocator = new ScopedAllocator())
+		    {
+			    NativeMethods.BNDefineSymbolRelocation(
+				    this.handle ,
+				    arch.DangerousGetHandle() ,
+				    allocator.AllocStruct<BNRelocationInfo>(info) ,
+				    target.DangerousGetHandle() ,
+				    reloc
+			    );
+		    }
+	    }
+
+	    // ─── All type reference methods ──────────────────────────────────────────
+
+	    /// <summary>
+	    /// Retrieves all references (code, data, and type) for the specified type.
+	    /// </summary>
+	    /// <param name="type">The qualified type name to query.</param>
+	    /// <param name="limit">Whether to limit the number of results.</param>
+	    /// <param name="maxItems">The maximum number of items to return when limit is true.</param>
+	    /// <returns>An AllTypeReferences object containing code, data, and type references.</returns>
+	    public unsafe AllTypeReferences GetAllReferencesForType(
+		    QualifiedName type ,
+		    bool limit = false ,
+		    ulong maxItems = 0
+	    )
+	    {
+		    using (ScopedAllocator allocator = new ScopedAllocator())
+		    {
+			    // 1. Call the native function to retrieve all references for the type.
+			    BNAllTypeReferences native = NativeMethods.BNGetAllReferencesForType(
+				    this.handle ,
+				    allocator.AllocStruct<BNQualifiedName>(type.ToNativeEx(allocator)) ,
+				    limit ,
+				    maxItems
+			    );
+
+			    // 2. Convert the inner arrays from the native struct to managed arrays.
+			    AllTypeReferences result = new AllTypeReferences();
+
+			    result.CodeRefs = UnsafeUtils.TakeStructArrayEx<BNReferenceSource , ReferenceSource>(
+				    native.codeRefs ,
+				    native.codeRefCount ,
+				    ReferenceSource.FromNative ,
+				    NativeMethods.BNFreeCodeReferences
+			    );
+
+			    result.DataRefs = UnsafeUtils.TakeNumberArray<ulong>(
+				    native.dataRefs ,
+				    native.dataRefCount ,
+				    NativeMethods.BNFreeDataReferences
+			    );
+
+			    result.TypeRefs = UnsafeUtils.TakeStructArrayEx<BNTypeReferenceSource , TypeReferenceSource>(
+				    native.typeRefs ,
+				    native.typeRefCount ,
+				    TypeReferenceSource.FromNative ,
+				    NativeMethods.BNFreeTypeReferences
+			    );
+
+			    return result;
+		    }
+	    }
+
+	    /// <summary>
+	    /// Retrieves all references (code, data-to, data-from, and type) for the specified type field.
+	    /// </summary>
+	    /// <param name="type">The qualified type name to query.</param>
+	    /// <param name="offset">The field offset within the type.</param>
+	    /// <param name="limit">Whether to limit the number of results.</param>
+	    /// <param name="maxItems">The maximum number of items to return when limit is true.</param>
+	    /// <returns>An AllTypeFieldReferences object containing code, data, and type references.</returns>
+	    public unsafe AllTypeFieldReferences GetAllReferencesForTypeField(
+		    QualifiedName type ,
+		    ulong offset ,
+		    bool limit = false ,
+		    ulong maxItems = 0
+	    )
+	    {
+		    using (ScopedAllocator allocator = new ScopedAllocator())
+		    {
+			    // 1. Call the native function to retrieve all references for the type field.
+			    BNAllTypeFieldReferences native = NativeMethods.BNGetAllReferencesForTypeField(
+				    this.handle ,
+				    allocator.AllocStruct<BNQualifiedName>(type.ToNativeEx(allocator)) ,
+				    offset ,
+				    limit ,
+				    maxItems
+			    );
+
+			    // 2. Convert the inner arrays from the native struct to managed arrays.
+			    AllTypeFieldReferences result = new AllTypeFieldReferences();
+
+			    result.CodeRefs = UnsafeUtils.TakeStructArrayEx<BNTypeFieldReference , TypeFieldReference>(
+				    native.codeRefs ,
+				    native.codeRefCount ,
+				    TypeFieldReference.FromNative ,
+				    NativeMethods.BNFreeTypeFieldReferences
+			    );
+
+			    result.DataRefsTo = UnsafeUtils.TakeNumberArray<ulong>(
+				    native.dataRefsTo ,
+				    native.dataRefToCount ,
+				    NativeMethods.BNFreeDataReferences
+			    );
+
+			    result.DataRefsFrom = UnsafeUtils.TakeNumberArray<ulong>(
+				    native.dataRefsFrom ,
+				    native.dataRefFromCount ,
+				    NativeMethods.BNFreeDataReferences
+			    );
+
+			    result.TypeRefs = UnsafeUtils.TakeStructArrayEx<BNTypeReferenceSource , TypeReferenceSource>(
+				    native.typeRefs ,
+				    native.typeRefCount ,
+				    TypeReferenceSource.FromNative ,
+				    NativeMethods.BNFreeTypeReferences
+			    );
+
+			    return result;
+		    }
+	    }
+
+	    // ─── Tag reference type count methods ────────────────────────────────────
+
+	    /// <summary>
+	    /// Retrieves a dictionary mapping each tag type to its total reference count
+	    /// across the entire binary view.
+	    /// </summary>
+	    /// <returns>A dictionary mapping TagType to its reference count.</returns>
+	    public unsafe IDictionary<TagType , ulong> GetAllTagReferenceTypeCounts()
+	    {
+		    // 1. Stack-allocate the out-param pointers for the parallel arrays.
+		    IntPtr tagTypesPtr = IntPtr.Zero;
+		    IntPtr countsPtr = IntPtr.Zero;
+		    ulong count = 0;
+
+		    // 2. Call the native function to retrieve parallel arrays of tag types and counts.
+		    NativeMethods.BNGetAllTagReferenceTypeCounts(
+			    this.handle ,
+			    (IntPtr)(&tagTypesPtr) ,
+			    (IntPtr)(&countsPtr) ,
+			    (IntPtr)(&count)
+		    );
+
+		    // 3. Build a dictionary by reading from the parallel native arrays.
+		    Dictionary<TagType , ulong> result = new Dictionary<TagType , ulong>();
+
+		    if (IntPtr.Zero != tagTypesPtr && IntPtr.Zero != countsPtr && 0 != count)
+		    {
+			    for (ulong i = 0; i < count; i++)
+			    {
+				    // 3.1 Read the tag type handle pointer from the tag types array.
+				    IntPtr tagTypeHandle = Marshal.ReadIntPtr(
+					    tagTypesPtr ,
+					    checked((int)(i * (ulong)IntPtr.Size))
+				    );
+
+				    // 3.2 Read the corresponding count value from the counts array.
+				    ulong refCount = (ulong)Marshal.ReadInt64(
+					    countsPtr ,
+					    checked((int)(i * sizeof(ulong)))
+				    );
+
+				    // 3.3 Wrap the native handle and add to the dictionary.
+				    TagType tagType = TagType.MustNewFromHandle(tagTypeHandle);
+				    result[tagType] = refCount;
+			    }
+		    }
+
+		    // 4. Free both native arrays using the dedicated free function.
+		    if (IntPtr.Zero != tagTypesPtr || IntPtr.Zero != countsPtr)
+		    {
+			    NativeMethods.BNFreeTagReferenceTypeCounts(tagTypesPtr , countsPtr , count);
+		    }
+
+		    return result;
+	    }
+
+	    /// <summary>
+	    /// Adds an auto-analysis data reference from one address to another.
+	    /// Unlike AddUserDataReference, this reference is managed by the analysis engine.
+	    /// </summary>
+	    /// <param name="from">The source address of the reference.</param>
+	    /// <param name="to">The target address of the reference.</param>
+	    public void AddDataReference(ulong from , ulong to)
+	    {
+		    NativeMethods.BNAddDataReference(this.handle , from , to);
+	    }
+
+	    /// <summary>
+	    /// Adds inferred names for outer structure members from a HLIL variable expression.
+	    /// Returns the list of names added.
+	    /// </summary>
+	    /// <param name="type">The structure type to resolve names for.</param>
+	    /// <param name="hlil">The high-level IL function containing the variable expression.</param>
+	    /// <param name="varExpr">The HLIL expression index referencing the variable.</param>
+	    /// <returns>An array of added member names.</returns>
+	    public unsafe string[] AddNamesForOuterStructureMembers(
+		    BinaryNinja.Type type ,
+		    HighLevelILFunction hlil ,
+		    ulong varExpr
+	    )
+	    {
+		    // 1. Stack-allocate the count variable.
+		    ulong nameCount = 0;
+
+		    // 2. Call the native function to retrieve the names.
+		    IntPtr arrayPointer = NativeMethods.BNAddNamesForOuterStructureMembers(
+			    this.handle ,
+			    type.DangerousGetHandle() ,
+			    hlil.DangerousGetHandle() ,
+			    varExpr ,
+			    (IntPtr)(&nameCount)
+		    );
+
+		    // 3. Convert the native string array to managed strings and free.
+		    return UnsafeUtils.TakeAnsiStringArray(
+			    arrayPointer ,
+			    nameCount ,
+			    NativeMethods.BNFreeStringList
+		    );
+	    }
+
+	    /// <summary>
+	    /// Creates a snapshot of the current view state with the given view name.
+	    /// </summary>
+	    /// <param name="viewName">The name to assign to the snapshot.</param>
+	    /// <returns>True if the snapshot was created successfully.</returns>
+	    public bool CreateSnapshotedView(string viewName)
+	    {
+		    return NativeMethods.BNCreateSnapshotedView(this.handle , viewName);
+	    }
+
+	    /// <summary>
+	    /// Creates a snapshot of the current view state with progress reporting.
+	    /// </summary>
+	    /// <param name="viewName">The name to assign to the snapshot.</param>
+	    /// <param name="progress">Optional progress callback, or null for no progress reporting.</param>
+	    /// <returns>True if the snapshot was created successfully.</returns>
+	    public bool CreateSnapshotedViewWithProgress(
+		    string viewName ,
+		    ProgressDelegate? progress = null
+	    )
+	    {
+		    if (null == progress)
+		    {
+			    return NativeMethods.BNCreateSnapshotedViewWithProgress(
+				    this.handle ,
+				    viewName ,
+				    IntPtr.Zero ,
+				    IntPtr.Zero
+			    );
+		    }
+		    else
+		    {
+			    return NativeMethods.BNCreateSnapshotedViewWithProgress(
+				    this.handle ,
+				    viewName ,
+				    IntPtr.Zero ,
+				    Marshal.GetFunctionPointerForDelegate<NativeDelegates.BNProgressFunction>(
+					    UnsafeUtils.WrapProgressDelegate(progress)
+				    )
+			    );
+		    }
+	    }
+
+	    /// <summary>
+	    /// Gets the display string for an integer value using the specified display type.
+	    /// </summary>
+	    /// <param name="displayType">The integer display format (hex, decimal, etc.).</param>
+	    /// <param name="value">The integer value to format.</param>
+	    /// <param name="inputWidth">The width of the input value in bytes.</param>
+	    /// <param name="isSigned">Whether the value should be treated as signed.</param>
+	    /// <returns>A formatted display string for the integer.</returns>
+	    public string GetDisplayStringForInteger(
+		    IntegerDisplayType displayType ,
+		    ulong value ,
+		    ulong inputWidth ,
+		    bool isSigned
+	    )
+	    {
+		    return UnsafeUtils.TakeAnsiString(
+			    NativeMethods.BNGetDisplayStringForInteger(
+				    this.handle ,
+				    displayType ,
+				    value ,
+				    inputWidth ,
+				    isSigned
+			    )
+		    );
+	    }
+
+	    /// <summary>
+	    /// Gets the count of tag references for a specific tag type.
+	    /// </summary>
+	    /// <param name="tagType">The tag type to count references for.</param>
+	    /// <returns>The number of tag references of the specified type.</returns>
+	    public ulong GetTagReferencesOfTypeCount(TagType tagType)
+	    {
+		    return NativeMethods.BNGetTagReferencesOfTypeCount(
+			    this.handle ,
+			    tagType.DangerousGetHandle()
+		    );
+	    }
+
+	    /// <summary>
+	    /// Generates unique section names from an input array of proposed names.
+	    /// </summary>
+	    /// <param name="names">The array of proposed section names.</param>
+	    /// <returns>An array of unique section names with conflicts resolved.</returns>
+	    public string[] GetUniqueSectionNames(string[] names)
+	    {
+		    // 1. Call native to get uniquified names.
+		    IntPtr arrayPointer = NativeMethods.BNGetUniqueSectionNames(
+			    this.handle ,
+			    names ,
+			    (ulong)names.Length
+		    );
+
+		    // 2. Convert the result array and free.
+		    return UnsafeUtils.TakeAnsiStringArray(
+			    arrayPointer ,
+			    (ulong)names.Length ,
+			    NativeMethods.BNFreeStringList
+		    );
+	    }
+
+	    /// <summary>
+	    /// Gets all symbols visible in the current binary view within the given namespace.
+	    /// </summary>
+	    /// <param name="ns">Optional namespace filter, or null for all namespaces.</param>
+	    /// <returns>An array of visible Symbol objects.</returns>
+	    public unsafe Symbol[] GetVisibleSymbols(NameSpace? ns = null)
+	    {
+		    // 1. Stack-allocate the count variable.
+		    ulong count = 0;
+
+		    using (ScopedAllocator allocator = new ScopedAllocator())
+		    {
+			    // 2. Call the native function with optional namespace.
+			    IntPtr arrayPointer = NativeMethods.BNGetVisibleSymbols(
+				    this.handle ,
+				    (IntPtr)(&count) ,
+				    null == ns
+					    ? IntPtr.Zero
+					    : allocator.AllocStruct<BNNameSpace>(
+						    ns.ToNativeEx(allocator)
+					    )
+			    );
+
+			    // 3. Convert the handle array to managed Symbol objects.
+			    return UnsafeUtils.TakeHandleArrayEx<Symbol>(
+				    arrayPointer ,
+				    count ,
+				    Symbol.MustNewFromHandle ,
+				    NativeMethods.BNFreeSymbolList
+			    );
+		    }
+	    }
+
+	    /// <summary>
+	    /// Gets whether this binary view is currently applying debug info.
+	    /// </summary>
+	    public bool IsApplyingDebugInfo
+	    {
+		    get
+		    {
+			    return NativeMethods.BNIsApplyingDebugInfo(this.handle);
+		    }
+	    }
+
+	    /// <summary>
+	    /// Parses a text-format file and returns a BinaryView representing its contents.
+	    /// </summary>
+	    /// <param name="filename">The path to the text-format file.</param>
+	    /// <returns>A BinaryView if parsing succeeds, or null on failure.</returns>
+	    public static BinaryView? ParseTextFormat(string filename)
+	    {
+		    return BinaryView.TakeHandle(
+			    NativeMethods.BNParseTextFormat(filename)
+		    );
+	    }
+
+	    /// <summary>
+	    /// Removes a tag reference from this binary view.
+	    /// </summary>
+	    /// <param name="tagRef">The tag reference to remove.</param>
+	    public void RemoveTagReference(TagReference tagRef)
+	    {
+		    NativeMethods.BNRemoveTagReference(
+			    this.handle ,
+			    tagRef
+		    );
+	    }
+
+	    /// <summary>
+	    /// Posts a workflow request for this binary view.
+	    /// </summary>
+	    /// <param name="request">The workflow request string.</param>
+	    /// <returns>The response string from the workflow engine.</returns>
+	    public string PostWorkflowRequestForBinaryView(string request)
+	    {
+		    return UnsafeUtils.TakeAnsiString(
+			    NativeMethods.BNPostWorkflowRequestForBinaryView(
+				    this.handle ,
+				    request
+			    )
+		    );
+	    }
+
+	    /// <summary>
+	    /// Shows a workflow report for this binary view.
+	    /// </summary>
+	    /// <param name="name">The name of the workflow report to show.</param>
+	    public void ShowWorkflowReportForBinaryView(string name)
+	    {
+		    NativeMethods.BNShowWorkflowReportForBinaryView(this.handle , name);
+	    }
+
+	    // TODO: RegisterDataNotification requires BNBinaryDataNotification callback delegate infrastructure.
+	    // TODO: UnregisterDataNotification requires BNBinaryDataNotification callback delegate infrastructure.
+
+	    /// <summary>
+	    /// Gets the analysis type that corresponds to the given named type reference.
+	    /// </summary>
+	    /// <param name="typeRef">The named type reference to resolve.</param>
+	    /// <returns>The resolved Type, or null if not found.</returns>
+	    public BinaryNinja.Type? GetAnalysisTypeByRef(NamedTypeReference typeRef)
+	    {
+		    return BinaryNinja.Type.TakeHandle(
+			    NativeMethods.BNGetAnalysisTypeByRef(
+				    this.handle ,
+				    typeRef.DangerousGetHandle()
+			    )
+		    );
+	    }
+
+	    // ===================================================================
+	    // Tag retrieval
+	    // ===================================================================
+
+	    /// <summary>
+	    /// Gets a tag by its unique identifier string.
+	    /// </summary>
+	    /// <param name="tagId">The tag identifier string.</param>
+	    /// <returns>The Tag with the given ID, or null if not found.</returns>
+	    public Tag? GetTag(string tagId)
+	    {
+		    return Tag.NewFromHandle(
+			    NativeMethods.BNGetTag(this.handle , tagId)
+		    );
+	    }
+
+	    // ===================================================================
+	    // Tag type retrieval with type filter
+	    // ===================================================================
+
+	    /// <summary>
+	    /// Gets a tag type by name and tag type kind.
+	    /// </summary>
+	    /// <param name="name">The name of the tag type.</param>
+	    /// <param name="type">The tag type kind to filter by.</param>
+	    /// <returns>The matching TagType, or null if not found.</returns>
+	    public TagType? GetTagTypeWithType(string name , TagTypeType type)
+	    {
+		    return TagType.NewFromHandle(
+			    NativeMethods.BNGetTagTypeWithType(this.handle , name , type)
+		    );
+	    }
+
+	    /// <summary>
+	    /// Gets a tag type by its unique identifier and tag type kind.
+	    /// </summary>
+	    /// <param name="id">The unique identifier of the tag type.</param>
+	    /// <param name="type">The tag type kind to filter by.</param>
+	    /// <returns>The matching TagType, or null if not found.</returns>
+	    public TagType? GetTagTypeByIdWithType(string id , TagTypeType type)
+	    {
+		    return TagType.NewFromHandle(
+			    NativeMethods.BNGetTagTypeByIdWithType(this.handle , id , type)
+		    );
+	    }
+
+	    // ===================================================================
+	    // Background analysis task
+	    // ===================================================================
+
+	    /// <summary>
+	    /// Gets the background analysis task associated with this binary view.
+	    /// </summary>
+	    /// <returns>The BackgroundTask if analysis is running, or null otherwise.</returns>
+	    public BackgroundTask? GetBackgroundAnalysisTask()
+	    {
+		    return BackgroundTask.TakeHandle(
+			    NativeMethods.BNGetBackgroundAnalysisTask(this.handle)
+		    );
+	    }
+
+	    // ===================================================================
+	    // Import address symbol resolution
+	    // ===================================================================
+
+	    /// <summary>
+	    /// Resolves the imported function symbol from an import address symbol.
+	    /// </summary>
+	    /// <param name="sym">The import address symbol to resolve.</param>
+	    /// <param name="addr">The address associated with the import.</param>
+	    /// <returns>The resolved function Symbol, or null if not found.</returns>
+	    public Symbol? ImportedFunctionFromImportAddressSymbol(Symbol sym , ulong addr)
+	    {
+		    IntPtr raw = NativeMethods.BNImportedFunctionFromImportAddressSymbol(
+			    sym.DangerousGetHandle() ,
+			    addr
+		    );
+
+		    if (raw == IntPtr.Zero)
+		    {
+			    return null;
+		    }
+
+		    return new Symbol(raw , true);
 	    }
 	}
-	
+
 }

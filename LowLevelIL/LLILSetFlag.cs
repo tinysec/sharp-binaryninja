@@ -11,7 +11,7 @@ namespace BinaryNinja
 			
 		}
 
-		public Flag Destionation
+		public ILFlag Destionation
 		{
 			get
 			{

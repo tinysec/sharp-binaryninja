@@ -5,12 +5,12 @@ namespace BinaryNinja
 	/// <summary>
 	/// 
 	/// </summary>
-    public enum FunctionGraphType : uint
+    public enum FunctionGraphType : sbyte
 	{
 		/// <summary>
-		/// 
+		///
 		/// </summary>
-		InvalidILViewType = 0xffffffff,
+		InvalidILViewType = -1,
 		
 		/// <summary>
 		/// 

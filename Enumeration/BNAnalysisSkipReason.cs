@@ -5,7 +5,7 @@ namespace BinaryNinja
 	/// <summary>
 	/// 
 	/// </summary>
-    public enum AnalysisSkipReason : uint
+    public enum AnalysisSkipReason : byte
 	{
 		/// <summary>
 		/// 

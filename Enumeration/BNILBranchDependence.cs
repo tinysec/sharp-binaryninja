@@ -5,7 +5,7 @@ namespace BinaryNinja
 	/// <summary>
 	/// 
 	/// </summary>
-    public enum ILBranchDependence : uint
+    public enum ILBranchDependence : byte
 	{
 		/// <summary>
 		/// 

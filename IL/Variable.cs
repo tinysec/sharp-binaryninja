@@ -1,11 +1,12 @@
 namespace BinaryNinja
 {
-	public abstract class AbstractFunctionVariable : AbstractVariable
+	public abstract class AbstractFunctionVariable<T_SELF> : AbstractVariable<T_SELF>
+		where T_SELF : AbstractFunctionVariable<T_SELF>
 	{
 		public Function Function { get; }
 	
-		internal AbstractFunctionVariable(AbstractFunctionVariable other) 
-			:base(other.Source , other.Index ,other.Storage)
+		internal AbstractFunctionVariable(AbstractFunctionVariable<T_SELF> other) 
+			:base(other.Type , other.Index ,other.Storage)
 		{
 			this.Function = other.Function;
 		}
@@ -26,7 +27,6 @@ namespace BinaryNinja
 			this.Function = function;
 		}
 		
-		
 		public string Name
 		{
 			get
@@ -36,16 +36,6 @@ namespace BinaryNinja
 						this.Function.DangerousGetHandle() ,
 						this.ToNative()
 					)
-				);
-			}
-
-			set
-			{
-				this.Function.CreateUserVariable(
-					this ,
-					this.Type ,
-					value,
-					false
 				);
 			}
 		}
@@ -68,38 +58,76 @@ namespace BinaryNinja
 			return this.Name;
 		}
 
-		public TypeWithConfidence Type
+		/// <summary>
+		/// This variable as a plain <see cref="CoreVariable"/> (type/index/storage
+		/// without the owning function), for the <c>Function</c> APIs that take one.
+		/// </summary>
+		public CoreVariable AsCoreVariable()
+		{
+			return CoreVariable.FromNative(this.ToNative());
+		}
+
+		/// <summary>
+		/// The data type of this variable. Mirrors Python <c>Variable.type</c>.
+		/// (Named <c>VariableType</c> because <see cref="AbstractVariable{T}.Type"/>
+		/// already denotes the variable's <see cref="VariableSourceType"/>.)
+		/// The setter defines a user variable keeping the current name.
+		/// </summary>
+		public TypeWithConfidence VariableType
 		{
 			get
 			{
-				return TypeWithConfidence.FromNative(
-					NativeMethods.BNGetVariableType(
-						this.Function.DangerousGetHandle() ,
-						this.ToNative()
-					)
-				);
+				return this.Function.GetVariableType(this.AsCoreVariable());
 			}
 
 			set
 			{
 				this.Function.CreateUserVariable(
-					this ,
-					this.Type ,
-					this.Name,
+					this.AsCoreVariable() ,
+					value ,
+					this.Name ,
 					false
 				);
 			}
 		}
-		
-		
-		public void DeleteUserVariable()
+
+		/// <summary>
+		/// Whether this variable is a parameter of its function.
+		/// Mirrors Python <c>Variable.is_parameter_variable</c>.
+		/// </summary>
+		public bool IsParameter
 		{
-			NativeMethods.BNDeleteUserVariable(
-				this.Function.DangerousGetHandle() ,
-				this.ToNative()
-			);
+			get
+			{
+				foreach (Variable parameter in this.Function.ParameterVariables.Variables)
+				{
+					if (parameter.Identifier == this.Identifier)
+					{
+						return true;
+					}
+				}
+
+				return false;
+			}
 		}
-		
+
+		/// <summary>
+		/// The dead-store elimination mode for this variable.
+		/// Mirrors Python <c>Variable.dead_store_elimination</c>.
+		/// </summary>
+		public DeadStoreElimination DeadStoreElimination
+		{
+			get
+			{
+				return this.Function.GetFunctionVariableDeadStoreElimination(this.AsCoreVariable());
+			}
+
+			set
+			{
+				this.Function.SetFunctionVariableDeadStoreElimination(this.AsCoreVariable() , value);
+			}
+		}
+
 		public void SetUserValue(ArchitectureAndAddress defSite , PossibleValueSet value , bool after)
 		{
 			using (ScopedAllocator allocator = new ScopedAllocator())
@@ -125,7 +153,7 @@ namespace BinaryNinja
 		}
 	}
 	
-	public sealed class Variable : AbstractFunctionVariable
+	public sealed class Variable : AbstractFunctionVariable<Variable>
 	{
 		internal Variable(Variable other) 
 			:base(other)

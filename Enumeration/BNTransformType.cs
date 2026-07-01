@@ -5,7 +5,7 @@ namespace BinaryNinja
 	/// <summary>
 	/// 
 	/// </summary>
-    public enum TransformType : uint
+    public enum TransformType : ushort
 	{
 		/// <summary>
 		/// 

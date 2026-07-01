@@ -13,6 +13,7 @@ namespace BinaryNinja
 		[DllImport(
             "binaryninjacore", 
             CallingConvention = System.Runtime.InteropServices.CallingConvention.Cdecl,
+            CharSet = CharSet.Ansi,
             EntryPoint = "BNSetAutoInstructionHighlight"
         )]
 		internal static extern void BNSetAutoInstructionHighlight(
@@ -27,7 +28,8 @@ namespace BinaryNinja
 		    ulong addr  , 
 			
 			// BNHighlightColor color
-			in BNHighlightColor color  
+		    HighlightColor color  
+			
 		);
 	}
 }

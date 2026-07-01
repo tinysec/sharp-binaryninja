@@ -5,7 +5,7 @@ namespace BinaryNinja
 	/// <summary>
 	/// 
 	/// </summary>
-    public enum StringType : uint
+    public enum StringType : byte
 	{
 		/// <summary>
 		/// 

@@ -5,7 +5,7 @@ using Microsoft.Win32.SafeHandles;
 
 namespace BinaryNinja
 {
-	public sealed class FieldResolutionInfo : AbstractSafeHandle
+	public sealed class FieldResolutionInfo : AbstractSafeHandle<FieldResolutionInfo>
 	{
 	    public FieldResolutionInfo(IntPtr handle , bool owner) 
 		    : base(handle , owner)

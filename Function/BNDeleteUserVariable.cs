@@ -13,6 +13,7 @@ namespace BinaryNinja
 		[DllImport(
             "binaryninjacore", 
             CallingConvention = System.Runtime.InteropServices.CallingConvention.Cdecl,
+            CharSet = CharSet.Ansi,
             EntryPoint = "BNDeleteUserVariable"
         )]
 		internal static extern void BNDeleteUserVariable(
@@ -21,7 +22,8 @@ namespace BinaryNinja
 		    IntPtr func  , 
 			
 			// BNVariable* _var
-		    in BNVariable _var  
+		    IntPtr _var  
+			
 		);
 	}
 }

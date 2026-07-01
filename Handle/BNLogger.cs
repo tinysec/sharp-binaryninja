@@ -5,7 +5,7 @@ using Microsoft.Win32.SafeHandles;
 
 namespace BinaryNinja
 {
-	public sealed class Logger : AbstractSafeHandle
+	public sealed class Logger : AbstractSafeHandle<Logger>
 	{
 		public Logger( string name , ulong sessionId = 0 )
 			:this ( Logger.rawGetOrCreateLogger(name , sessionId) , true)
@@ -121,31 +121,6 @@ namespace BinaryNinja
 		    }
 	    }
 	    
-	    public void Indent()
-	    {
-		    NativeMethods.BNLoggerIndent(this.handle);
-	    }
-	    
-	    public void Dedent()
-	    {
-		    NativeMethods.BNLoggerDedent(this.handle);
-	    }
-	    
-	    public void ResetIndent()
-	    {
-		    NativeMethods.BNLoggerResetIndent(this.handle);
-	    }
-
-	    public string IndentText
-	    {
-		    get
-		    {
-			    return UnsafeUtils.TakeAnsiString(
-				    NativeMethods.BNGetLoggerIndent(this.handle)
-			    );
-		    }
-	    }
-
 	    public void LogString(LogLevel level , string text)
 	    {
 		    NativeMethods.BNLoggerLogString(this.handle , level , text);

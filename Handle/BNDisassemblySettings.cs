@@ -5,7 +5,7 @@ using Microsoft.Win32.SafeHandles;
 
 namespace BinaryNinja
 {
-	public sealed class DisassemblySettings : AbstractSafeHandle
+	public sealed class DisassemblySettings : AbstractSafeHandle<DisassemblySettings>
 	{
 		public DisassemblySettings() 
 			: this( NativeMethods.BNDefaultDisassemblySettings() , true)
@@ -194,6 +194,59 @@ namespace BinaryNinja
 		    }
 	    }
 
-	    
+	    /// <summary>
+	    /// Gets or sets the block label display mode for disassembly output.
+	    /// </summary>
+	    public DisassemblyBlockLabels BlockLabels
+	    {
+		    get
+		    {
+			    return NativeMethods.BNGetDisassemblyBlockLabels(this.handle);
+		    }
+
+		    set
+		    {
+			    NativeMethods.BNSetDisassemblyBlockLabels(this.handle , value);
+		    }
+	    }
+
+	    /// <summary>
+	    /// Gets or sets the call parameter hint display mode for disassembly output.
+	    /// </summary>
+	    public DisassemblyCallParameterHints CallParameterHints
+	    {
+		    get
+		    {
+			    return NativeMethods.BNGetDisassemblyCallParameterHints(this.handle);
+		    }
+
+		    set
+		    {
+			    NativeMethods.BNSetDisassemblyCallParameterHints(this.handle , value);
+		    }
+	    }
+
+	    /// <summary>
+	    /// Creates a new empty disassembly settings instance.
+	    /// </summary>
+	    /// <returns>A new DisassemblySettings instance.</returns>
+	    public static DisassemblySettings Create()
+	    {
+		    return DisassemblySettings.MustTakeHandle(
+			    NativeMethods.BNCreateDisassemblySettings()
+		    );
+	    }
+
+	    /// <summary>
+	    /// Creates a deep copy of this disassembly settings instance.
+	    /// </summary>
+	    /// <returns>A new DisassemblySettings instance with the same configuration.</returns>
+	    public DisassemblySettings Duplicate()
+	    {
+		    return DisassemblySettings.MustTakeHandle(
+			    NativeMethods.BNDuplicateDisassemblySettings(this.handle)
+		    );
+	    }
+
 	}
 }

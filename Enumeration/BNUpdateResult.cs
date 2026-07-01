@@ -5,7 +5,7 @@ namespace BinaryNinja
 	/// <summary>
 	/// 
 	/// </summary>
-    public enum UpdateResult : uint
+    public enum UpdateResult : byte
 	{
 		/// <summary>
 		/// 

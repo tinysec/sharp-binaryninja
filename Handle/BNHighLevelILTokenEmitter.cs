@@ -5,7 +5,7 @@ using Microsoft.Win32.SafeHandles;
 
 namespace BinaryNinja
 {
-	public sealed class HighLevelILTokenEmitter : AbstractSafeHandle
+	public sealed class HighLevelILTokenEmitter : AbstractSafeHandle<HighLevelILTokenEmitter>
 	{
 	    internal HighLevelILTokenEmitter(IntPtr handle , bool owner) 
 		    : base(handle , owner)
@@ -272,6 +272,169 @@ namespace BinaryNinja
 				    this.handle
 			    );
 		    }
+	    }
+
+	    public InstructionTextToken[] GetCurrentTokens()
+	    {
+		    using (ScopedAllocator allocator = new ScopedAllocator())
+		    {
+			    IntPtr countPtr = allocator.AllocStruct<ulong>(0);
+
+			    IntPtr arrayPointer = NativeMethods.BNHighLevelILTokenEmitterGetCurrentTokens(
+				    this.handle ,
+				    countPtr
+			    );
+
+			    ulong arrayLength = (ulong)Marshal.ReadInt64(countPtr);
+
+			    return UnsafeUtils.TakeStructArrayEx<BNInstructionTextToken , InstructionTextToken>(
+				    arrayPointer ,
+				    arrayLength ,
+				    InstructionTextToken.FromNative ,
+				    NativeMethods.BNFreeInstructionText
+			    );
+		    }
+	    }
+
+	    public void SetCurrentTokens(InstructionTextToken[] tokens)
+	    {
+		    using (ScopedAllocator allocator = new ScopedAllocator())
+		    {
+			    NativeMethods.BNHighLevelILTokenEmitterSetCurrentTokens(
+				    this.handle ,
+				    allocator.AllocStructArray(
+					    allocator.ConvertToNativeArrayEx<BNInstructionTextToken,InstructionTextToken>(
+						    tokens
+					    )
+				    ) ,
+				    (ulong)tokens.Length
+			    );
+		    }
+	    }
+
+	    public DisassemblyTextLine[] GetLines()
+	    {
+		    using (ScopedAllocator allocator = new ScopedAllocator())
+		    {
+			    IntPtr countPtr = allocator.AllocStruct<ulong>(0);
+
+			    IntPtr arrayPointer = NativeMethods.BNHighLevelILTokenEmitterGetLines(
+				    this.handle ,
+				    countPtr
+			    );
+
+			    ulong arrayLength = (ulong)Marshal.ReadInt64(countPtr);
+
+			    return UnsafeUtils.TakeStructArrayEx<BNDisassemblyTextLine,DisassemblyTextLine>(
+				    arrayPointer ,
+				    arrayLength ,
+				    DisassemblyTextLine.FromNative ,
+				    NativeMethods.BNFreeDisassemblyTextLines
+			    );
+		    }
+	    }
+
+	    public bool DefaultBracesOnSameLine
+	    {
+		    get
+		    {
+			    return NativeMethods.BNHighLevelILTokenEmitterGetDefaultBracesOnSameLine(
+				    this.handle
+			    );
+		    }
+
+		    set
+		    {
+			    NativeMethods.BNHighLevelILTokenEmitterSetDefaultBracesOnSameLine(
+				    this.handle ,
+				    value
+			    );
+		    }
+	    }
+
+	    public bool HasBracesAroundSwitchCases
+	    {
+		    get
+		    {
+			    return NativeMethods.BNHighLevelILTokenEmitterHasBracesAroundSwitchCases(
+				    this.handle
+			    );
+		    }
+
+		    set
+		    {
+			    NativeMethods.BNHighLevelILTokenEmitterSetBracesAroundSwitchCases(
+				    this.handle ,
+				    value
+			    );
+		    }
+	    }
+
+	    public bool IsSimpleScopeAllowed
+	    {
+		    get
+		    {
+			    return NativeMethods.BNHighLevelILTokenEmitterIsSimpleScopeAllowed(
+				    this.handle
+			    );
+		    }
+
+		    set
+		    {
+			    NativeMethods.BNHighLevelILTokenEmitterSetSimpleScopeAllowed(
+				    this.handle ,
+				    value
+			    );
+		    }
+	    }
+
+	    public void SetBraceRequirement(BraceRequirement required)
+	    {
+		    NativeMethods.BNHighLevelILTokenEmitterSetBraceRequirement(
+			    this.handle ,
+			    required
+		    );
+	    }
+
+	    public ulong GetMaxTernarySimplficationTokens()
+	    {
+		    return NativeMethods.BNHighLevelILTokenEmitterGetMaxTernarySimplficationTokens(
+			    this.handle
+		    );
+	    }
+
+	    /// <summary>
+	    /// Emits a floating-point size token (e.g., "float", "double") into the given token emitter.
+	    /// This is a static utility that operates on a token emitter instance.
+	    /// </summary>
+	    /// <param name="size">The floating-point size in bytes (e.g., 4 for float, 8 for double).</param>
+	    /// <param name="type">The token type to use for the emitted token.</param>
+	    /// <param name="tokens">The HighLevelILTokenEmitter to emit into.</param>
+	    public static void AddFloatSizeToken(ulong size , InstructionTextTokenType type , HighLevelILTokenEmitter tokens)
+	    {
+		    // Forward the size, token type, and emitter handle to the native API.
+		    NativeMethods.BNAddHighLevelILFloatSizeToken(
+			    size ,
+			    type ,
+			    tokens.DangerousGetHandle()
+		    );
+	    }
+
+	    /// <summary>
+	    /// Emits an integer size token (e.g., "int8_t", "int32_t") into the given token emitter.
+	    /// This is a static utility that operates on a token emitter instance.
+	    /// </summary>
+	    /// <param name="size">The integer size in bytes (e.g., 1 for byte, 4 for int32).</param>
+	    /// <param name="type">The token type to use for the emitted token.</param>
+	    /// <param name="tokens">The HighLevelILTokenEmitter to emit into.</param>
+	    public static void AddSizeToken(ulong size , InstructionTextTokenType type , HighLevelILTokenEmitter tokens)
+	    {
+		    // Forward the size, token type, and emitter handle to the native API.
+		    NativeMethods.BNAddHighLevelILSizeToken(
+			    size ,
+			    type ,
+			    tokens.DangerousGetHandle()
+		    );
 	    }
 	}
 }

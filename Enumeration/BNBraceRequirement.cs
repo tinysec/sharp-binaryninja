@@ -5,7 +5,7 @@ namespace BinaryNinja
 	/// <summary>
 	/// 
 	/// </summary>
-    public enum BraceRequirement : uint
+    public enum BraceRequirement : byte
 	{
 		/// <summary>
 		/// 

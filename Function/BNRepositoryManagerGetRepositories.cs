@@ -7,23 +7,19 @@ namespace BinaryNinja
 {
     internal static partial class NativeMethods
     {
+
 	    /// <summary>
-		/// BNRepository** BNRepositoryManagerGetRepositories(BNRepositoryManager* r, uint64_t* count)
+		/// BNRepository** BNRepositoryManagerGetRepositories(size_t* count)
 		/// </summary>
 		[DllImport(
             "binaryninjacore", 
             CallingConvention = System.Runtime.InteropServices.CallingConvention.Cdecl,
-            CharSet = CharSet.Ansi,
             EntryPoint = "BNRepositoryManagerGetRepositories"
         )]
 		internal static extern IntPtr BNRepositoryManagerGetRepositories(
 			
-			// BNRepositoryManager* r
-		    IntPtr r  , 
-			
-			// uint64_t* count
+			// size_t* count
 		    IntPtr count  
-			
 		);
 	}
 }

@@ -5,7 +5,7 @@ namespace BinaryNinja
 	/// <summary>
 	/// 
 	/// </summary>
-    public enum DisassemblyBlockLabels : uint
+    public enum DisassemblyBlockLabels : byte
 	{
 		/// <summary>
 		/// 

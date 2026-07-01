@@ -47,32 +47,7 @@ namespace BinaryNinja
 		    IntPtr ctxt,
 		    IntPtr data
 	    );
-	    
-		/// <summary>
-		/// BNBinaryView* (*create)(void* ctxt, BNBinaryView* data);
-		/// </summary>
-		internal CreateDelegate m_create;
 
-		/// <summary>
-		/// BNBinaryView* (*parse)(void* ctxt, BNBinaryView* data);
-		/// </summary>
-		internal ParseDelegate m_parse;
-
-		/// <summary>
-		/// bool (*isValidForData)(void* ctxt, BNBinaryView* data);
-		/// </summary>
-		internal IsValidForDataDelegate m_isValidForData;
-
-		/// <summary>
-		/// bool (*isDeprecated)(void* ctxt);
-		/// </summary>
-		internal IsDeprecatedDelegate m_isDeprecated;
-
-		/// <summary>
-		/// bool (*isForceLoadable)(void* ctxt);
-		/// </summary>
-		internal IsForceLoadableDelegate m_isForceLoadable;
-		
 		/// <summary>
 		/// void* context
 		/// </summary>
@@ -107,6 +82,11 @@ namespace BinaryNinja
 		/// void* getLoadSettingsForData
 		/// </summary>
 		internal IntPtr getLoadSettingsForData;
+
+		/// <summary>
+		/// bool (*hasNoInitialContent)(void* ctxt)
+		/// </summary>
+		internal IntPtr hasNoInitialContent;
 	}
 	
     public abstract class CustomBinaryViewType : INativeWrapper<BNCustomBinaryViewType>
@@ -127,6 +107,7 @@ namespace BinaryNinja
 				isDeprecated = Marshal.GetFunctionPointerForDelegate<BNCustomBinaryViewType.IsDeprecatedDelegate>(this.IsDeprecatedThunk),
 				isForceLoadable = Marshal.GetFunctionPointerForDelegate<BNCustomBinaryViewType.IsForceLoadableDelegate>(this.IsForceLoadableThunk),
 				getLoadSettingsForData = Marshal.GetFunctionPointerForDelegate<BNCustomBinaryViewType.GetLoadSettingsForDataDelegate>(this.GetLoadSettingsForDataThunk),
+				hasNoInitialContent = IntPtr.Zero,
 			};
 		}
 		

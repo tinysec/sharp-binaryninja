@@ -5,7 +5,7 @@ namespace BinaryNinja
 	/// <summary>
 	/// 
 	/// </summary>
-    public enum DeadStoreElimination : uint
+    public enum DeadStoreElimination : byte
 	{
 		/// <summary>
 		/// 

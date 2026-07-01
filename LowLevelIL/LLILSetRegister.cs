@@ -11,7 +11,7 @@ namespace BinaryNinja
 			
 		}
 
-		public Register Destionation
+		public ILRegister Destionation
 		{
 			get
 			{

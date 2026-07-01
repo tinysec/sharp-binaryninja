@@ -5,7 +5,7 @@ namespace BinaryNinja
 	/// <summary>
 	/// 
 	/// </summary>
-    public enum ThemeColor : uint
+    public enum ThemeColor : byte
 	{
 		/// <summary>
 		/// 

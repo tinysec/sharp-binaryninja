@@ -5,14 +5,40 @@ using Microsoft.Win32.SafeHandles;
 
 namespace BinaryNinja
 {
-	public class FlowGraphNode : AbstractSafeHandle
+	public class FlowGraphNode : AbstractSafeHandle<FlowGraphNode>
 	{
-	    internal FlowGraphNode(IntPtr handle , bool owner) 
+	    internal FlowGraphNode(IntPtr handle , bool owner)
 		    : base(handle , owner)
 	    {
-	        
+
 	    }
-	    
+
+        /// <summary>
+        /// Creates a new FlowGraphNode belonging to the given flow graph.
+        /// The caller is responsible for disposing the returned instance.
+        /// </summary>
+        /// <param name="graph">The flow graph that will own this node.</param>
+        /// <returns>A new owned FlowGraphNode instance.</returns>
+        public static FlowGraphNode Create(FlowGraph graph)
+        {
+            // 1. Validate the required flow graph parameter.
+            if (null == graph)
+            {
+                throw new ArgumentNullException(nameof(graph));
+            }
+
+            // 2. Create a new node for the given graph; the returned handle is owned.
+            IntPtr raw = NativeMethods.BNCreateFlowGraphNode(graph.DangerousGetHandle());
+
+            // 3. If creation failed, throw an exception.
+            if (raw == IntPtr.Zero)
+            {
+                throw new InvalidOperationException("Failed to create FlowGraphNode");
+            }
+
+            return new FlowGraphNode(raw, true);
+        }
+
 	    protected override bool ReleaseHandle()
 	    {
 	        if ( !this.IsInvalid )
@@ -155,5 +181,8 @@ namespace BinaryNinja
 			    (ulong)points.Length
 		    );
 	    }
+	    
+	   
+
 	}
 }

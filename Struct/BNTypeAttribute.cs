@@ -19,15 +19,24 @@ namespace BinaryNinja
 		public IntPtr _value;
 	}
 
-    public sealed class TypeAttribute 
+    public sealed class TypeAttribute
     {
 		public string Name { get; set; } = string.Empty;
-		
+
 		public string Value { get; set; } = string.Empty;
-		
-		public TypeAttribute() 
+
+		public TypeAttribute()
 		{
-		    
+
+		}
+
+		internal static TypeAttribute FromNative(BNTypeAttribute native)
+		{
+			return new TypeAttribute()
+			{
+				Name = UnsafeUtils.ReadAnsiString(native.name) ,
+				Value = UnsafeUtils.ReadAnsiString(native._value)
+			};
 		}
     }
 }

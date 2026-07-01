@@ -5,7 +5,7 @@ namespace BinaryNinja
 	/// <summary>
 	/// 
 	/// </summary>
-    public enum LowLevelILFlagCondition : uint
+    public enum LowLevelILFlagCondition : byte
 	{
 		/// <summary>
 		/// 

@@ -5,7 +5,7 @@ namespace BinaryNinja
 	/// <summary>
 	/// 
 	/// </summary>
-    public enum TokenEscapingType : uint
+    public enum TokenEscapingType : byte
 	{
 		/// <summary>
 		/// 

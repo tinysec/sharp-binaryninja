@@ -5,7 +5,7 @@ namespace BinaryNinja
 	/// <summary>
 	/// 
 	/// </summary>
-    public enum MergeConflictDataType : uint
+    public enum MergeConflictDataType : byte
 	{
 		/// <summary>
 		/// 

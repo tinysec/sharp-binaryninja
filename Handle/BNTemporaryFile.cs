@@ -5,7 +5,7 @@ using Microsoft.Win32.SafeHandles;
 
 namespace BinaryNinja
 {
-	public sealed class TemporaryFile : AbstractSafeHandle
+	public sealed class TemporaryFile : AbstractSafeHandle<TemporaryFile>
 	{
 		public TemporaryFile() 
 			: this( NativeMethods.BNCreateTemporaryFile() , true)

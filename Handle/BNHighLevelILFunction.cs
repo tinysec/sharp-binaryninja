@@ -5,7 +5,7 @@ using Microsoft.Win32.SafeHandles;
 
 namespace BinaryNinja
 {
-	public sealed class HighLevelILFunction : AbstractSafeHandle
+	public sealed class HighLevelILFunction : AbstractSafeHandle<HighLevelILFunction>
 	{
 		public bool IsSSAForm { get; } = false;
 			
@@ -1232,6 +1232,231 @@ namespace BinaryNinja
 			    (ulong)source,
 			    (ulong)offset,
 			    memberIndex
+		    );
+	    }
+
+	    /// <summary>
+	    /// Compare two HLIL expressions for equality across two HLIL functions.
+	    /// </summary>
+	    public static bool ExprEqual(
+		    HighLevelILFunction leftFunc ,
+		    ulong leftExpr ,
+		    HighLevelILFunction rightFunc ,
+		    ulong rightExpr
+	    )
+	    {
+		    return NativeMethods.BNHighLevelILExprEqual(
+			    leftFunc.DangerousGetHandle() ,
+			    leftExpr ,
+			    rightFunc.DangerousGetHandle() ,
+			    rightExpr
+		    );
+	    }
+
+	    /// <summary>
+	    /// Compare two HLIL expressions for ordering (less-than) across two HLIL functions.
+	    /// </summary>
+	    public static bool ExprLessThan(
+		    HighLevelILFunction leftFunc ,
+		    ulong leftExpr ,
+		    HighLevelILFunction rightFunc ,
+		    ulong rightExpr
+	    )
+	    {
+		    return NativeMethods.BNHighLevelILExprLessThan(
+			    leftFunc.DangerousGetHandle() ,
+			    leftExpr ,
+			    rightFunc.DangerousGetHandle() ,
+			    rightExpr
+		    );
+	    }
+
+	    // ===================================================================
+	    // Token helpers
+	    // ===================================================================
+
+	    /// <summary>
+	    /// Adds an array index text token for the specified HLIL expression.
+	    /// </summary>
+	    /// <param name="exprIndex">The expression index to annotate.</param>
+	    /// <param name="val">The array index value.</param>
+	    /// <param name="size">The size in bytes of the array element.</param>
+	    /// <param name="tokens">The token emitter to append tokens to.</param>
+	    /// <param name="address">The address associated with this expression.</param>
+	    public void AddArrayIndexToken(
+		    ulong exprIndex ,
+		    long val ,
+		    ulong size ,
+		    HighLevelILTokenEmitter tokens ,
+		    ulong address
+	    )
+	    {
+		    NativeMethods.BNAddHighLevelILArrayIndexToken(
+			    this.handle ,
+			    exprIndex ,
+			    val ,
+			    size ,
+			    tokens.DangerousGetHandle() ,
+			    address
+		    );
+	    }
+
+	    /// <summary>
+	    /// Adds a constant text token for the specified HLIL expression.
+	    /// </summary>
+	    /// <param name="exprIndex">The expression index to annotate.</param>
+	    /// <param name="val">The constant value.</param>
+	    /// <param name="size">The size in bytes of the constant.</param>
+	    /// <param name="tokens">The token emitter to append tokens to.</param>
+	    /// <param name="settings">Optional disassembly settings controlling display.</param>
+	    /// <param name="precedence">The operator precedence context.</param>
+	    public void AddConstantTextToken(
+		    ulong exprIndex ,
+		    long val ,
+		    ulong size ,
+		    HighLevelILTokenEmitter tokens ,
+		    DisassemblySettings? settings ,
+		    OperatorPrecedence precedence
+	    )
+	    {
+		    NativeMethods.BNAddHighLevelILConstantTextToken(
+			    this.handle ,
+			    exprIndex ,
+			    val ,
+			    size ,
+			    tokens.DangerousGetHandle() ,
+			    null == settings ? IntPtr.Zero : settings.DangerousGetHandle() ,
+			    precedence
+		    );
+	    }
+
+	    /// <summary>
+	    /// Adds an integer text token for the specified HLIL expression.
+	    /// </summary>
+	    /// <param name="exprIndex">The expression index to annotate.</param>
+	    /// <param name="val">The integer value.</param>
+	    /// <param name="size">The size in bytes of the integer.</param>
+	    /// <param name="tokens">The token emitter to append tokens to.</param>
+	    public void AddIntegerTextToken(
+		    ulong exprIndex ,
+		    long val ,
+		    ulong size ,
+		    HighLevelILTokenEmitter tokens
+	    )
+	    {
+		    NativeMethods.BNAddHighLevelILIntegerTextToken(
+			    this.handle ,
+			    exprIndex ,
+			    val ,
+			    size ,
+			    tokens.DangerousGetHandle()
+		    );
+	    }
+
+	    /// <summary>
+	    /// Adds a pointer text token for the specified HLIL expression.
+	    /// </summary>
+	    /// <param name="exprIndex">The expression index to annotate.</param>
+	    /// <param name="val">The pointer value.</param>
+	    /// <param name="tokens">The token emitter to append tokens to.</param>
+	    /// <param name="settings">Optional disassembly settings controlling display.</param>
+	    /// <param name="symbolDisplay">The symbol display type.</param>
+	    /// <param name="precedence">The operator precedence context.</param>
+	    /// <param name="allowShortString">Whether to allow short string display.</param>
+	    /// <returns>The symbol display result indicating how the pointer was rendered.</returns>
+	    public SymbolDisplayResult AddPointerTextToken(
+		    ulong exprIndex ,
+		    long val ,
+		    HighLevelILTokenEmitter tokens ,
+		    DisassemblySettings? settings ,
+		    SymbolDisplayType symbolDisplay ,
+		    OperatorPrecedence precedence ,
+		    bool allowShortString
+	    )
+	    {
+		    return NativeMethods.BNAddHighLevelILPointerTextToken(
+			    this.handle ,
+			    exprIndex ,
+			    val ,
+			    tokens.DangerousGetHandle() ,
+			    null == settings ? IntPtr.Zero : settings.DangerousGetHandle() ,
+			    symbolDisplay ,
+			    precedence ,
+			    allowShortString
+		    );
+	    }
+
+	    /// <summary>
+	    /// Adds a variable text token for the specified HLIL expression.
+	    /// </summary>
+	    /// <param name="variable">The variable to render.</param>
+	    /// <param name="tokens">The token emitter to append tokens to.</param>
+	    /// <param name="exprIndex">The expression index to annotate.</param>
+	    /// <param name="size">The size in bytes of the variable.</param>
+	    public unsafe void AddVarTextToken(
+		    CoreVariable variable ,
+		    HighLevelILTokenEmitter tokens ,
+		    ulong exprIndex ,
+		    ulong size
+	    )
+	    {
+		    BNVariable native = variable.ToNative();
+
+		    NativeMethods.BNAddHighLevelILVarTextToken(
+			    this.handle ,
+			    (IntPtr)(&native) ,
+			    tokens.DangerousGetHandle() ,
+			    exprIndex ,
+			    size
+		    );
+	    }
+
+	    // ===================================================================
+	    // Factory and mutation
+	    // ===================================================================
+
+	    /// <summary>
+	    /// Creates a new HighLevelILFunction for the given architecture and optional owner function.
+	    /// </summary>
+	    /// <param name="arch">The architecture for the new HLIL function.</param>
+	    /// <param name="owner">Optional owning function. Pass null for standalone usage.</param>
+	    /// <returns>A new HighLevelILFunction, or null if creation failed.</returns>
+	    public static HighLevelILFunction? Create(Architecture arch , Function? owner = null)
+	    {
+		    return HighLevelILFunction.TakeHandle(
+			    NativeMethods.BNCreateHighLevelILFunction(
+				    arch.DangerousGetHandle() ,
+				    null == owner ? IntPtr.Zero : owner.DangerousGetHandle()
+			    )
+		    );
+	    }
+
+	    /// <summary>
+	    /// Returns the scope type for the given HLIL expression index.
+	    /// </summary>
+	    /// <param name="exprIndex">The expression index to query.</param>
+	    /// <returns>The scope type of the expression.</returns>
+	    public ScopeType GetExprScopeType(ulong exprIndex)
+	    {
+		    return NativeMethods.BNGetHighLevelILExprScopeType(
+			    this.handle ,
+			    exprIndex
+		    );
+	    }
+
+	    /// <summary>
+	    /// Updates a specific operand of an HLIL instruction to a new value.
+	    /// </summary>
+	    /// <param name="instr">The instruction index to modify.</param>
+	    /// <param name="operandIndex">The operand index within the instruction.</param>
+	    /// <param name="value">The new value for the operand.</param>
+	    public void UpdateOperand(ulong instr , ulong operandIndex , ulong value)
+	    {
+		    NativeMethods.BNUpdateHighLevelILOperand(
+			    this.handle ,
+			    instr ,
+			    operandIndex ,
+			    value
 		    );
 	    }
 	}

@@ -5,7 +5,7 @@ namespace BinaryNinja
 	/// <summary>
 	/// 
 	/// </summary>
-    public enum RelocationType : uint
+    public enum RelocationType : byte
 	{
 		/// <summary>
 		/// 

@@ -17,7 +17,7 @@ namespace BinaryNinja
 			);
 			
 			this.AddEnvironment(
-				"BINARYNINJA_BASE"
+				"BINARYNINJA_HOME"
 			);
 		}
 		

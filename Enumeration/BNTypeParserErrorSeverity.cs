@@ -5,7 +5,7 @@ namespace BinaryNinja
 	/// <summary>
 	/// 
 	/// </summary>
-    public enum TypeParserErrorSeverity : uint
+    public enum TypeParserErrorSeverity : byte
 	{
 		/// <summary>
 		/// 

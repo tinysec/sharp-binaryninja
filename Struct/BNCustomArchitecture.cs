@@ -9,898 +9,329 @@ namespace BinaryNinja
 	internal unsafe struct BNCustomArchitecture 
 	{
 		/// <summary>
-		/// void (*init)(void* context, BNArchitecture* obj);
-		/// </summary>
-		[UnmanagedFunctionPointer(System.Runtime.InteropServices.CallingConvention.Cdecl)]
-		internal unsafe delegate void InitDelegate(
-			IntPtr ctxt,
-			IntPtr arch
-		);
-		
-		/// <summary>
-		/// BNEndianness (*getEndianness)(void* ctxt);
-		/// </summary>
-		[UnmanagedFunctionPointer(System.Runtime.InteropServices.CallingConvention.Cdecl)]
-		internal unsafe delegate Endianness GetEndiannessDelegate(
-			IntPtr ctxt
-		);
-		
-		/// <summary>
-		/// size_t (*getAddressSize)(void* ctxt);
-		/// </summary>
-		[UnmanagedFunctionPointer(System.Runtime.InteropServices.CallingConvention.Cdecl)]
-		internal unsafe delegate ulong GetAddressSizeDelegate(
-			IntPtr ctxt
-		);
-		
-		/// <summary>
-		/// size_t (*getDefaultIntegerSize)(void* ctxt);
-		/// </summary>
-		[UnmanagedFunctionPointer(System.Runtime.InteropServices.CallingConvention.Cdecl)]
-		internal unsafe delegate ulong GetDefaultIntegerSizeDelegate(
-			IntPtr ctxt
-		);
-		
-		/// <summary>
-		/// size_t (*getInstructionAlignment)(void* ctxt);
-		/// </summary>
-		[UnmanagedFunctionPointer(System.Runtime.InteropServices.CallingConvention.Cdecl)]
-		internal unsafe delegate ulong GetInstructionAlignmentDelegate(
-			IntPtr ctxt
-		);
-		
-		/// <summary>
-		/// size_t (*getMaxInstructionLength)(void* ctxt);
-		/// </summary>
-		[UnmanagedFunctionPointer(System.Runtime.InteropServices.CallingConvention.Cdecl)]
-		internal unsafe delegate ulong GetMaxInstructionLengthDelegate(
-			IntPtr ctxt
-		);
-		
-		/// <summary>
-		/// size_t (*getOpcodeDisplayLength)(void* ctxt);
-		/// </summary>
-		[UnmanagedFunctionPointer(System.Runtime.InteropServices.CallingConvention.Cdecl)]
-		internal unsafe delegate ulong GetOpcodeDisplayLengthDelegate(
-			IntPtr ctxt
-		);
-		
-		/// <summary>
-		/// BNArchitecture* (*getAssociatedArchitectureByAddress)(void* ctxt, uint64_t* addr);
-		/// </summary>
-		[UnmanagedFunctionPointer(System.Runtime.InteropServices.CallingConvention.Cdecl)]
-		internal unsafe delegate IntPtr GetAssociatedArchitectureByAddressDelegate(
-			IntPtr ctxtm,
-			IntPtr address
-		);
-		
-		/// <summary>
-		/// bool (*getInstructionInfo)(void* ctxt, const uint8_t* data, uint64_t addr, size_t maxLen, BNInstructionInfo* result);
-		/// </summary>
-		[UnmanagedFunctionPointer(System.Runtime.InteropServices.CallingConvention.Cdecl)]
-		internal unsafe delegate bool GetInstructionInfoDelegate(
-			IntPtr ctxt,
-			IntPtr data,
-			ulong address,
-			ulong maxLen,
-			IntPtr result
-		);
-		
-		/// <summary>
-		/// bool (*getInstructionText)(void* ctxt, const uint8_t* data, uint64_t addr, size_t* len,BNInstructionTextToken** result, size_t* count);
-		/// </summary>
-		[UnmanagedFunctionPointer(System.Runtime.InteropServices.CallingConvention.Cdecl)]
-		internal unsafe delegate bool GetInstructionTextDelegate(
-			IntPtr ctxt,
-			IntPtr data,
-			ulong address,
-			IntPtr length,
-			IntPtr result,
-			IntPtr count
-		);
-		
-		/// <summary>
-		/// void (*freeInstructionText)(BNInstructionTextToken* tokens, size_t count);
-		/// </summary>
-		[UnmanagedFunctionPointer(System.Runtime.InteropServices.CallingConvention.Cdecl)]
-		internal unsafe delegate void FreeInstructionTextDelegate(
-			IntPtr tokens,
-			ulong count
-		);
-		
-		/// <summary>
-		/// bool (*getInstructionLowLevelIL)(void* ctxt, const uint8_t* data, uint64_t addr, size_t* len, BNLowLevelILFunction* il);
-		/// </summary>
-		[UnmanagedFunctionPointer(System.Runtime.InteropServices.CallingConvention.Cdecl)]
-		internal unsafe delegate bool GetInstructionLowLevelILDelegate(
-			IntPtr ctxt,
-			IntPtr data,
-			ulong address,
-			IntPtr length,
-			IntPtr il
-		);
-		
-		/// <summary>
-		/// char* (*getRegisterName)(void* ctxt, uint32_t reg);
-		/// </summary>
-		[UnmanagedFunctionPointer(System.Runtime.InteropServices.CallingConvention.Cdecl)]
-		internal unsafe delegate IntPtr GetRegisterNameDelegate(
-			IntPtr ctxt,
-			uint reg
-		);
-		
-		/// <summary>
-		/// char* (*getFlagName)(void* ctxt, uint32_t flag);
-		/// </summary>
-		[UnmanagedFunctionPointer(System.Runtime.InteropServices.CallingConvention.Cdecl)]
-		internal unsafe delegate IntPtr getFlagNameDelegate(
-			IntPtr ctxt,
-			uint flag
-		);
-		
-		/// <summary>
-		/// char* (*getFlagWriteTypeName)(void* ctxt, uint32_t flags);
-		/// </summary>
-		[UnmanagedFunctionPointer(System.Runtime.InteropServices.CallingConvention.Cdecl)]
-		internal unsafe delegate IntPtr GetFlagWriteTypeNameDelegate(
-			IntPtr ctxt,
-			uint flags
-		);
-		
-		/// <summary>
-		/// char* (*getSemanticFlagClassName)(void* ctxt, uint32_t semClass);
-		/// </summary>
-		[UnmanagedFunctionPointer(System.Runtime.InteropServices.CallingConvention.Cdecl)]
-		internal unsafe delegate IntPtr GetSemanticFlagClassNameDelegate(
-			IntPtr ctxt,
-			uint semClass
-		);
-		
-		/// <summary>
-		/// char* (*getSemanticFlagGroupName)(void* ctxt, uint32_t semGroup);
-		/// </summary>
-		[UnmanagedFunctionPointer(System.Runtime.InteropServices.CallingConvention.Cdecl)]
-		internal unsafe delegate IntPtr GetSemanticFlagGroupNameDelegate(
-			IntPtr ctxt,
-			uint  semGroup
-		);
-		
-		/// <summary>
-		/// uint32_t* (*getFullWidthRegisters)(void* ctxt, size_t* count);
-		/// </summary>
-		[UnmanagedFunctionPointer(System.Runtime.InteropServices.CallingConvention.Cdecl)]
-		internal unsafe delegate IntPtr GetFullWidthRegistersDelegate(
-			IntPtr ctxt,
-			IntPtr count
-		);
-		
-		/// <summary>
-		/// uint32_t* (*getAllRegisters)(void* ctxt, size_t* count);
-		/// </summary>
-		[UnmanagedFunctionPointer(System.Runtime.InteropServices.CallingConvention.Cdecl)]
-		internal unsafe delegate IntPtr GetAllRegistersDelegate(
-			IntPtr ctxt,
-			IntPtr count
-		);
-		
-		/// <summary>
-		/// uint32_t* (*getAllFlags)(void* ctxt, size_t* count);
-		/// </summary>
-		[UnmanagedFunctionPointer(System.Runtime.InteropServices.CallingConvention.Cdecl)]
-		internal unsafe delegate IntPtr GetAllFlagsDelegate(
-			IntPtr ctxt,
-			IntPtr count
-		);
-		
-		/// <summary>
-		/// uint32_t* (*getAllFlagWriteTypes)(void* ctxt, size_t* count);
-		/// </summary>
-		[UnmanagedFunctionPointer(System.Runtime.InteropServices.CallingConvention.Cdecl)]
-		internal unsafe delegate IntPtr GetAllFlagWriteTypesDelegate(
-			IntPtr ctxt,
-			IntPtr count
-		);
-		
-		/// <summary>
-		/// uint32_t* (*getAllSemanticFlagClasses)(void* ctxt, size_t* count);
-		/// </summary>
-		[UnmanagedFunctionPointer(System.Runtime.InteropServices.CallingConvention.Cdecl)]
-		internal unsafe delegate IntPtr GetAllSemanticFlagClassesDelegate(
-			IntPtr ctxt,
-			IntPtr count
-		);
-		
-		/// <summary>
-		/// uint32_t* (*getAllSemanticFlagGroups)(void* ctxt, size_t* count);
-		/// </summary>
-		[UnmanagedFunctionPointer(System.Runtime.InteropServices.CallingConvention.Cdecl)]
-		internal unsafe delegate IntPtr GetAllSemanticFlagGroupsDelegate(
-			IntPtr ctxt,
-			IntPtr count
-		);
-		
-		/// <summary>
-		/// BNFlagRole (*getFlagRole)(void* ctxt, uint32_t flag, uint32_t semClass);
-		/// </summary>
-		[UnmanagedFunctionPointer(System.Runtime.InteropServices.CallingConvention.Cdecl)]
-		internal unsafe delegate FlagRole GetFlagRoleDelegate(
-			IntPtr ctxt,
-			uint flag,
-			uint semClass
-		);
-		
-		/// <summary>
-		/// uint32_t* (*getFlagsRequiredForFlagCondition)(void* ctxt, BNLowLevelILFlagCondition cond, uint32_t semClass, size_t* count);
-		/// </summary>
-		[UnmanagedFunctionPointer(System.Runtime.InteropServices.CallingConvention.Cdecl)]
-		internal unsafe delegate IntPtr GetFlagsRequiredForFlagConditionDelegate(
-			IntPtr ctxt,
-			LowLevelILFlagCondition cond,
-			uint semClass,
-			IntPtr count
-		);
-		
-		/// <summary>
-		/// uint32_t* (*getFlagsRequiredForSemanticFlagGroup)(void* ctxt, uint32_t semGroup, size_t* count);
-		/// </summary>
-		[UnmanagedFunctionPointer(System.Runtime.InteropServices.CallingConvention.Cdecl)]
-		internal unsafe delegate IntPtr GetFlagsRequiredForSemanticFlagGroupDelegate(
-			IntPtr ctxt,
-			uint semGroup,
-			IntPtr count
-		);
-		
-		/// <summary>
-		/// BNFlagConditionForSemanticClass* (*getFlagConditionsForSemanticFlagGroup)(void* ctxt, uint32_t semGroup, size_t* count);
-		/// </summary>
-		[UnmanagedFunctionPointer(System.Runtime.InteropServices.CallingConvention.Cdecl)]
-		internal unsafe delegate IntPtr GetFlagConditionsForSemanticFlagGroupDelegate(
-			IntPtr ctxt,
-			uint semGroup,
-			IntPtr count
-		);
-		
-		/// <summary>
-		/// void (*freeFlagConditionsForSemanticFlagGroup)(void* ctxt, BNFlagConditionForSemanticClass* conditions);
-		/// </summary>
-		[UnmanagedFunctionPointer(System.Runtime.InteropServices.CallingConvention.Cdecl)]
-		internal unsafe delegate void FreeFlagConditionsForSemanticFlagGroupDelegate(
-			IntPtr ctxt,
-			IntPtr conditions
-		);
-		
-		/// <summary>
-		/// uint32_t* (*getFlagsWrittenByFlagWriteType)(void* ctxt, uint32_t writeType, size_t* count);
-		/// </summary>
-		[UnmanagedFunctionPointer(System.Runtime.InteropServices.CallingConvention.Cdecl)]
-		internal unsafe delegate IntPtr GetFlagsWrittenByFlagWriteTypeDelegate(
-			IntPtr ctxt,
-			uint writeType,
-			IntPtr count
-		);
-		
-		/// <summary>
-		/// uint32_t (*getSemanticClassForFlagWriteType)(void* ctxt, uint32_t writeType);
-		/// </summary>
-		[UnmanagedFunctionPointer(System.Runtime.InteropServices.CallingConvention.Cdecl)]
-		internal unsafe delegate uint GetSemanticClassForFlagWriteTypeDelegate(
-			IntPtr ctxt,
-			uint writeType
-		);
-		
-		/// <summary>
-		/// size_t (*getFlagWriteLowLevelIL)(void* ctxt, BNLowLevelILOperation op, size_t size, uint32_t flagWriteType,uint32_t flag, BNRegisterOrConstant* operands, size_t operandCount, BNLowLevelILFunction* il);
-		/// </summary>
-		[UnmanagedFunctionPointer(System.Runtime.InteropServices.CallingConvention.Cdecl)]
-		internal unsafe delegate ulong GetFlagWriteLowLevelILDelegate(
-			IntPtr ctxt,
-			LowLevelILOperation op,
-			ulong size,
-			uint flagWriteType,
-			uint flag,
-			IntPtr operands,
-			ulong operandCount,
-			IntPtr il
-		);
-		
-		/// <summary>
-		/// size_t (*getFlagConditionLowLevelIL)(void* ctxt, BNLowLevelILFlagCondition cond, uint32_t semClass, BNLowLevelILFunction* il);
-		/// </summary>
-		[UnmanagedFunctionPointer(System.Runtime.InteropServices.CallingConvention.Cdecl)]
-		internal unsafe delegate ulong GetFlagConditionLowLevelILDelegate(
-			IntPtr ctxt,
-			LowLevelILFlagCondition cond,
-			uint semClass,
-			IntPtr il
-		);
-		
-		/// <summary>
-		/// size_t (*getSemanticFlagGroupLowLevelIL)(void* ctxt, uint32_t semGroup, BNLowLevelILFunction* il);
-		/// </summary>
-		[UnmanagedFunctionPointer(System.Runtime.InteropServices.CallingConvention.Cdecl)]
-		internal unsafe delegate ulong GetSemanticFlagGroupLowLevelILDelegate(
-			IntPtr ctxt,
-			uint semGroup,
-			IntPtr il
-		);
-		
-		/// <summary>
-		/// void (*freeRegisterList)(void* ctxt, uint32_t* regs);
-		/// </summary>
-		[UnmanagedFunctionPointer(System.Runtime.InteropServices.CallingConvention.Cdecl)]
-		internal unsafe delegate void FreeRegisterListDelegate(
-			IntPtr ctxt,
-			IntPtr regs
-		);
-		
-		/// <summary>
-		/// void (*getRegisterInfo)(void* ctxt, uint32_t reg, BNRegisterInfo* result);
-		/// </summary>
-		[UnmanagedFunctionPointer(System.Runtime.InteropServices.CallingConvention.Cdecl)]
-		internal unsafe delegate void GetRegisterInfoDelegate(
-			IntPtr ctxt ,
-			uint reg,
-			IntPtr result
-		);
-		
-		/// <summary>
-		/// uint32_t (*getStackPointerRegister)(void* ctxt);
-		/// </summary>
-		[UnmanagedFunctionPointer(System.Runtime.InteropServices.CallingConvention.Cdecl)]
-		internal unsafe delegate uint GetStackPointerRegisterDelegate(
-			IntPtr ctxt
-		);
-		
-		/// <summary>
-		/// uint32_t (*getLinkRegister)(void* ctxt);
-		/// </summary>
-		[UnmanagedFunctionPointer(System.Runtime.InteropServices.CallingConvention.Cdecl)]
-		internal unsafe delegate uint GetLinkRegisterDelegate(
-			IntPtr ctxt
-		);
-		
-		/// <summary>
-		/// uint32_t* (*getGlobalRegisters)(void* ctxt, size_t* count);
-		/// </summary>
-		[UnmanagedFunctionPointer(System.Runtime.InteropServices.CallingConvention.Cdecl)]
-		internal unsafe delegate IntPtr GetGlobalRegistersDelegate(
-			IntPtr ctxt ,
-			IntPtr count
-		);
-		
-		/// <summary>
-		/// uint32_t* (*getSystemRegisters)(void* ctxt, size_t* count);
-		/// </summary>
-		[UnmanagedFunctionPointer(System.Runtime.InteropServices.CallingConvention.Cdecl)]
-		internal unsafe delegate IntPtr GetSystemRegistersDelegate(
-			IntPtr ctxt ,
-			IntPtr count
-		);
-		
-		/// <summary>
-		/// char* (*getRegisterStackName)(void* ctxt, uint32_t regStack);
-		/// </summary>
-		[UnmanagedFunctionPointer(System.Runtime.InteropServices.CallingConvention.Cdecl)]
-		internal unsafe delegate IntPtr GetRegisterStackNameDelegate(
-			IntPtr ctxt ,
-			uint regStack
-		);
-		
-		/// <summary>
-		/// uint32_t* (*getAllRegisterStacks)(void* ctxt, size_t* count);
-		/// </summary>
-		[UnmanagedFunctionPointer(System.Runtime.InteropServices.CallingConvention.Cdecl)]
-		internal unsafe delegate uint GetAllRegisterStacksDelegate(
-			IntPtr ctxt ,
-			IntPtr count
-		);
-		
-		/// <summary>
-		/// void (*getRegisterStackInfo)(void* ctxt, uint32_t regStack, BNRegisterStackInfo* result);
-		/// </summary>
-		[UnmanagedFunctionPointer(System.Runtime.InteropServices.CallingConvention.Cdecl)]
-		internal unsafe delegate void GetRegisterStackInfoDelegate(
-			IntPtr ctxt ,
-			uint regStack,
-			IntPtr result
-		);
-		
-		/// <summary>
-		/// BNIntrinsicClass (*getIntrinsicClass)(void* ctxt, uint32_t intrinsic);
-		/// </summary>
-		[UnmanagedFunctionPointer(System.Runtime.InteropServices.CallingConvention.Cdecl)]
-		internal unsafe delegate IntrinsicClass GetIntrinsicClassDelegate(
-			IntPtr ctxt ,
-			uint intrinsic
-		);
-		
-		/// <summary>
-		/// char* (*getIntrinsicName)(void* ctxt, uint32_t intrinsic);
-		/// </summary>
-		[UnmanagedFunctionPointer(System.Runtime.InteropServices.CallingConvention.Cdecl)]
-		internal unsafe delegate IntPtr GetIntrinsicNameDelegate(
-			IntPtr ctxt ,
-			uint intrinsic
-		);
-		
-		/// <summary>
-		/// uint32_t* (*getAllIntrinsics)(void* ctxt, size_t* count);
-		/// </summary>
-		[UnmanagedFunctionPointer(System.Runtime.InteropServices.CallingConvention.Cdecl)]
-		internal unsafe delegate IntPtr GetAllIntrinsicsDelegate(
-			IntPtr ctxt ,
-			IntPtr count
-		);
-		
-		/// <summary>
-		/// BNNameAndType* (*getIntrinsicInputs)(void* ctxt, uint32_t intrinsic, size_t* count);
-		/// </summary>
-		[UnmanagedFunctionPointer(System.Runtime.InteropServices.CallingConvention.Cdecl)]
-		internal unsafe delegate IntPtr GetIntrinsicInputsDelegate(
-			IntPtr ctxt ,
-			uint intrinsic,
-			IntPtr count
-		);
-		
-		/// <summary>
-		/// void (*freeNameAndTypeList)(void* ctxt, BNNameAndType* nt, size_t count);
-		/// </summary>
-		[UnmanagedFunctionPointer(System.Runtime.InteropServices.CallingConvention.Cdecl)]
-		internal unsafe delegate void FreeNameAndTypeListDelegate(
-			IntPtr ctxt ,
-			IntPtr nt,
-			ulong count
-		);
-		
-		/// <summary>
-		/// BNTypeWithConfidence* (*getIntrinsicOutputs)(void* ctxt, uint32_t intrinsic, size_t* count);
-		/// </summary>
-		[UnmanagedFunctionPointer(System.Runtime.InteropServices.CallingConvention.Cdecl)]
-		internal unsafe delegate IntPtr GetIntrinsicOutputsDelegate(
-			IntPtr ctxt ,
-			uint intrinsic,
-			IntPtr count
-		);
-		
-		/// <summary>
-		/// void (*freeTypeList)(void* ctxt, BNTypeWithConfidence* types, size_t count);
-		/// </summary>
-		[UnmanagedFunctionPointer(System.Runtime.InteropServices.CallingConvention.Cdecl)]
-		internal unsafe delegate void FreeTypeListDelegate(
-			IntPtr ctxt ,
-			IntPtr types,
-			ulong count
-		);
-		
-		/// <summary>
-		/// bool (*canAssemble)(void* ctxt);
-		/// </summary>
-		[UnmanagedFunctionPointer(System.Runtime.InteropServices.CallingConvention.Cdecl)]
-		internal unsafe delegate bool CanAssembleDelegate(
-			IntPtr ctxt
-		);
-		
-		/// <summary>
-		/// bool (*assemble)(void* ctxt, const char* code, uint64_t addr, BNDataBuffer* result, char** errors);
-		/// </summary>
-		[UnmanagedFunctionPointer(System.Runtime.InteropServices.CallingConvention.Cdecl)]
-		internal unsafe delegate bool AssembleDelegate(
-			IntPtr ctxt ,
-			IntPtr code,
-			ulong address,
-			IntPtr result,
-			IntPtr errors
-		);
-		
-		/// <summary>
-		/// bool (*isNeverBranchPatchAvailable)(void* ctxt, const uint8_t* data, uint64_t addr, size_t len);
-		/// </summary>
-		[UnmanagedFunctionPointer(System.Runtime.InteropServices.CallingConvention.Cdecl)]
-		internal unsafe delegate bool IsNeverBranchPatchAvailableDelegate(
-			IntPtr ctxt ,
-			IntPtr data,
-			ulong address,
-			ulong length
-		);
-		
-		/// <summary>
-		/// bool (*isAlwaysBranchPatchAvailable)(void* ctxt, const uint8_t* data, uint64_t addr, size_t len);
-		/// </summary>
-		[UnmanagedFunctionPointer(System.Runtime.InteropServices.CallingConvention.Cdecl)]
-		internal unsafe delegate bool IsAlwaysBranchPatchAvailableDelegate(
-			IntPtr ctxt ,
-			IntPtr data,
-			ulong address,
-			ulong length
-		);
-		
-		/// <summary>
-		/// bool (*isInvertBranchPatchAvailable)(void* ctxt, const uint8_t* data, uint64_t addr, size_t len);
-		/// </summary>
-		[UnmanagedFunctionPointer(System.Runtime.InteropServices.CallingConvention.Cdecl)]
-		internal unsafe delegate bool IsInvertBranchPatchAvailableDelegate(
-			IntPtr ctxt ,
-			IntPtr data,
-			ulong address,
-			ulong length
-		);
-		
-		/// <summary>
-		/// bool (*isSkipAndReturnZeroPatchAvailable)(void* ctxt, const uint8_t* data, uint64_t addr, size_t len);
-		/// </summary>
-		[UnmanagedFunctionPointer(System.Runtime.InteropServices.CallingConvention.Cdecl)]
-		internal unsafe delegate bool IsSkipAndReturnZeroPatchAvailableDelegate(
-			IntPtr ctxt ,
-			IntPtr data,
-			ulong address,
-			ulong length
-		);
-		
-		/// <summary>
-		/// bool (*isSkipAndReturnValuePatchAvailable)(void* ctxt, const uint8_t* data, uint64_t addr, size_t len);
-		/// </summary>
-		[UnmanagedFunctionPointer(System.Runtime.InteropServices.CallingConvention.Cdecl)]
-		internal unsafe delegate bool IsSkipAndReturnValuePatchAvailableDelegate(
-			IntPtr ctxt ,
-			IntPtr data,
-			ulong address,
-			ulong length
-		);
-		
-		/// <summary>
-		/// bool (*convertToNop)(void* ctxt, uint8_t* data, uint64_t addr, size_t len);
-		/// </summary>
-		[UnmanagedFunctionPointer(System.Runtime.InteropServices.CallingConvention.Cdecl)]
-		internal unsafe delegate bool ConvertToNopDelegate(
-			IntPtr ctxt,
-			IntPtr data,
-			ulong address,
-			ulong length
-		);
-		
-		/// <summary>
-		/// bool (*alwaysBranch)(void* ctxt, uint8_t* data, uint64_t addr, size_t len);
-		/// </summary>
-		[UnmanagedFunctionPointer(System.Runtime.InteropServices.CallingConvention.Cdecl)]
-		internal unsafe delegate bool AlwaysBranchDelegate(
-			IntPtr ctxt,
-			IntPtr data,
-			ulong address,
-			ulong length
-		);
-		
-		/// <summary>
-		/// bool (*invertBranch)(void* ctxt, uint8_t* data, uint64_t addr, size_t len);
-		/// </summary>
-		[UnmanagedFunctionPointer(System.Runtime.InteropServices.CallingConvention.Cdecl)]
-		internal unsafe delegate bool InvertBranchDelegate(
-			IntPtr ctxt,
-			IntPtr data,
-			ulong address,
-			ulong length
-		);
-		
-		/// <summary>
-		/// bool (*skipAndReturnValue)(void* ctxt, uint8_t* data, uint64_t addr, size_t len, uint64_t value);
-		/// </summary>
-		[UnmanagedFunctionPointer(System.Runtime.InteropServices.CallingConvention.Cdecl)]
-		internal unsafe delegate bool SkipAndReturnValueDelegate(
-			IntPtr ctxt,
-			IntPtr data,
-			ulong address,
-			ulong length,
-			ulong value
-		);
-		
-		/// <summary>
 		/// void* context
 		/// </summary>
-		public IntPtr context;
-		
+		internal IntPtr context;
+
 		/// <summary>
-		/// void* init
+		/// void (*init)(void* context, BNArchitecture* obj)
 		/// </summary>
-		public IntPtr init;
-		
+		internal IntPtr init;
+
 		/// <summary>
-		/// void* getEndianness
+		/// BNEndianness (*getEndianness)(void* ctxt)
 		/// </summary>
-		public IntPtr getEndianness;
-		
+		internal IntPtr getEndianness;
+
 		/// <summary>
-		/// void* getAddressSize
+		/// size_t (*getAddressSize)(void* ctxt)
 		/// </summary>
-		public IntPtr getAddressSize;
-		
+		internal IntPtr getAddressSize;
+
 		/// <summary>
-		/// void* getDefaultIntegerSize
+		/// size_t (*getDefaultIntegerSize)(void* ctxt)
 		/// </summary>
-		public IntPtr getDefaultIntegerSize;
-		
+		internal IntPtr getDefaultIntegerSize;
+
 		/// <summary>
-		/// void* getInstructionAlignment
+		/// size_t (*getInstructionAlignment)(void* ctxt)
 		/// </summary>
-		public IntPtr getInstructionAlignment;
-		
+		internal IntPtr getInstructionAlignment;
+
 		/// <summary>
-		/// void* getMaxInstructionLength
+		/// size_t (*getMaxInstructionLength)(void* ctxt)
 		/// </summary>
-		public IntPtr getMaxInstructionLength;
-		
+		internal IntPtr getMaxInstructionLength;
+
 		/// <summary>
-		/// void* getOpcodeDisplayLength
+		/// size_t (*getOpcodeDisplayLength)(void* ctxt)
 		/// </summary>
-		public IntPtr getOpcodeDisplayLength;
-		
+		internal IntPtr getOpcodeDisplayLength;
+
 		/// <summary>
-		/// void* getAssociatedArchitectureByAddress
+		/// BNArchitecture* (*getAssociatedArchitectureByAddress)(void* ctxt, uint64_t* addr)
 		/// </summary>
-		public IntPtr getAssociatedArchitectureByAddress;
-		
+		internal IntPtr getAssociatedArchitectureByAddress;
+
 		/// <summary>
-		/// void* getInstructionInfo
+		/// bool (*getInstructionInfo)( void* ctxt, const uint8_t* data, uint64_t addr, size_t maxLen, BNInstructionInfo* result)
 		/// </summary>
-		public IntPtr getInstructionInfo;
-		
+		internal IntPtr getInstructionInfo;
+
 		/// <summary>
-		/// void* getInstructionText
+		/// bool (*getInstructionText)(void* ctxt, const uint8_t* data, uint64_t addr, size_t* len, BNInstructionTextToken** result, size_t* count)
 		/// </summary>
-		public IntPtr getInstructionText;
-		
+		internal IntPtr getInstructionText;
+
 		/// <summary>
-		/// void* freeInstructionText
+		/// bool (*getInstructionTextWithContext)(void* ctxt, const uint8_t* data, uint64_t addr, size_t* len, void* context, BNInstructionTextToken** result, size_t* count)
 		/// </summary>
-		public IntPtr freeInstructionText;
-		
+		internal IntPtr getInstructionTextWithContext;
+
 		/// <summary>
-		/// void* getInstructionLowLevelIL
+		/// void (*freeInstructionText)(BNInstructionTextToken* tokens, size_t count)
 		/// </summary>
-		public IntPtr getInstructionLowLevelIL;
-		
+		internal IntPtr freeInstructionText;
+
 		/// <summary>
-		/// void* analyzeBasicBlocks
+		/// bool (*getInstructionLowLevelIL)( void* ctxt, const uint8_t* data, uint64_t addr, size_t* len, BNLowLevelILFunction* il)
 		/// </summary>
-		public IntPtr analyzeBasicBlocks;
-		
+		internal IntPtr getInstructionLowLevelIL;
+
 		/// <summary>
-		/// void* getRegisterName
+		/// void (*analyzeBasicBlocks)(void* ctxt, BNFunction* function, BNBasicBlockAnalysisContext* context)
 		/// </summary>
-		public IntPtr getRegisterName;
-		
+		internal IntPtr analyzeBasicBlocks;
+
 		/// <summary>
-		/// void* getFlagName
+		/// bool (*liftFunction)(void *ctext, BNLowLevelILFunction* function, BNFunctionLifterContext* context)
 		/// </summary>
-		public IntPtr getFlagName;
-		
+		internal IntPtr liftFunction;
+
 		/// <summary>
-		/// void* getFlagWriteTypeName
+		/// void (*freeFunctionArchContext)(void *ctxt, void* context)
 		/// </summary>
-		public IntPtr getFlagWriteTypeName;
-		
+		internal IntPtr freeFunctionArchContext;
+
 		/// <summary>
-		/// void* getSemanticFlagClassName
+		/// char* (*getRegisterName)(void* ctxt, uint32_t reg)
 		/// </summary>
-		public IntPtr getSemanticFlagClassName;
-		
+		internal IntPtr getRegisterName;
+
 		/// <summary>
-		/// void* getSemanticFlagGroupName
+		/// char* (*getFlagName)(void* ctxt, uint32_t flag)
 		/// </summary>
-		public IntPtr getSemanticFlagGroupName;
-		
+		internal IntPtr getFlagName;
+
 		/// <summary>
-		/// void* getFullWidthRegisters
+		/// char* (*getFlagWriteTypeName)(void* ctxt, uint32_t flags)
 		/// </summary>
-		public IntPtr getFullWidthRegisters;
-		
+		internal IntPtr getFlagWriteTypeName;
+
 		/// <summary>
-		/// void* getAllRegisters
+		/// char* (*getSemanticFlagClassName)(void* ctxt, uint32_t semClass)
 		/// </summary>
-		public IntPtr getAllRegisters;
-		
+		internal IntPtr getSemanticFlagClassName;
+
 		/// <summary>
-		/// void* getAllFlags
+		/// char* (*getSemanticFlagGroupName)(void* ctxt, uint32_t semGroup)
 		/// </summary>
-		public IntPtr getAllFlags;
-		
+		internal IntPtr getSemanticFlagGroupName;
+
 		/// <summary>
-		/// void* getAllFlagWriteTypes
+		/// uint32_t* (*getFullWidthRegisters)(void* ctxt, size_t* count)
 		/// </summary>
-		public IntPtr getAllFlagWriteTypes;
-		
+		internal IntPtr getFullWidthRegisters;
+
 		/// <summary>
-		/// void* getAllSemanticFlagClasses
+		/// uint32_t* (*getAllRegisters)(void* ctxt, size_t* count)
 		/// </summary>
-		public IntPtr getAllSemanticFlagClasses;
-		
+		internal IntPtr getAllRegisters;
+
 		/// <summary>
-		/// void* getAllSemanticFlagGroups
+		/// uint32_t* (*getAllFlags)(void* ctxt, size_t* count)
 		/// </summary>
-		public IntPtr getAllSemanticFlagGroups;
-		
+		internal IntPtr getAllFlags;
+
 		/// <summary>
-		/// void* getFlagRole
+		/// uint32_t* (*getAllFlagWriteTypes)(void* ctxt, size_t* count)
 		/// </summary>
-		public IntPtr getFlagRole;
-		
+		internal IntPtr getAllFlagWriteTypes;
+
 		/// <summary>
-		/// void* getFlagsRequiredForFlagCondition
+		/// uint32_t* (*getAllSemanticFlagClasses)(void* ctxt, size_t* count)
 		/// </summary>
-		public IntPtr getFlagsRequiredForFlagCondition;
-		
+		internal IntPtr getAllSemanticFlagClasses;
+
 		/// <summary>
-		/// void* getFlagsRequiredForSemanticFlagGroup
+		/// uint32_t* (*getAllSemanticFlagGroups)(void* ctxt, size_t* count)
 		/// </summary>
-		public IntPtr getFlagsRequiredForSemanticFlagGroup;
-		
+		internal IntPtr getAllSemanticFlagGroups;
+
 		/// <summary>
-		/// void* getFlagConditionsForSemanticFlagGroup
+		/// BNFlagRole (*getFlagRole)(void* ctxt, uint32_t flag, uint32_t semClass)
 		/// </summary>
-		public IntPtr getFlagConditionsForSemanticFlagGroup;
-		
+		internal IntPtr getFlagRole;
+
 		/// <summary>
-		/// void* freeFlagConditionsForSemanticFlagGroup
+		/// uint32_t* (*getFlagsRequiredForFlagCondition)( void* ctxt, BNLowLevelILFlagCondition cond, uint32_t semClass, size_t* count)
 		/// </summary>
-		public IntPtr freeFlagConditionsForSemanticFlagGroup;
-		
+		internal IntPtr getFlagsRequiredForFlagCondition;
+
 		/// <summary>
-		/// void* getFlagsWrittenByFlagWriteType
+		/// uint32_t* (*getFlagsRequiredForSemanticFlagGroup)(void* ctxt, uint32_t semGroup, size_t* count)
 		/// </summary>
-		public IntPtr getFlagsWrittenByFlagWriteType;
-		
+		internal IntPtr getFlagsRequiredForSemanticFlagGroup;
+
 		/// <summary>
-		/// void* getSemanticClassForFlagWriteType
+		/// BNFlagConditionForSemanticClass* (*getFlagConditionsForSemanticFlagGroup)( void* ctxt, uint32_t semGroup, size_t* count)
 		/// </summary>
-		public IntPtr getSemanticClassForFlagWriteType;
-		
+		internal IntPtr getFlagConditionsForSemanticFlagGroup;
+
 		/// <summary>
-		/// void* getFlagWriteLowLevelIL
+		/// void (*freeFlagConditionsForSemanticFlagGroup)(void* ctxt, BNFlagConditionForSemanticClass* conditions, size_t count)
 		/// </summary>
-		public IntPtr getFlagWriteLowLevelIL;
-		
+		internal IntPtr freeFlagConditionsForSemanticFlagGroup;
+
 		/// <summary>
-		/// void* getFlagConditionLowLevelIL
+		/// uint32_t* (*getFlagsWrittenByFlagWriteType)(void* ctxt, uint32_t writeType, size_t* count)
 		/// </summary>
-		public IntPtr getFlagConditionLowLevelIL;
-		
+		internal IntPtr getFlagsWrittenByFlagWriteType;
+
 		/// <summary>
-		/// void* getSemanticFlagGroupLowLevelIL
+		/// uint32_t (*getSemanticClassForFlagWriteType)(void* ctxt, uint32_t writeType)
 		/// </summary>
-		public IntPtr getSemanticFlagGroupLowLevelIL;
-		
+		internal IntPtr getSemanticClassForFlagWriteType;
+
 		/// <summary>
-		/// void* freeRegisterList
+		/// size_t (*getFlagWriteLowLevelIL)(void* ctxt, BNLowLevelILOperation op, size_t size, uint32_t flagWriteType, uint32_t flag, BNRegisterOrConstant* operands, size_t operandCount, BNLowLevelILFunction* il)
 		/// </summary>
-		public IntPtr freeRegisterList;
-		
+		internal IntPtr getFlagWriteLowLevelIL;
+
 		/// <summary>
-		/// void* getRegisterInfo
+		/// size_t (*getFlagConditionLowLevelIL)( void* ctxt, BNLowLevelILFlagCondition cond, uint32_t semClass, BNLowLevelILFunction* il)
 		/// </summary>
-		public IntPtr getRegisterInfo;
-		
+		internal IntPtr getFlagConditionLowLevelIL;
+
 		/// <summary>
-		/// void* getStackPointerRegister
+		/// size_t (*getSemanticFlagGroupLowLevelIL)(void* ctxt, uint32_t semGroup, BNLowLevelILFunction* il)
 		/// </summary>
-		public IntPtr getStackPointerRegister;
-		
+		internal IntPtr getSemanticFlagGroupLowLevelIL;
+
 		/// <summary>
-		/// void* getLinkRegister
+		/// void (*freeRegisterList)(void* ctxt, uint32_t* regs, size_t count)
 		/// </summary>
-		public IntPtr getLinkRegister;
-		
+		internal IntPtr freeRegisterList;
+
 		/// <summary>
-		/// void* getGlobalRegisters
+		/// void (*getRegisterInfo)(void* ctxt, uint32_t reg, BNRegisterInfo* result)
 		/// </summary>
-		public IntPtr getGlobalRegisters;
-		
+		internal IntPtr getRegisterInfo;
+
 		/// <summary>
-		/// void* getSystemRegisters
+		/// uint32_t (*getStackPointerRegister)(void* ctxt)
 		/// </summary>
-		public IntPtr getSystemRegisters;
-		
+		internal IntPtr getStackPointerRegister;
+
 		/// <summary>
-		/// void* getRegisterStackName
+		/// uint32_t (*getLinkRegister)(void* ctxt)
 		/// </summary>
-		public IntPtr getRegisterStackName;
-		
+		internal IntPtr getLinkRegister;
+
 		/// <summary>
-		/// void* getAllRegisterStacks
+		/// uint32_t* (*getGlobalRegisters)(void* ctxt, size_t* count)
 		/// </summary>
-		public IntPtr getAllRegisterStacks;
-		
+		internal IntPtr getGlobalRegisters;
+
 		/// <summary>
-		/// void* getRegisterStackInfo
+		/// uint32_t* (*getSystemRegisters)(void* ctxt, size_t* count)
 		/// </summary>
-		public IntPtr getRegisterStackInfo;
-		
+		internal IntPtr getSystemRegisters;
+
 		/// <summary>
-		/// void* getIntrinsicClass
+		/// char* (*getRegisterStackName)(void* ctxt, uint32_t regStack)
 		/// </summary>
-		public IntPtr getIntrinsicClass;
-		
+		internal IntPtr getRegisterStackName;
+
 		/// <summary>
-		/// void* getIntrinsicName
+		/// uint32_t* (*getAllRegisterStacks)(void* ctxt, size_t* count)
 		/// </summary>
-		public IntPtr getIntrinsicName;
-		
+		internal IntPtr getAllRegisterStacks;
+
 		/// <summary>
-		/// void* getAllIntrinsics
+		/// void (*getRegisterStackInfo)(void* ctxt, uint32_t regStack, BNRegisterStackInfo* result)
 		/// </summary>
-		public IntPtr getAllIntrinsics;
-		
+		internal IntPtr getRegisterStackInfo;
+
 		/// <summary>
-		/// void* getIntrinsicInputs
+		/// BNIntrinsicClass (*getIntrinsicClass)(void* ctxt, uint32_t intrinsic)
 		/// </summary>
-		public IntPtr getIntrinsicInputs;
-		
+		internal IntPtr getIntrinsicClass;
+
 		/// <summary>
-		/// void* freeNameAndTypeList
+		/// char* (*getIntrinsicName)(void* ctxt, uint32_t intrinsic)
 		/// </summary>
-		public IntPtr freeNameAndTypeList;
-		
+		internal IntPtr getIntrinsicName;
+
 		/// <summary>
-		/// void* getIntrinsicOutputs
+		/// uint32_t* (*getAllIntrinsics)(void* ctxt, size_t* count)
 		/// </summary>
-		public IntPtr getIntrinsicOutputs;
-		
+		internal IntPtr getAllIntrinsics;
+
 		/// <summary>
-		/// void* freeTypeList
+		/// BNNameAndType* (*getIntrinsicInputs)(void* ctxt, uint32_t intrinsic, size_t* count)
 		/// </summary>
-		public IntPtr freeTypeList;
-		
+		internal IntPtr getIntrinsicInputs;
+
 		/// <summary>
-		/// void* canAssemble
+		/// void (*freeNameAndTypeList)(void* ctxt, BNNameAndType* nt, size_t count)
 		/// </summary>
-		public IntPtr canAssemble;
-		
+		internal IntPtr freeNameAndTypeList;
+
 		/// <summary>
-		/// void* assemble
+		/// BNTypeWithConfidence* (*getIntrinsicOutputs)(void* ctxt, uint32_t intrinsic, size_t* count)
 		/// </summary>
-		public IntPtr assemble;
-		
+		internal IntPtr getIntrinsicOutputs;
+
 		/// <summary>
-		/// void* isNeverBranchPatchAvailable
+		/// void (*freeTypeList)(void* ctxt, BNTypeWithConfidence* types, size_t count)
 		/// </summary>
-		public IntPtr isNeverBranchPatchAvailable;
-		
+		internal IntPtr freeTypeList;
+
 		/// <summary>
-		/// void* isAlwaysBranchPatchAvailable
+		/// bool (*canAssemble)(void* ctxt)
 		/// </summary>
-		public IntPtr isAlwaysBranchPatchAvailable;
-		
+		internal IntPtr canAssemble;
+
 		/// <summary>
-		/// void* isInvertBranchPatchAvailable
+		/// bool (*assemble)(void* ctxt, const char* code, uint64_t addr, BNDataBuffer* result, char** errors)
 		/// </summary>
-		public IntPtr isInvertBranchPatchAvailable;
-		
+		internal IntPtr assemble;
+
 		/// <summary>
-		/// void** isSkipAndReturnZeroPatchAvailable
+		/// bool (*isNeverBranchPatchAvailable)(void* ctxt, const uint8_t* data, uint64_t addr, size_t len)
 		/// </summary>
-		public IntPtr isSkipAndReturnZeroPatchAvailable;
-		
+		internal IntPtr isNeverBranchPatchAvailable;
+
 		/// <summary>
-		/// void* isSkipAndReturnValuePatchAvailable
+		/// bool (*isAlwaysBranchPatchAvailable)(void* ctxt, const uint8_t* data, uint64_t addr, size_t len)
 		/// </summary>
-		public IntPtr isSkipAndReturnValuePatchAvailable;
-		
+		internal IntPtr isAlwaysBranchPatchAvailable;
+
 		/// <summary>
-		/// void* convertToNop
+		/// bool (*isInvertBranchPatchAvailable)(void* ctxt, const uint8_t* data, uint64_t addr, size_t len)
 		/// </summary>
-		public IntPtr convertToNop;
-		
+		internal IntPtr isInvertBranchPatchAvailable;
+
 		/// <summary>
-		/// void* alwaysBranch
+		/// bool (*isSkipAndReturnZeroPatchAvailable)(void* ctxt, const uint8_t* data, uint64_t addr, size_t len)
 		/// </summary>
-		public IntPtr alwaysBranch;
-		
+		internal IntPtr isSkipAndReturnZeroPatchAvailable;
+
 		/// <summary>
-		/// void* invertBranch
+		/// bool (*isSkipAndReturnValuePatchAvailable)(void* ctxt, const uint8_t* data, uint64_t addr, size_t len)
 		/// </summary>
-		public IntPtr invertBranch;
-		
+		internal IntPtr isSkipAndReturnValuePatchAvailable;
+
 		/// <summary>
-		/// void* skipAndReturnValue
+		/// bool (*convertToNop)(void* ctxt, uint8_t* data, uint64_t addr, size_t len)
 		/// </summary>
-		public IntPtr skipAndReturnValue;
+		internal IntPtr convertToNop;
+
+		/// <summary>
+		/// bool (*alwaysBranch)(void* ctxt, uint8_t* data, uint64_t addr, size_t len)
+		/// </summary>
+		internal IntPtr alwaysBranch;
+
+		/// <summary>
+		/// bool (*invertBranch)(void* ctxt, uint8_t* data, uint64_t addr, size_t len)
+		/// </summary>
+		internal IntPtr invertBranch;
+
+		/// <summary>
+		/// bool (*skipAndReturnValue)(void* ctxt, uint8_t* data, uint64_t addr, size_t len, uint64_t value)
+		/// </summary>
+		internal IntPtr skipAndReturnValue;
 	}
 
     public abstract class CustomArchitecture 

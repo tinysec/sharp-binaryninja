@@ -5,7 +5,7 @@ using Microsoft.Win32.SafeHandles;
 
 namespace BinaryNinja
 {
-	public class Workflow :  AbstractSafeHandle
+	public class Workflow :  AbstractSafeHandle<Workflow>
 	{
 		public Workflow(string name) : base(true)
 		{
@@ -258,6 +258,56 @@ namespace BinaryNinja
 			    activity ,
 			    newActivity
 		    );
+	    }
+
+	    public bool AssignSubactivities(string activity , string[] activities)
+	    {
+		    return NativeMethods.BNWorkflowAssignSubactivities(
+			    this.handle,
+			    activity ,
+			    activities ,
+			    (ulong)activities.Length
+		    );
+	    }
+
+	    public FlowGraph? GetGraph(string activity = "" , bool sequential = false)
+	    {
+		    return FlowGraph.TakeHandle(
+			    NativeMethods.BNWorkflowGetGraph(
+				    this.handle ,
+				    activity ,
+				    sequential
+			    )
+		    );
+	    }
+
+	    public Activity? RegisterActivity(Activity activity , string[] subactivities)
+	    {
+		    return Activity.TakeHandle(
+			    NativeMethods.BNWorkflowRegisterActivity(
+				    this.handle ,
+				    activity.DangerousGetHandle() ,
+				    subactivities ,
+				    (ulong)subactivities.Length
+			    )
+		    );
+	    }
+
+	    public void ShowReport(string name)
+	    {
+		    NativeMethods.BNWorkflowShowReport(this.handle , name);
+	    }
+
+	    public unsafe Settings? GetEligibilitySettings()
+	    {
+		    ulong size = 0;
+
+		    IntPtr raw = NativeMethods.BNWorkflowGetEligibilitySettings(
+			    this.handle ,
+			    (IntPtr)(&size)
+		    );
+
+		    return Settings.TakeHandle(raw);
 	    }
 	}
 }

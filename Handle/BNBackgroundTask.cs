@@ -5,7 +5,7 @@ using Microsoft.Win32.SafeHandles;
 
 namespace BinaryNinja
 {
-	public sealed class BackgroundTask : AbstractSafeHandle
+	public sealed class BackgroundTask : AbstractSafeHandle<BackgroundTask>
 	{
 		public BackgroundTask(string initialText , bool canCancel) 
 			: this( NativeMethods.BNBeginBackgroundTask(initialText, canCancel ) , true )

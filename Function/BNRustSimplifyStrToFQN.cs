@@ -7,8 +7,9 @@ namespace BinaryNinja
 {
     internal static partial class NativeMethods
     {
+
 	    /// <summary>
-		/// void BNRustSimplifyStrToFQN(BNQualifiedName @return, const char* param1, bool param2)
+		/// BNQualifiedName BNRustSimplifyStrToFQN(const char* const, bool)
 		/// </summary>
 		[DllImport(
             "binaryninjacore", 
@@ -16,17 +17,13 @@ namespace BinaryNinja
             CharSet = CharSet.Ansi,
             EntryPoint = "BNRustSimplifyStrToFQN"
         )]
-		internal static extern void BNRustSimplifyStrToFQN(
+		internal static extern BNQualifiedName BNRustSimplifyStrToFQN(
 			
-			// BNQualifiedName _return
-		    QualifiedName _return  , 
+			// const char* const
+		    string @const   , 
 			
-			// const char* param1
-		    string param1  , 
-			
-			// bool param2
-		    bool param2  
-			
+			// bool
+		    bool arg1  
 		);
 	}
 }

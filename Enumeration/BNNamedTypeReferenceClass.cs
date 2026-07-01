@@ -5,7 +5,7 @@ namespace BinaryNinja
 	/// <summary>
 	/// 
 	/// </summary>
-    public enum NamedTypeReferenceClass : uint
+    public enum NamedTypeReferenceClass : byte
 	{
 		/// <summary>
 		/// 

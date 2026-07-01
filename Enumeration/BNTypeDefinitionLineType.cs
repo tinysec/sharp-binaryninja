@@ -5,7 +5,7 @@ namespace BinaryNinja
 	/// <summary>
 	/// 
 	/// </summary>
-    public enum TypeDefinitionLineType : uint
+    public enum TypeDefinitionLineType : byte
 	{
 		/// <summary>
 		/// 

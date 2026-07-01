@@ -5,7 +5,7 @@ namespace BinaryNinja
 	/// <summary>
 	/// 
 	/// </summary>
-    public enum FindType : uint
+    public enum FindType : byte
 	{
 		/// <summary>
 		/// 

@@ -5,7 +5,7 @@ namespace BinaryNinja
 	/// <summary>
 	/// 
 	/// </summary>
-    public enum EarlyReturn : uint
+    public enum EarlyReturn : byte
 	{
 		/// <summary>
 		/// 

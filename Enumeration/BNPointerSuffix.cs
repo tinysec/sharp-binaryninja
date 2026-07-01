@@ -7,7 +7,7 @@ namespace BinaryNinja
 	/// <summary>
 	/// 
 	/// </summary>
-    public enum PointerSuffix : uint
+    public enum PointerSuffix : byte
 	{
 		/// <summary>
 		/// 

@@ -5,7 +5,7 @@ namespace BinaryNinja
 	/// <summary>
 	/// 
 	/// </summary>
-    public enum PointerBaseType : uint
+    public enum PointerBaseType : byte
 	{
 		/// <summary>
 		/// 

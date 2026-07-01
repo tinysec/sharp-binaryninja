@@ -5,7 +5,7 @@ namespace BinaryNinja
 	/// <summary>
 	/// 
 	/// </summary>
-    public enum TagTypeType : uint
+    public enum TagTypeType : byte
 	{
 		/// <summary>
 		/// 

@@ -5,7 +5,7 @@ namespace BinaryNinja
 	/// <summary>
 	/// 
 	/// </summary>
-    public enum DisassemblyCallParameterHints : uint
+    public enum DisassemblyCallParameterHints : byte
 	{
 		/// <summary>
 		/// 

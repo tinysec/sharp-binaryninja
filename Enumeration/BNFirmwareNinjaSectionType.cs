@@ -5,7 +5,7 @@ namespace BinaryNinja
 	/// <summary>
 	/// 
 	/// </summary>
-    public enum FirmwareNinjaSectionType : uint
+    public enum FirmwareNinjaSectionType : byte
 	{
 		/// <summary>
 		/// 

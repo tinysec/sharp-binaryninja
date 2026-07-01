@@ -22,10 +22,10 @@ namespace BinaryNinja
 		    IntPtr func  , 
 			
 			// BNVariable* _var
-		    in BNVariable _var  , 
+		    IntPtr _var  , 
 			
 			// BNTypeWithConfidence* type
-			in BNTypeWithConfidence type  , 
+		    IntPtr type  , 
 			
 			// const char* name
 		    string name  , 

@@ -5,7 +5,7 @@ namespace BinaryNinja
 	/// <summary>
 	/// 
 	/// </summary>
-    public enum FlowGraphOption : uint
+    public enum FlowGraphOption : byte
 	{
 		/// <summary>
 		/// 

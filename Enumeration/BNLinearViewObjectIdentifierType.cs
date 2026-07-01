@@ -5,7 +5,7 @@ namespace BinaryNinja
 	/// <summary>
 	/// 
 	/// </summary>
-    public enum LinearViewObjectIdentifierType : uint
+    public enum LinearViewObjectIdentifierType : byte
 	{
 		/// <summary>
 		/// 

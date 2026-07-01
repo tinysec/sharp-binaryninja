@@ -5,7 +5,7 @@ using Microsoft.Win32.SafeHandles;
 
 namespace BinaryNinja
 {
-	public sealed class RemoteProject : AbstractSafeHandle
+	public sealed class RemoteProject : AbstractSafeHandle<RemoteProject>
 	{
 	    internal RemoteProject(IntPtr handle , bool owner) 
 		    : base(handle , owner)

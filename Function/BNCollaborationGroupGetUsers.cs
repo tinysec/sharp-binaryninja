@@ -7,27 +7,21 @@ namespace BinaryNinja
 {
     internal static partial class NativeMethods
     {
+
 	    /// <summary>
-		/// bool BNCollaborationGroupGetUsers(BNCollaborationGroup* group, const char*** userIds, const char*** usernames, uint64_t* count)
+		/// BNCollaborationUser** BNCollaborationGroupGetUsers(BNCollaborationGroup* group, size_t* count)
 		/// </summary>
 		[DllImport(
             "binaryninjacore", 
             CallingConvention = System.Runtime.InteropServices.CallingConvention.Cdecl,
-            CharSet = CharSet.Ansi,
             EntryPoint = "BNCollaborationGroupGetUsers"
         )]
-		internal static extern bool BNCollaborationGroupGetUsers(
+		internal static extern IntPtr BNCollaborationGroupGetUsers(
 			
-			// BNCollaborationGroup* _group
-		    IntPtr _group  , 
+			// BNCollaborationGroup* group
+		    IntPtr group   , 
 			
-			// const char*** userIds
-		    IntPtr userIds  , 
-			
-			// const char*** usernames
-		    IntPtr usernames  , 
-			
-			// uint64_t* count
+			// size_t* count
 		    IntPtr count  
 		);
 	}

@@ -5,7 +5,7 @@ namespace BinaryNinja
 	/// <summary>
 	/// 
 	/// </summary>
-    public enum ScriptingProviderExecuteResult : uint
+    public enum ScriptingProviderExecuteResult : byte
 	{
 		/// <summary>
 		/// 

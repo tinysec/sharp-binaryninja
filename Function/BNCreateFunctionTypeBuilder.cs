@@ -8,7 +8,7 @@ namespace BinaryNinja
     internal static partial class NativeMethods
     {
 	    /// <summary>
-		/// BNTypeBuilder* BNCreateFunctionTypeBuilder(BNTypeWithConfidence* returnValue, BNCallingConventionWithConfidence* callingConvention, BNFunctionParameter* @params, uint64_t paramCount, BNBoolWithConfidence* varArg, BNBoolWithConfidence* canReturn, BNOffsetWithConfidence* stackAdjust, uint32_t* regStackAdjustRegs, BNOffsetWithConfidence* regStackAdjustValues, uint64_t regStackAdjustCount, BNRegisterSetWithConfidence* returnRegs, BNNameType ft, BNBoolWithConfidence* pure)
+		/// BNTypeBuilder* BNCreateFunctionTypeBuilder(BNReturnValue* returnValue, BNCallingConventionWithConfidence* callingConvention, BNFunctionParameter* @params, uint64_t paramCount, BNBoolWithConfidence* varArg, BNBoolWithConfidence* canReturn, BNOffsetWithConfidence* stackAdjust, uint32_t* regStackAdjustRegs, BNOffsetWithConfidence* regStackAdjustValues, uint64_t regStackAdjustCount, BNNameType ft, BNBoolWithConfidence* pure)
 		/// </summary>
 		[DllImport(
             "binaryninjacore", 
@@ -17,8 +17,8 @@ namespace BinaryNinja
         )]
 		internal static extern IntPtr BNCreateFunctionTypeBuilder(
 			
-			// BNTypeWithConfidence* returnValue
-			in BNTypeWithConfidence returnValue  , 
+			// BNReturnValue* returnValue
+			in BNReturnValue returnValue  ,
 			
 			// BNCallingConventionWithConfidence* callingConvention
 			in BNCallingConventionWithConfidence callingConvention  , 
@@ -46,9 +46,6 @@ namespace BinaryNinja
 			
 			// uint64_t regStackAdjustCount
 		    ulong regStackAdjustCount  , 
-			
-			// BNRegisterSetWithConfidence* returnRegs
-		    in BNRegisterSetWithConfidence returnRegs  , 
 			
 			// BNNameType ft
 		    NameType ft  , 

@@ -13,6 +13,7 @@ namespace BinaryNinja
 		[DllImport(
             "binaryninjacore", 
             CallingConvention = System.Runtime.InteropServices.CallingConvention.Cdecl,
+            CharSet = CharSet.Ansi,
             EntryPoint = "BNSetAutoFunctionCallingConvention"
         )]
 		internal static extern void BNSetAutoFunctionCallingConvention(
@@ -21,7 +22,8 @@ namespace BinaryNinja
 		    IntPtr func  , 
 			
 			// BNCallingConventionWithConfidence* convention
-		    in BNCallingConventionWithConfidence convention  
+		    IntPtr convention  
+			
 		);
 	}
 }

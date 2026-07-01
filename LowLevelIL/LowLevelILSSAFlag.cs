@@ -9,7 +9,7 @@ namespace BinaryNinja
 		
 		public ulong Vesion { get;  } = 0;
 		
-		public LowLevelILSSAFlag(LowLevelILFunction function , Flag flag , ulong vesion)
+		public LowLevelILSSAFlag(LowLevelILFunction function , ILFlag flag , ulong vesion)
 			:this( new LowLevelILFlag(function , flag) ,  vesion )
 		{
 		

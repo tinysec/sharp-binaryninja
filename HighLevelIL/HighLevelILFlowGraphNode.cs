@@ -4,7 +4,7 @@ namespace BinaryNinja
 {
 	public sealed class HighLevelILFlowGraphNode : FlowGraphNode
 	{
-		public HighLevelILFunction ILFunction { get; }
+		internal HighLevelILFunction ILFunction { get; set; }
 		
 		internal HighLevelILFlowGraphNode(
 			HighLevelILFunction  ilFunction,
@@ -107,6 +107,7 @@ namespace BinaryNinja
 				false);
 		}
 		
+		
 		public HighLevelILBasicBlock? BasicBlock
 		{
 			get
@@ -130,19 +131,17 @@ namespace BinaryNinja
 		{
 			get
 			{
+				ulong arrayLength = 0;
+		    
 				IntPtr arrayPointer = NativeMethods.BNGetFlowGraphNodeIncomingEdges(
 					this.handle,
-					out ulong arrayLength 
+					out arrayLength 
 				);
 		    
 				return UnsafeUtils.TakeStructArrayEx<BNFlowGraphEdge,HighLevelILFlowGraphEdge>(
 					arrayPointer,
 					arrayLength,
-					(_native) => HighLevelILFlowGraphEdge.FromNativeEx(
-						_native,
-						this,
-						false
-					),
+					(_native) => HighLevelILFlowGraphEdge.FromNativeEx(this.ILFunction, _native),
 					NativeMethods.BNFreeFlowGraphNodeEdgeList
 				);
 			}
@@ -152,19 +151,17 @@ namespace BinaryNinja
 		{
 			get
 			{
+				ulong arrayLength = 0;
+		    
 				IntPtr arrayPointer = NativeMethods.BNGetFlowGraphNodeOutgoingEdges(
 					this.handle,
-					out ulong arrayLength 
+					out arrayLength 
 				);
 		    
 				return UnsafeUtils.TakeStructArrayEx<BNFlowGraphEdge,HighLevelILFlowGraphEdge>(
 					arrayPointer,
 					arrayLength,
-					(_native) => HighLevelILFlowGraphEdge.FromNativeEx(
-						_native,
-						this,
-						true
-					),
+					(_native) => HighLevelILFlowGraphEdge.FromNativeEx(this.ILFunction, _native),
 					NativeMethods.BNFreeFlowGraphNodeEdgeList
 				);
 			}

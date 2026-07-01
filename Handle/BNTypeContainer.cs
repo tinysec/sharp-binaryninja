@@ -7,7 +7,7 @@ using Microsoft.Win32.SafeHandles;
 
 namespace BinaryNinja
 {
-	public sealed class TypeContainer : AbstractSafeHandle
+	public sealed class TypeContainer : AbstractSafeHandle<TypeContainer>
 	{
 		public TypeContainer() 
 			: this( NativeMethods.BNGetEmptyTypeContainer() , true)
@@ -287,7 +287,7 @@ namespace BinaryNinja
 				    );
 			    
 				    BinaryNinja.Type[] types = UnsafeUtils.TakeHandleArrayEx<BinaryNinja.Type>(
-					    typeNamesPointer ,
+					    typesPointer ,
 					    typeCount ,
 					    BinaryNinja.Type.MustNewFromHandle,
 					    NativeMethods.BNFreeTypeList
@@ -297,7 +297,7 @@ namespace BinaryNinja
 				    {
 					    results.Add( new QualifiedNameTypeAndId(
 						    typeNames[i],
-						    BinaryNinja.Type.MustNewFromHandle(types[i].DangerousGetHandle()),
+						    types[i],
 						    typeIds[i]
 						));
 				    }
@@ -448,10 +448,76 @@ namespace BinaryNinja
 				    TypeParserError.FromNative ,
 				    NativeMethods.BNFreeTypeParserErrors
 			    );
-			    
+
 			    return null;
 		    }
 	    }
-	    
+
+	    /// <summary>
+	    /// Parses C/C++ source code within this type container and returns the parsed types,
+	    /// variables, and functions. On failure, returns null and populates the errors array.
+	    /// </summary>
+	    /// <param name="source">The C/C++ source text to parse.</param>
+	    /// <param name="fileName">The filename to use for diagnostics.</param>
+	    /// <param name="options">Compiler options to pass to the parser.</param>
+	    /// <param name="includeDirs">Include directory paths for header resolution.</param>
+	    /// <param name="autoTypeSource">The auto type source identifier string.</param>
+	    /// <param name="importDependencies">Whether to import type dependencies.</param>
+	    /// <param name="errors">Receives any parse errors on failure.</param>
+	    /// <returns>A TypeParserResult on success, or null on failure.</returns>
+	    public unsafe TypeParserResult? ParseTypesFromSource(
+		    string source ,
+		    string fileName ,
+		    string[] options ,
+		    string[] includeDirs ,
+		    string autoTypeSource ,
+		    bool importDependencies ,
+		    out TypeParserError[] errors
+	    )
+	    {
+		    // 1. Prepare safe arrays.
+		    string[] safeOptions = options ?? Array.Empty<string>();
+		    string[] safeDirs = includeDirs ?? Array.Empty<string>();
+
+		    // 2. Stack-allocate the result struct and error output pointers.
+		    BNTypeParserResult rawResult = new BNTypeParserResult();
+		    IntPtr errorsPtr = IntPtr.Zero;
+		    ulong errorCount = 0;
+
+		    // 3. Call the native API.
+		    bool ok = NativeMethods.BNTypeContainerParseTypesFromSource(
+			    this.handle ,
+			    source ,
+			    fileName ,
+			    safeOptions ,
+			    (ulong)safeOptions.Length ,
+			    safeDirs ,
+			    (ulong)safeDirs.Length ,
+			    autoTypeSource ?? string.Empty ,
+			    importDependencies ,
+			    (IntPtr)(&rawResult) ,
+			    (IntPtr)(&errorsPtr) ,
+			    (IntPtr)(&errorCount)
+		    );
+
+		    // 4. On success, convert the result and free the native struct.
+		    if (ok)
+		    {
+			    errors = Array.Empty<TypeParserError>();
+
+			    return TypeParserResult.TakeNative(rawResult);
+		    }
+
+		    // 5. On failure, convert the error array.
+		    errors = UnsafeUtils.TakeStructArrayEx<BNTypeParserError , TypeParserError>(
+			    errorsPtr ,
+			    errorCount ,
+			    TypeParserError.FromNative ,
+			    NativeMethods.BNFreeTypeParserErrors
+		    );
+
+		    return null;
+	    }
+
 	}
 }

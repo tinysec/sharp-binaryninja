@@ -5,7 +5,7 @@ namespace BinaryNinja
 	public abstract class AbstractSSAVariable<T_VARIABLE>  
 		: IEquatable< AbstractSSAVariable<T_VARIABLE>>, 
 			IComparable< AbstractSSAVariable<T_VARIABLE>>
-		where T_VARIABLE : AbstractFunctionVariable
+		where T_VARIABLE : AbstractFunctionVariable<T_VARIABLE>
 	{
 		public T_VARIABLE Variable { get; }
 		

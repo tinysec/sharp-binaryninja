@@ -7,7 +7,7 @@ namespace BinaryNinja
 {
 	public static partial class Core
 	{
-		public static void SetCurrentPluginLoadOrder(PluginLoadOrder order)
+		public static void SetCurrentPluginLoadOrder(PluginLoadPhase order)
 		{
 			NativeMethods.BNSetCurrentPluginLoadOrder(order);
 		}
@@ -16,7 +16,7 @@ namespace BinaryNinja
     internal static partial class NativeMethods
     {
 	    /// <summary>
-		/// void BNSetCurrentPluginLoadOrder(BNPluginLoadOrder order)
+		/// void BNSetCurrentPluginLoadOrder(BNPluginLoadPhase order)
 		/// </summary>
 		[DllImport(
             "binaryninjacore", 
@@ -25,8 +25,8 @@ namespace BinaryNinja
         )]
 		internal static extern void BNSetCurrentPluginLoadOrder(
 			
-			// BNPluginLoadOrder order
-		    PluginLoadOrder order 
+			// BNPluginLoadPhase order
+		    PluginLoadPhase order
 		);
 	}
 }

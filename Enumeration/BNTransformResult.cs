@@ -5,7 +5,7 @@ namespace BinaryNinja
 	/// <summary>
 	/// 
 	/// </summary>
-    public enum TransformResult : uint
+    public enum TransformResult : byte
 	{
 		/// <summary>
 		/// 

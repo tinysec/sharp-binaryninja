@@ -5,7 +5,7 @@ namespace BinaryNinja
 	/// <summary>
 	/// 
 	/// </summary>
-    public enum LinearDisassemblyLineType : uint
+    public enum LinearDisassemblyLineType : byte
 	{
 		/// <summary>
 		/// 

@@ -5,7 +5,7 @@ namespace BinaryNinja
 	/// <summary>
 	/// 
 	/// </summary>
-    public enum CallingConventionName : uint
+    public enum CallingConventionName : byte
 	{
 		/// <summary>
 		/// 

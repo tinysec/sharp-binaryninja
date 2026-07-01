@@ -11,7 +11,7 @@ namespace BinaryNinja
 			
 		}
 
-		public Register Destination
+		public ILRegister Destination
 		{
 			get
 			{

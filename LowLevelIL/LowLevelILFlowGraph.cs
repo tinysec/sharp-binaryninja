@@ -2,7 +2,7 @@ using System;
 
 namespace BinaryNinja
 {
-	public sealed class LowLevelILFlowGraph : AbstractFlowGraph
+	public sealed class LowLevelILFlowGraph : AbstractFlowGraph<LowLevelILFlowGraph>
 	{
 		internal LowLevelILFunction ILFunction { get; set; }
 		

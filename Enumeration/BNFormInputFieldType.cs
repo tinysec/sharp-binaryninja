@@ -5,7 +5,7 @@ namespace BinaryNinja
 	/// <summary>
 	/// 
 	/// </summary>
-    public enum FormInputFieldType : uint
+    public enum FormInputFieldType : byte
 	{
 		/// <summary>
 		/// 

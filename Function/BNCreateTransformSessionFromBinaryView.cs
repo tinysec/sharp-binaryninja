@@ -7,18 +7,23 @@ namespace BinaryNinja
 {
     internal static partial class NativeMethods
     {
+
 	    /// <summary>
-		/// BNTransformSession* BNCreateTransformSessionFromBinaryView(BNBinaryView* initialView)
+		/// BNTransformSession* BNCreateTransformSessionFromBinaryView(BNBinaryView* initialView, const char* options)
 		/// </summary>
 		[DllImport(
             "binaryninjacore", 
             CallingConvention = System.Runtime.InteropServices.CallingConvention.Cdecl,
+            CharSet = CharSet.Ansi,
             EntryPoint = "BNCreateTransformSessionFromBinaryView"
         )]
 		internal static extern IntPtr BNCreateTransformSessionFromBinaryView(
 			
 			// BNBinaryView* initialView
-		    IntPtr initialView  
+		    IntPtr initialView   , 
+			
+			// const char* options
+		    string options  
 		);
 	}
 }

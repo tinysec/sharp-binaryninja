@@ -24,11 +24,12 @@ namespace BinaryNinja
 		internal long storage;
 	}
 	
-     public abstract class AbstractVariable : INativeWrapper<BNVariable>, 
-	     IEquatable<AbstractVariable>,
-	     IComparable<AbstractVariable>
+     public abstract class AbstractVariable<T_SELF> : INativeWrapper<BNVariable>,
+	    IEquatable<T_SELF>,
+	    IComparable<T_SELF>
+     where T_SELF : AbstractVariable<T_SELF>
     {
-		public VariableSourceType Source { get; internal set; } = VariableSourceType.StackVariableSourceType;
+		public VariableSourceType Type { get; internal set; } = VariableSourceType.StackVariableSourceType;
 		
 		public uint Index { get; internal set; } = 0;
 		
@@ -40,19 +41,19 @@ namespace BinaryNinja
 		}
 		
 		internal AbstractVariable(
-			VariableSourceType source,
+			VariableSourceType type,
 			uint index,
 			long storage
 		) 
 		{
-			this.Source = source;
+			this.Type = type;
 			this.Index = index;
 			this.Storage = storage;
 		}
 		
 		internal AbstractVariable(BNVariable native)
 		{
-			this.Source = native.type;
+			this.Type = native.type;
 			this.Index = native.index;
 			this.Storage = native.storage;
 		}
@@ -61,7 +62,7 @@ namespace BinaryNinja
 		{
 			return new BNVariable()
 			{
-				type = this.Source ,
+				type = this.Type ,
 				index = this.Index ,
 				storage = this.Storage
 			};
@@ -77,10 +78,10 @@ namespace BinaryNinja
 		
 		public override bool Equals(object? other)
 		{
-			return Equals(other as AbstractVariable);
+			return Equals(other as T_SELF);
 		}
 
-		public bool Equals(AbstractVariable? other)
+		public bool Equals(T_SELF? other)
 		{
 			if (other is null)
 			{
@@ -100,7 +101,7 @@ namespace BinaryNinja
 			return this.Identifier.GetHashCode();
 		}
 
-		public static bool operator ==(AbstractVariable? left, AbstractVariable? right)
+		public static bool operator ==(AbstractVariable<T_SELF>? left, AbstractVariable<T_SELF>? right)
 		{
 			if (left is null)
 			{
@@ -110,12 +111,12 @@ namespace BinaryNinja
 			return left.Equals(right);
 		}
 
-		public static bool operator !=(AbstractVariable? left, AbstractVariable? right)
+		public static bool operator !=(AbstractVariable<T_SELF>? left, AbstractVariable<T_SELF>? right)
 		{
 			return !(left == right);
 		}
 
-		public int CompareTo(AbstractVariable? other)
+		public int CompareTo(T_SELF? other)
 		{
 			if (other is null)
 			{
@@ -126,7 +127,7 @@ namespace BinaryNinja
 		}
     }
      
-    public sealed class CoreVariable : AbstractVariable
+    public sealed class CoreVariable : AbstractVariable<CoreVariable>
     {
 		internal CoreVariable()
 		{

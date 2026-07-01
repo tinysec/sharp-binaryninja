@@ -5,7 +5,7 @@ namespace BinaryNinja
 	/// <summary>
 	/// 
 	/// </summary>
-    public enum MetadataType : uint
+    public enum MetadataType : byte
 	{
 		/// <summary>
 		/// 

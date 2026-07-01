@@ -47,5 +47,37 @@ namespace BinaryNinja
 				);
 			}
 		}
+
+		/// <summary>
+		/// The members of the underlying structure. Convenience forwarder for
+		/// <c>Structure.Members</c> (Python <c>StructureType.members</c>).
+		/// </summary>
+		public StructureMember[] Members
+		{
+			get
+			{
+				return this.Structure.Members;
+			}
+		}
+
+		/// <summary>
+		/// The base structures. Forwards <c>Structure.BaseStructures</c>.
+		/// </summary>
+		public BaseStructure[] BaseStructures
+		{
+			get
+			{
+				return this.Structure.BaseStructures;
+			}
+		}
+
+		/// <summary>
+		/// The member at the given byte offset, or <c>null</c>. Forwards
+		/// <c>Structure.GetMemberByOffset</c> (Python <c>StructureType.member_at_offset</c>).
+		/// </summary>
+		public StructureMember? MemberAtOffset(ulong offset)
+		{
+			return this.Structure.GetMemberByOffset(offset);
+		}
 	}
 }

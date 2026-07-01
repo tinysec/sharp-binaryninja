@@ -5,16 +5,16 @@ namespace BinaryNinja
 	public sealed class FlagOrRegister : IEquatable<FlagOrRegister>,
 		IComparable<FlagOrRegister>
 	{
-		public Flag? Flag { get;  } = null;
+		public ILFlag? Flag { get;  } = null;
 		
-		public Register? Register { get;  } = null;
+		public ILRegister? Register { get;  } = null;
 		
-		internal FlagOrRegister(Flag flag)
+		internal FlagOrRegister(ILFlag flag)
 		{
 			this.Flag = flag;
 		}
 		
-		internal FlagOrRegister(Register register)
+		internal FlagOrRegister(ILRegister register)
 		{
 			this.Register = register;
 		}

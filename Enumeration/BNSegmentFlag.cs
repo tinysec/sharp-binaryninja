@@ -5,7 +5,7 @@ namespace BinaryNinja
 	/// <summary>
 	/// 
 	/// </summary>
-    public enum SegmentFlag : uint
+    public enum SegmentFlag : byte
 	{
 		/// <summary>
 		/// 

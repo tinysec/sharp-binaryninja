@@ -5,7 +5,7 @@ namespace BinaryNinja
 	/// <summary>
 	/// 
 	/// </summary>
-    public enum BranchType : uint
+    public enum BranchType : byte
 	{
 		/// <summary>
 		/// 

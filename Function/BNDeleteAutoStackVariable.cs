@@ -13,6 +13,7 @@ namespace BinaryNinja
 		[DllImport(
             "binaryninjacore", 
             CallingConvention = System.Runtime.InteropServices.CallingConvention.Cdecl,
+            CharSet = CharSet.Ansi,
             EntryPoint = "BNDeleteAutoStackVariable"
         )]
 		internal static extern void BNDeleteAutoStackVariable(
@@ -22,6 +23,7 @@ namespace BinaryNinja
 			
 			// int64_t offset
 		    long offset  
+			
 		);
 	}
 }

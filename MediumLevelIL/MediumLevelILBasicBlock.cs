@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace BinaryNinja
 {
-	public sealed class MediumLevelILBasicBlock : AbstractBasicBlock
+	public sealed class MediumLevelILBasicBlock : AbstractBasicBlock<MediumLevelILBasicBlock>
 	{
 		internal MediumLevelILFunction ILFunction { get; }
 		

@@ -5,7 +5,7 @@ namespace BinaryNinja
 	/// <summary>
 	/// 
 	/// </summary>
-    public enum EdgePenStyle : uint
+    public enum EdgePenStyle : byte
 	{
 		/// <summary>
 		/// 

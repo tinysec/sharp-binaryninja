@@ -5,7 +5,7 @@ namespace BinaryNinja
 	/// <summary>
 	/// 
 	/// </summary>
-    public enum ImplicitRegisterExtend : uint
+    public enum ImplicitRegisterExtend : byte
 	{
 		/// <summary>
 		/// 

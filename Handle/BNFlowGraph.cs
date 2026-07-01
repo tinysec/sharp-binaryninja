@@ -7,7 +7,8 @@ using Microsoft.Win32.SafeHandles;
 
 namespace BinaryNinja
 {
-	public abstract class AbstractFlowGraph : AbstractSafeHandle
+	public abstract class AbstractFlowGraph<T_SELF> : AbstractSafeHandle<T_SELF>
+		where T_SELF: AbstractFlowGraph<T_SELF>
 	{
 		internal AbstractFlowGraph(IntPtr handle , bool owner) 
 			: base(handle , owner)
@@ -444,7 +445,7 @@ namespace BinaryNinja
 	}
 	
 	// x
-	public sealed class FlowGraph : AbstractFlowGraph
+	public sealed class FlowGraph : AbstractFlowGraph<FlowGraph>
 	{
 		public FlowGraph()
 			:this( NativeMethods.BNCreateFlowGraph() , true)
@@ -495,8 +496,205 @@ namespace BinaryNinja
 		    {
 			    throw new ArgumentNullException(nameof(handle));
 		    }
-		    
+
 		    return new FlowGraph(handle, false);
+	    }
+
+	    /// <summary>
+	    /// Whether the flow graph has pending updates.
+	    /// </summary>
+	    public bool HasUpdates
+	    {
+		    get
+		    {
+			    return NativeMethods.BNFlowGraphHasUpdates(this.handle);
+		    }
+	    }
+
+	    /// <summary>
+	    /// Whether the flow graph is in update query mode.
+	    /// </summary>
+	    public bool UpdateQueryMode
+	    {
+		    get
+		    {
+			    return NativeMethods.BNFlowGraphUpdateQueryMode(this.handle);
+		    }
+	    }
+
+	    /// <summary>
+	    /// Creates a function graph for the given function, view type, and optional disassembly settings.
+	    /// </summary>
+	    /// <param name="func">The function to create a graph for.</param>
+	    /// <param name="viewType">The view type specifying the kind of graph (e.g. normal, IL).</param>
+	    /// <param name="settings">Optional disassembly settings, or null for defaults.</param>
+	    /// <returns>A new owned FlowGraph, or null on failure.</returns>
+	    public static FlowGraph? CreateFunctionGraph(
+		    Function func ,
+		    FunctionViewType viewType ,
+		    DisassemblySettings? settings = null
+	    )
+	    {
+		    // 1. Validate required parameters.
+		    if (null == func)
+		    {
+			    throw new ArgumentNullException(nameof(func));
+		    }
+
+		    if (null == viewType)
+		    {
+			    throw new ArgumentNullException(nameof(viewType));
+		    }
+
+		    // 2. Call the native API with the FunctionViewType directly.
+		    return FlowGraph.TakeHandle(
+			    NativeMethods.BNCreateFunctionGraph(
+				    func.DangerousGetHandle() ,
+				    viewType ,
+				    null == settings ? IntPtr.Zero : settings.DangerousGetHandle()
+			    )
+		    );
+	    }
+
+	    /// <summary>
+	    /// Creates an immediate function graph (no layout delay) for the given function.
+	    /// </summary>
+	    /// <param name="func">The function to create an immediate graph for.</param>
+	    /// <param name="viewType">The view type specifying the kind of graph.</param>
+	    /// <param name="settings">Optional disassembly settings, or null for defaults.</param>
+	    /// <returns>A new owned FlowGraph, or null on failure.</returns>
+	    public static FlowGraph? CreateImmediateFunctionGraph(
+		    Function func ,
+		    FunctionViewType viewType ,
+		    DisassemblySettings? settings = null
+	    )
+	    {
+		    // 1. Validate required parameters.
+		    if (null == func)
+		    {
+			    throw new ArgumentNullException(nameof(func));
+		    }
+
+		    if (null == viewType)
+		    {
+			    throw new ArgumentNullException(nameof(viewType));
+		    }
+
+		    // 2. Call the native API with the FunctionViewType directly.
+		    return FlowGraph.TakeHandle(
+			    NativeMethods.BNCreateImmediateFunctionGraph(
+				    func.DangerousGetHandle() ,
+				    viewType ,
+				    null == settings ? IntPtr.Zero : settings.DangerousGetHandle()
+			    )
+		    );
+	    }
+
+	    /// <summary>
+	    /// Gets the owning flow graph for a given flow graph node.
+	    /// </summary>
+	    /// <param name="node">The flow graph node to query.</param>
+	    /// <returns>The owning FlowGraph, or null if not available.</returns>
+	    public static FlowGraph? GetNodeOwner(FlowGraphNode node)
+	    {
+		    // 1. Validate the required parameter.
+		    if (null == node)
+		    {
+			    throw new ArgumentNullException(nameof(node));
+		    }
+
+		    // 2. Query the native API for the node's owner graph.
+		    return FlowGraph.TakeHandle(
+			    NativeMethods.BNGetFlowGraphNodeOwner(node.DangerousGetHandle())
+		    );
+	    }
+
+	    /// <summary>
+	    /// Gets the workflow graph for a binary view.
+	    /// </summary>
+	    /// <param name="view">The binary view to get the workflow graph for.</param>
+	    /// <param name="name">The workflow name.</param>
+	    /// <param name="sequential">Whether to use sequential layout.</param>
+	    /// <returns>The workflow FlowGraph, or null if not available.</returns>
+	    public static FlowGraph? GetWorkflowGraphForBinaryView(
+		    BinaryView view ,
+		    string name ,
+		    bool sequential = false
+	    )
+	    {
+		    // 1. Validate the required parameter.
+		    if (null == view)
+		    {
+			    throw new ArgumentNullException(nameof(view));
+		    }
+
+		    // 2. Query the native API.
+		    return FlowGraph.TakeHandle(
+			    NativeMethods.BNGetWorkflowGraphForBinaryView(
+				    view.DangerousGetHandle() ,
+				    name ?? string.Empty ,
+				    sequential
+			    )
+		    );
+	    }
+
+	    /// <summary>
+	    /// Gets the workflow graph for a function.
+	    /// </summary>
+	    /// <param name="func">The function to get the workflow graph for.</param>
+	    /// <param name="name">The workflow name.</param>
+	    /// <param name="sequential">Whether to use sequential layout.</param>
+	    /// <returns>The workflow FlowGraph, or null if not available.</returns>
+	    public static FlowGraph? GetWorkflowGraphForFunction(
+		    Function func ,
+		    string name ,
+		    bool sequential = false
+	    )
+	    {
+		    // 1. Validate the required parameter.
+		    if (null == func)
+		    {
+			    throw new ArgumentNullException(nameof(func));
+		    }
+
+		    // 2. Query the native API.
+		    return FlowGraph.TakeHandle(
+			    NativeMethods.BNGetWorkflowGraphForFunction(
+				    func.DangerousGetHandle() ,
+				    name ?? string.Empty ,
+				    sequential
+			    )
+		    );
+	    }
+
+	    /// <summary>
+	    /// Gets the unresolved stack adjustment graph for a function.
+	    /// </summary>
+	    /// <param name="func">The function to get the graph for.</param>
+	    /// <returns>The unresolved stack adjustment FlowGraph, or null if not available.</returns>
+	    public static FlowGraph? GetUnresolvedStackAdjustmentGraph(Function func)
+	    {
+		    // 1. Validate the required parameter.
+		    if (null == func)
+		    {
+			    throw new ArgumentNullException(nameof(func));
+		    }
+
+		    // 2. Query the native API.
+		    return FlowGraph.TakeHandle(
+			    NativeMethods.BNGetUnresolvedStackAdjustmentGraph(func.DangerousGetHandle())
+		    );
+	    }
+
+	    /// <summary>
+	    /// Signals that the graph preparation for layout is complete.
+	    /// This must be called after all nodes and edges have been added
+	    /// and the graph is ready for the layout engine to process.
+	    /// </summary>
+	    public void FinishPrepareForLayout()
+	    {
+		    // Delegate to the native API.
+		    NativeMethods.BNFinishPrepareForLayout(this.handle);
 	    }
 	}
 }

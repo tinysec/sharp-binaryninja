@@ -5,7 +5,7 @@ namespace BinaryNinja
 	/// <summary>
 	/// 
 	/// </summary>
-    public enum FirmwareNinjaMemoryAccessType : uint
+    public enum FirmwareNinjaMemoryAccessType : byte
 	{
 		/// <summary>
 		/// 

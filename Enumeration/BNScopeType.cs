@@ -5,7 +5,7 @@ namespace BinaryNinja
 	/// <summary>
 	/// 
 	/// </summary>
-    public enum ScopeType : uint
+    public enum ScopeType : byte
 	{
 		/// <summary>
 		/// 

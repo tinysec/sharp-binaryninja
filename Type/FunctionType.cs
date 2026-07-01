@@ -127,8 +127,20 @@ namespace BinaryNinja
 		{
 			using (ScopedAllocator allocator = new ScopedAllocator())
 			{
+				// ABI 176 combines the return type and its location into a single BNReturnValue.
+				BNTypeWithConfidence returnTypeNative = returnType.ToNative();
+
+				BNReturnValue returnValue = new BNReturnValue()
+				{
+					type = returnTypeNative.type,
+					typeConfidence = returnTypeNative.confidence,
+					defaultLocation = true,
+					location = default,
+					locationConfidence = 0
+				};
+
 				return NativeMethods.BNCreateFunctionType(
-					returnType.ToNative(),
+					returnValue,
 					callingConvention.ToNative(),
 					allocator.ConvertToNativeArrayEx<BNFunctionParameter,FunctionParameter>(
 						parameters
@@ -142,7 +154,6 @@ namespace BinaryNinja
 						regStackAdjustValues
 					),
 					(ulong)regStackAdjustValues.Length,
-					returnRegs.ToNativeEx(allocator),
 					ft,
 					pure.ToNative()
 				);

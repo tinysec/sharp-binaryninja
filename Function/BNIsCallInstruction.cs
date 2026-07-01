@@ -13,6 +13,7 @@ namespace BinaryNinja
 		[DllImport(
             "binaryninjacore", 
             CallingConvention = System.Runtime.InteropServices.CallingConvention.Cdecl,
+            CharSet = CharSet.Ansi,
             EntryPoint = "BNIsCallInstruction"
         )]
 		internal static extern bool BNIsCallInstruction(
@@ -25,6 +26,7 @@ namespace BinaryNinja
 			
 			// uint64_t addr
 		    ulong addr  
+			
 		);
 	}
 }

@@ -5,7 +5,7 @@ namespace BinaryNinja
 	/// <summary>
 	/// 
 	/// </summary>
-    public enum CollaborationPermissionLevel : uint
+    public enum CollaborationPermissionLevel : byte
 	{
 		/// <summary>
 		/// 

@@ -5,7 +5,7 @@ namespace BinaryNinja
 	/// <summary>
 	/// 
 	/// </summary>
-    public enum ILInstructionAttribute : uint
+    public enum ILInstructionAttribute : ushort
 	{
 		/// <summary>
 		/// 

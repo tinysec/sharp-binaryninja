@@ -5,7 +5,7 @@ namespace BinaryNinja
 	/// <summary>
 	/// 
 	/// </summary>
-    public enum TypeContainerType : uint
+    public enum TypeContainerType : byte
 	{
 		/// <summary>
 		/// 

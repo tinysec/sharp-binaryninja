@@ -11,7 +11,7 @@ namespace BinaryNinja
 			
 		}
 		
-		public Flag Source
+		public ILFlag Source
 		{
 			get
 			{

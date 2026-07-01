@@ -5,7 +5,7 @@ namespace BinaryNinja
 	/// <summary>
 	/// 
 	/// </summary>
-    public enum BaseAddressDetectionConfidence : uint
+    public enum BaseAddressDetectionConfidence : byte
 	{
 		/// <summary>
 		/// 

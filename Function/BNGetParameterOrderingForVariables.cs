@@ -7,32 +7,34 @@ namespace BinaryNinja
 {
     internal static partial class NativeMethods
     {
+
 	    /// <summary>
-		/// BNVariable* BNGetParameterOrderingForVariables(BNCallingConvention* cc, BNVariable* paramVars, BNType** paramTypes, uint64_t paramCount, uint64_t* count)
+		/// BNVariable* BNGetParameterOrderingForVariables(BNCallingConvention* cc, BNBinaryView* view, const BNVariable* paramVars, const BNType** paramTypes, size_t paramCount, size_t* count)
 		/// </summary>
 		[DllImport(
             "binaryninjacore", 
             CallingConvention = System.Runtime.InteropServices.CallingConvention.Cdecl,
-            CharSet = CharSet.Ansi,
             EntryPoint = "BNGetParameterOrderingForVariables"
         )]
 		internal static extern IntPtr BNGetParameterOrderingForVariables(
 			
 			// BNCallingConvention* cc
-		    IntPtr cc  , 
+		    IntPtr cc   , 
 			
-			// BNVariable* paramVars
-		    IntPtr paramVars  , 
+			// BNBinaryView* view
+		    IntPtr view   , 
 			
-			// BNType** paramTypes
-		    IntPtr paramTypes  , 
+			// const BNVariable* paramVars
+		    IntPtr paramVars   , 
 			
-			// uint64_t paramCount
-		    ulong paramCount  , 
+			// const BNType** paramTypes
+		    IntPtr paramTypes   , 
 			
-			// uint64_t* count
+			// size_t paramCount
+		    UIntPtr paramCount   , 
+			
+			// size_t* count
 		    IntPtr count  
-			
 		);
 	}
 }

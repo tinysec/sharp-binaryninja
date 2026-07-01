@@ -5,7 +5,7 @@ using Microsoft.Win32.SafeHandles;
 
 namespace BinaryNinja
 {
-	public sealed class Platform :  AbstractSafeHandle
+	public sealed class Platform :  AbstractSafeHandle<Platform>
 	{
 		public Platform(Architecture arch , string name)
 			:this( NativeMethods.BNCreatePlatform(arch.DangerousGetHandle() , name) , true)
@@ -96,7 +96,7 @@ namespace BinaryNinja
 	        return true;
 	    }
 		
-	    public static Platform[] GetAllPlatforms()
+	    public static Platform[] GetPlatforms()
 	    {
 		    IntPtr arrayPointer = NativeMethods.BNGetPlatformList(out ulong arrayLength);
 
@@ -108,41 +108,6 @@ namespace BinaryNinja
 		    );
 	    }
 
-	    public static string[] GetAllPlatformNames()
-	    {
-		    List<string> items = new List<string>();
-
-		    Platform[] platforms = Platform.GetAllPlatforms();
-
-		    foreach (Platform platform in platforms)
-		    {
-			    if (!items.Contains(platform.Name))
-			    {
-				    items.Add(platform.Name);
-			    }
-		    }
-		    
-		    return items.ToArray();
-	    }
-		
-	    public static Platform? ChoosePlatform(string prompt = "Choose" , string title = "Choose a platform")
-	    {
-		    string[] names = Platform.GetAllPlatformNames();
-		    
-		    int? index = Core.GetLargeChoiceInput(
-			    prompt ,
-			    title ,
-			    names
-		    );
-
-		    if (null == index)
-		    {
-			    return null;
-		    }
-		    
-		    return Platform.FromName(names[(int)index]);
-	    }
-	    
 	    public static Platform? FromName(string name)
 	    {
 		    return Platform.TakeHandle(
@@ -541,6 +506,289 @@ namespace BinaryNinja
 			    );
 		    }
 	    }
+
+	    /// <summary>
+	    /// Gets the list of platforms for a given architecture.
+	    /// </summary>
+	    public static unsafe Platform[] GetListByArchitecture(Architecture arch)
+	    {
+		    ulong count = 0;
+
+		    IntPtr arrayPointer = NativeMethods.BNGetPlatformListByArchitecture(
+			    arch.DangerousGetHandle() ,
+			    (IntPtr)(&count)
+		    );
+
+		    return UnsafeUtils.TakeHandleArrayEx<Platform>(
+			    arrayPointer ,
+			    count ,
+			    Platform.MustNewFromHandle ,
+			    NativeMethods.BNFreePlatformList
+		    );
+	    }
+
+	    /// <summary>
+	    /// Gets the list of platforms for a given OS and architecture.
+	    /// </summary>
+	    public static unsafe Platform[] GetListByOSAndArchitecture(string os, Architecture arch)
+	    {
+		    ulong count = 0;
+
+		    IntPtr arrayPointer = NativeMethods.BNGetPlatformListByOSAndArchitecture(
+			    os ,
+			    arch.DangerousGetHandle() ,
+			    (IntPtr)(&count)
+		    );
+
+		    return UnsafeUtils.TakeHandleArrayEx<Platform>(
+			    arrayPointer ,
+			    count ,
+			    Platform.MustNewFromHandle ,
+			    NativeMethods.BNFreePlatformList
+		    );
+	    }
+
+	    /// <summary>
+	    /// Gets the type of a global register on this platform.
+	    /// </summary>
+	    public BinaryNinja.Type? GetGlobalRegisterType(uint reg)
+	    {
+		    return BinaryNinja.Type.TakeHandle(
+			    NativeMethods.BNGetPlatformGlobalRegisterType(this.handle , reg)
+		    );
+	    }
+
+	    /// <summary>
+	    /// Gets type libraries matching the given dependency name.
+	    /// </summary>
+	    public unsafe TypeLibrary[] GetTypeLibrariesByName(string name)
+	    {
+		    ulong count = 0;
+
+		    IntPtr arrayPointer = NativeMethods.BNGetPlatformTypeLibrariesByName(
+			    this.handle ,
+			    name ,
+			    (IntPtr)(&count)
+		    );
+
+		    return UnsafeUtils.TakeHandleArrayEx<TypeLibrary>(
+			    arrayPointer ,
+			    count ,
+			    TypeLibrary.MustNewFromHandle ,
+			    NativeMethods.BNFreeTypeLibraryList
+		    );
+	    }
+
+	    /// <summary>
+	    /// Gets the auto platform type ID source string for this platform.
+	    /// </summary>
+	    public string GetAutoPlatformTypeIdSource()
+	    {
+		    return UnsafeUtils.TakeAnsiString(
+			    NativeMethods.BNGetAutoPlatformTypeIdSource(this.handle)
+		    );
+	    }
+
+	    /// <summary>
+	    /// Generates an auto platform type ID for the given qualified name.
+	    /// </summary>
+	    public unsafe string GenerateAutoPlatformTypeId(QualifiedName name)
+	    {
+		    using (ScopedAllocator allocator = new ScopedAllocator())
+		    {
+			    BNQualifiedName nativeName = name.ToNativeEx(allocator);
+
+			    return UnsafeUtils.TakeAnsiString(
+				    NativeMethods.BNGenerateAutoPlatformTypeId(
+					    this.handle ,
+					    (IntPtr)(&nativeName)
+				    )
+			    );
+		    }
+	    }
+
+	    /// <summary>
+	    /// Creates a new platform with types loaded from a type definition file.
+	    /// </summary>
+	    /// <param name="arch">The architecture for the new platform.</param>
+	    /// <param name="name">The name of the new platform.</param>
+	    /// <param name="typeFile">The path to the type definition file.</param>
+	    /// <param name="includeDirs">An array of include directory paths for type resolution.</param>
+	    /// <returns>A new Platform, or null if creation failed.</returns>
+	    /// <summary>
+	    /// Adjusts the type parser input arguments and source files for this platform.
+	    /// The platform may add platform-specific compiler flags or preprocessor definitions.
+	    /// </summary>
+	    /// <param name="parser">The type parser that will process the adjusted input.</param>
+	    /// <param name="argumentsIn">The input compiler arguments.</param>
+	    /// <param name="sourceFileNamesIn">The input source file names.</param>
+	    /// <param name="sourceFileValuesIn">The input source file contents.</param>
+	    /// <param name="argumentsOut">Receives the adjusted compiler arguments.</param>
+	    /// <param name="sourceFileNamesOut">Receives the adjusted source file names.</param>
+	    /// <param name="sourceFileValuesOut">Receives the adjusted source file contents.</param>
+	    public unsafe void AdjustTypeParserInput(
+		    TypeParser parser ,
+		    string[] argumentsIn ,
+		    string[] sourceFileNamesIn ,
+		    string[] sourceFileValuesIn ,
+		    out string[] argumentsOut ,
+		    out string[] sourceFileNamesOut ,
+		    out string[] sourceFileValuesOut
+	    )
+	    {
+		    // 1. Prepare safe arrays.
+		    string[] safeArgs = argumentsIn ?? Array.Empty<string>();
+		    string[] safeNames = sourceFileNamesIn ?? Array.Empty<string>();
+		    string[] safeValues = sourceFileValuesIn ?? Array.Empty<string>();
+
+		    // 2. Stack-allocate output pointers.
+		    IntPtr argsOutPtr = IntPtr.Zero;
+		    ulong argsOutLen = 0;
+		    IntPtr namesOutPtr = IntPtr.Zero;
+		    IntPtr valuesOutPtr = IntPtr.Zero;
+		    ulong filesOutLen = 0;
+
+		    // 3. Call the native API.
+		    NativeMethods.BNPlatformAdjustTypeParserInput(
+			    this.handle ,
+			    parser.DangerousGetHandle() ,
+			    safeArgs ,
+			    (ulong)safeArgs.Length ,
+			    safeNames ,
+			    safeValues ,
+			    (ulong)safeNames.Length ,
+			    (IntPtr)(&argsOutPtr) ,
+			    (IntPtr)(&argsOutLen) ,
+			    (IntPtr)(&namesOutPtr) ,
+			    (IntPtr)(&valuesOutPtr) ,
+			    (IntPtr)(&filesOutLen)
+		    );
+
+		    // 4. Marshal the output arrays.
+		    argumentsOut = UnsafeUtils.TakeStringArrayEx(argsOutPtr , argsOutLen);
+		    sourceFileNamesOut = UnsafeUtils.TakeStringArrayEx(namesOutPtr , filesOutLen);
+		    sourceFileValuesOut = UnsafeUtils.TakeStringArrayEx(valuesOutPtr , filesOutLen);
+	    }
+
+	    /// <summary>
+	    /// Parses C/C++ source code using this platform's type system.
+	    /// Returns the parsed types, variables, and functions on success,
+	    /// or null with an error message on failure.
+	    /// </summary>
+	    /// <param name="source">The C/C++ source text to parse.</param>
+	    /// <param name="fileName">The filename to use for diagnostics.</param>
+	    /// <param name="includeDirs">Include directory paths for header resolution.</param>
+	    /// <param name="autoTypeSource">The auto type source identifier string.</param>
+	    /// <param name="error">Receives any error message from the parser.</param>
+	    /// <returns>A TypeParserResult on success, or null on failure.</returns>
+	    public unsafe TypeParserResult? ParseTypesFromSource(
+		    string source ,
+		    string fileName ,
+		    string[] includeDirs ,
+		    string autoTypeSource ,
+		    out string error
+	    )
+	    {
+		    // 1. Prepare output arrays for P/Invoke string output parameters.
+		    string[] errorArr = new string[1];
+		    string[] safeDirs = includeDirs ?? Array.Empty<string>();
+
+		    // 2. Stack-allocate the result struct.
+		    BNTypeParserResult rawResult = new BNTypeParserResult();
+
+		    // 3. Call the native API.
+		    bool ok = NativeMethods.BNParseTypesFromSource(
+			    this.handle ,
+			    source ,
+			    fileName ,
+			    (IntPtr)(&rawResult) ,
+			    errorArr ,
+			    safeDirs ,
+			    (ulong)safeDirs.Length ,
+			    autoTypeSource ?? string.Empty
+		    );
+
+		    // 4. Extract the error string.
+		    error = errorArr[0] ?? string.Empty;
+
+		    // 5. On success, convert the result and free the native struct.
+		    if (ok)
+		    {
+			    return TypeParserResult.TakeNative(rawResult);
+		    }
+
+		    return null;
+	    }
+
+	    /// <summary>
+	    /// Parses types from a C/C++ source file using this platform's type system.
+	    /// Returns the parsed types, variables, and functions on success,
+	    /// or null with an error message on failure.
+	    /// </summary>
+	    /// <param name="fileName">The path to the source file to parse.</param>
+	    /// <param name="includeDirs">Include directory paths for header resolution.</param>
+	    /// <param name="autoTypeSource">The auto type source identifier string.</param>
+	    /// <param name="error">Receives any error message from the parser.</param>
+	    /// <returns>A TypeParserResult on success, or null on failure.</returns>
+	    public unsafe TypeParserResult? ParseTypesFromSourceFile(
+		    string fileName ,
+		    string[] includeDirs ,
+		    string autoTypeSource ,
+		    out string error
+	    )
+	    {
+		    // 1. Prepare output arrays for P/Invoke string output parameters.
+		    string[] errorArr = new string[1];
+		    string[] safeDirs = includeDirs ?? Array.Empty<string>();
+
+		    // 2. Stack-allocate the result struct.
+		    BNTypeParserResult rawResult = new BNTypeParserResult();
+
+		    // 3. Call the native API.
+		    bool ok = NativeMethods.BNParseTypesFromSourceFile(
+			    this.handle ,
+			    fileName ,
+			    (IntPtr)(&rawResult) ,
+			    errorArr ,
+			    safeDirs ,
+			    (ulong)safeDirs.Length ,
+			    autoTypeSource ?? string.Empty
+		    );
+
+		    // 4. Extract the error string.
+		    error = errorArr[0] ?? string.Empty;
+
+		    // 5. On success, convert the result and free the native struct.
+		    if (ok)
+		    {
+			    return TypeParserResult.TakeNative(rawResult);
+		    }
+
+		    return null;
+	    }
+
+	    public static Platform? CreateWithTypes(
+		    Architecture arch ,
+		    string name ,
+		    string typeFile ,
+		    string[] includeDirs
+	    )
+	    {
+		    // 1. Prepare the include directories array.
+		    string[] safeIncludeDirs = includeDirs ?? Array.Empty<string>();
+
+		    // 2. Call the native API.
+		    IntPtr result = NativeMethods.BNCreatePlatformWithTypes(
+			    arch.DangerousGetHandle() ,
+			    name ,
+			    typeFile ,
+			    safeIncludeDirs ,
+			    (ulong)safeIncludeDirs.Length
+		    );
+
+		    // 3. Return the wrapped handle, or null on failure.
+		    return Platform.TakeHandle(result);
+	    }
 	}
-	
+
 }

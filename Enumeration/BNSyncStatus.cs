@@ -5,7 +5,7 @@ namespace BinaryNinja
 	/// <summary>
 	/// 
 	/// </summary>
-    public enum SyncStatus : uint
+    public enum SyncStatus : byte
 	{
 		/// <summary>
 		/// 

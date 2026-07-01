@@ -7,22 +7,54 @@ using Microsoft.Win32.SafeHandles;
 
 namespace BinaryNinja
 {
-	public sealed class StructureBuilder : AbstractSafeHandle
+	public sealed class StructureBuilder : AbstractSafeHandle<StructureBuilder> 
 	{
 		public StructureBuilder(
 			StructureVariant kind = StructureVariant.StructStructureType
 			, bool packed = false)
 			: this(NativeMethods.BNCreateStructureBuilderWithOptions(kind , packed) , true)
 		{
-			
+
 		}
-		
+
 		internal StructureBuilder(IntPtr handle, bool owner)
 			: base( handle , owner)
 		{
-			
+
 		}
-		
+
+        /// <summary>
+        /// Creates a new empty StructureBuilder with default settings.
+        /// </summary>
+        /// <returns>A new owned StructureBuilder instance.</returns>
+        public static StructureBuilder Create()
+        {
+            // Create an empty structure builder; the returned handle is owned.
+            return StructureBuilder.MustTakeHandle(
+                NativeMethods.BNCreateStructureBuilder()
+            );
+        }
+
+        /// <summary>
+        /// Creates a StructureBuilder from an existing Structure instance,
+        /// copying all members, alignment, and other properties.
+        /// </summary>
+        /// <param name="structure">The structure to copy into the builder.</param>
+        /// <returns>A new owned StructureBuilder pre-populated from the given structure.</returns>
+        public static StructureBuilder FromStructure(Structure structure)
+        {
+            // 1. Validate the required structure parameter.
+            if (null == structure)
+            {
+                throw new ArgumentNullException(nameof(structure));
+            }
+
+            // 2. Create a builder from the existing structure; the returned handle is owned.
+            return StructureBuilder.MustTakeHandle(
+                NativeMethods.BNCreateStructureBuilderFromStructure(structure.DangerousGetHandle())
+            );
+        }
+
 		internal static StructureBuilder? TakeHandle(IntPtr handle)
 		{
 			if (handle == IntPtr.Zero)
@@ -109,7 +141,9 @@ namespace BinaryNinja
 						member.Offset ,
 						true , // overwriteExisting
 						member.Access ,
-						member.Scope
+						member.Scope ,
+						0 , // bitPosition (non-bitfield)
+						0   // bitWidth (non-bitfield)
 					);
 				}
 			}
@@ -137,7 +171,9 @@ namespace BinaryNinja
 			ulong offset ,
 			bool overwriteExisting = true,
 			MemberAccess access = MemberAccess.PublicAccess,
-			MemberScope scope = MemberScope.NoScope
+			MemberScope scope = MemberScope.NoScope,
+			byte bitPosition = 0,
+			byte bitWidth = 0
 		)
 		{
 			NativeMethods.BNAddStructureBuilderMemberAtOffset(
@@ -147,7 +183,9 @@ namespace BinaryNinja
 				offset ,
 				overwriteExisting ,
 				access ,
-				scope
+				scope ,
+				bitPosition ,
+				bitWidth
 			);
 		}
 		
@@ -345,6 +383,30 @@ namespace BinaryNinja
 				NativeMethods.BNFinalizeStructureBuilder(this.handle),
 				true
 			);
+		}
+
+		/// <summary>
+		/// Gets the structure member at the specified byte offset, along with its index.
+		/// </summary>
+		/// <param name="offset">The byte offset within the structure.</param>
+		/// <param name="index">When this method returns, contains the member index if found.</param>
+		/// <returns>The StructureMember at the offset, or null if no member exists there.</returns>
+		public unsafe StructureMember? GetMemberAtOffset(long offset , out ulong index)
+		{
+			using (ScopedAllocator allocator = new ScopedAllocator())
+			{
+				IntPtr idxPtr = allocator.AllocStruct<ulong>(0);
+
+				IntPtr raw = NativeMethods.BNGetStructureBuilderMemberAtOffset(
+					this.handle ,
+					offset ,
+					idxPtr
+				);
+
+				index = (ulong)Marshal.ReadInt64(idxPtr);
+
+				return StructureMember.TakeNativePointer(raw);
+			}
 		}
 	}
 }

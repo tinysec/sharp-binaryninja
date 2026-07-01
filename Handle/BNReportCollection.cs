@@ -5,7 +5,7 @@ using Microsoft.Win32.SafeHandles;
 
 namespace BinaryNinja
 {
-	public sealed class ReportCollection : AbstractSafeHandle
+	public sealed class ReportCollection : AbstractSafeHandle<ReportCollection>
 	{
 		public ReportCollection() 
 			: this( NativeMethods.BNCreateReportCollection() , true)
@@ -201,6 +201,21 @@ namespace BinaryNinja
 			    title,
 			    this.handle
 			);
+	    }
+
+	    /// <summary>
+	    /// Updates the flow graph for the report at the specified index.
+	    /// </summary>
+	    /// <param name="index">The zero-based index of the report in the collection.</param>
+	    /// <param name="graph">The new flow graph to associate with the report.</param>
+	    public void UpdateFlowGraph(ulong index , FlowGraph graph)
+	    {
+		    // Forward to the native API with the collection handle, index, and graph handle.
+		    NativeMethods.BNUpdateReportFlowGraph(
+			    this.handle ,
+			    index ,
+			    graph.DangerousGetHandle()
+		    );
 	    }
 	}
 }

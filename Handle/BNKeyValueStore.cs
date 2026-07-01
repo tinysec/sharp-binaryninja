@@ -5,7 +5,7 @@ using Microsoft.Win32.SafeHandles;
 
 namespace BinaryNinja
 {
-	public sealed class KeyValueStore : AbstractSafeHandle
+	public sealed class KeyValueStore : AbstractSafeHandle<KeyValueStore>
 	{
 		public KeyValueStore() 
 			: this( NativeMethods.BNCreateKeyValueStore() , true )
@@ -199,6 +199,29 @@ namespace BinaryNinja
 		    {
 			    return NativeMethods.BNGetKeyValueStoreNamespaceSize(this.handle);
 		    }
+	    }
+
+	    /// <summary>
+	    /// Gets the entire contents of this key-value store as a serialized DataBuffer.
+	    /// </summary>
+	    /// <returns>A DataBuffer containing the serialized store data, or null on failure.</returns>
+	    public DataBuffer? GetSerializedData()
+	    {
+		    return DataBuffer.TakeHandle(
+			    NativeMethods.BNGetKeyValueStoreSerializedData(this.handle)
+		    );
+	    }
+
+	    /// <summary>
+	    /// Gets the hash of the value associated with the specified key.
+	    /// </summary>
+	    /// <param name="key">The key whose value hash to retrieve.</param>
+	    /// <returns>A DataBuffer containing the hash, or null if the key does not exist.</returns>
+	    public DataBuffer? GetValueHash(string key)
+	    {
+		    return DataBuffer.TakeHandle(
+			    NativeMethods.BNGetKeyValueStoreValueHash(this.handle , key)
+		    );
 	    }
 	}
 }

@@ -13,6 +13,7 @@ namespace BinaryNinja
 		[DllImport(
             "binaryninjacore", 
             CallingConvention = System.Runtime.InteropServices.CallingConvention.Cdecl,
+            CharSet = CharSet.Ansi,
             EntryPoint = "BNSetAutoFunctionReturnType"
         )]
 		internal static extern void BNSetAutoFunctionReturnType(
@@ -21,7 +22,8 @@ namespace BinaryNinja
 		    IntPtr func  , 
 			
 			// BNTypeWithConfidence* type
-		    in BNTypeWithConfidence type  
+		    IntPtr type  
+			
 		);
 	}
 }

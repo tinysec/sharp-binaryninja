@@ -5,7 +5,7 @@ using Microsoft.Win32.SafeHandles;
 
 namespace BinaryNinja
 {
-	public sealed class Tag : AbstractSafeHandle
+	public sealed class Tag : AbstractSafeHandle<Tag>
 	{
 		public Tag(TagType kind , string data) 
 			:this( NativeMethods.BNCreateTag(kind.DangerousGetHandle() , data) ,true)

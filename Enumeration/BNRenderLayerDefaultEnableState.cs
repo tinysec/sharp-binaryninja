@@ -5,7 +5,7 @@ namespace BinaryNinja
 	/// <summary>
 	/// 
 	/// </summary>
-    public enum RenderLayerDefaultEnableState : uint
+    public enum RenderLayerDefaultEnableState : byte
 	{
 		/// <summary>
 		/// 

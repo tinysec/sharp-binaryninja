@@ -5,7 +5,7 @@ namespace BinaryNinja
 	/// <summary>
 	/// 
 	/// </summary>
-    public enum FunctionAnalysisSkipOverride : uint
+    public enum FunctionAnalysisSkipOverride : byte
 	{
 		/// <summary>
 		/// 

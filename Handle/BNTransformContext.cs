@@ -5,7 +5,7 @@ using Microsoft.Win32.SafeHandles;
 
 namespace BinaryNinja
 {
-	public sealed class TransformContext : AbstractSafeHandle
+	public sealed class TransformContext : AbstractSafeHandle<TransformContext>
 	{
 	    internal TransformContext(IntPtr handle , bool owner) 
 		    : base(handle , owner)
@@ -251,6 +251,99 @@ namespace BinaryNinja
 		    {
 			    return NativeMethods.BNTransformContextIsDatabase(this.handle);
 		    }
+	    }
+
+	    public string[] GetAvailableFiles()
+	    {
+		    IntPtr arrayPointer = NativeMethods.BNTransformContextGetAvailableFiles(
+			    this.handle ,
+			    out ulong arrayLength
+		    );
+
+		    return UnsafeUtils.TakeAnsiStringArray(
+			    arrayPointer ,
+			    arrayLength ,
+			    NativeMethods.BNFreeStringList
+		    );
+	    }
+
+	    public void SetAvailableFiles(string[] files)
+	    {
+		    NativeMethods.BNTransformContextSetAvailableFiles(
+			    this.handle ,
+			    files ,
+			    (ulong)files.Length
+		    );
+	    }
+
+	    public bool HasAvailableFiles
+	    {
+		    get
+		    {
+			    return NativeMethods.BNTransformContextHasAvailableFiles(this.handle);
+		    }
+	    }
+
+	    public string[] GetRequestedFiles()
+	    {
+		    using (ScopedAllocator allocator = new ScopedAllocator())
+		    {
+			    IntPtr countPtr = allocator.AllocStruct<ulong>(0);
+
+			    IntPtr arrayPointer = NativeMethods.BNTransformContextGetRequestedFiles(
+				    this.handle ,
+				    countPtr
+			    );
+
+			    ulong arrayLength = (ulong)Marshal.ReadInt64(countPtr);
+
+			    return UnsafeUtils.TakeAnsiStringArray(
+				    arrayPointer ,
+				    arrayLength ,
+				    NativeMethods.BNFreeStringList
+			    );
+		    }
+	    }
+
+	    public void SetRequestedFiles(string[] files)
+	    {
+		    NativeMethods.BNTransformContextSetRequestedFiles(
+			    this.handle ,
+			    files ,
+			    (ulong)files.Length
+		    );
+	    }
+
+	    public bool HasRequestedFiles
+	    {
+		    get
+		    {
+			    return NativeMethods.BNTransformContextHasRequestedFiles(this.handle);
+		    }
+	    }
+
+	    public TransformContext? GetChild(string filename)
+	    {
+		    return TransformContext.TakeHandle(
+			    NativeMethods.BNTransformContextGetChild(
+				    this.handle ,
+				    filename
+			    )
+		    );
+	    }
+
+	    public TransformContext? SetChild(DataBuffer data , string filename , TransformResult result , string message , bool filenameIsDescriptor = false)
+	    {
+		    return TransformContext.TakeHandle(
+			    NativeMethods.BNTransformContextSetChild(
+				    this.handle ,
+				    data.DangerousGetHandle() ,
+				    filename ,
+				    result ,
+				    message ,
+				    filenameIsDescriptor
+			    )
+		    );
 	    }
 	}
 }

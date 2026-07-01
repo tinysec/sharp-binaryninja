@@ -5,7 +5,7 @@ namespace BinaryNinja
 	/// <summary>
 	/// 
 	/// </summary>
-    public enum FindRangeType : uint
+    public enum FindRangeType : byte
 	{
 		/// <summary>
 		/// 

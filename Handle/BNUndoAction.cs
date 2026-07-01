@@ -5,7 +5,7 @@ using Microsoft.Win32.SafeHandles;
 
 namespace BinaryNinja
 {
-	public sealed class UndoAction : AbstractSafeHandle
+	public sealed class UndoAction : AbstractSafeHandle<UndoAction>
 	{
 	    internal UndoAction(IntPtr handle , bool owner) 
 		    : base(handle , owner)
@@ -96,6 +96,33 @@ namespace BinaryNinja
 		    {
 			    return UnsafeUtils.TakeAnsiString(
 				    NativeMethods.BNUndoActionGetSummaryText(this.handle)
+			    );
+		    }
+	    }
+
+	    /// <summary>
+	    /// Gets the summary of this undo action as an array of InstructionTextToken,
+	    /// providing richer formatting than the plain-text Summary property.
+	    /// </summary>
+	    /// <returns>An array of InstructionTextToken representing the formatted summary.</returns>
+	    public unsafe InstructionTextToken[] GetSummaryTokens()
+	    {
+		    using (ScopedAllocator allocator = new ScopedAllocator())
+		    {
+			    IntPtr countPtr = allocator.AllocStruct<ulong>(0);
+
+			    IntPtr arrayPointer = NativeMethods.BNUndoActionGetSummary(
+				    this.handle ,
+				    countPtr
+			    );
+
+			    ulong arrayLength = (ulong)Marshal.ReadInt64(countPtr);
+
+			    return UnsafeUtils.TakeStructArrayEx<BNInstructionTextToken , InstructionTextToken>(
+				    arrayPointer ,
+				    arrayLength ,
+				    InstructionTextToken.FromNative ,
+				    NativeMethods.BNFreeInstructionText
 			    );
 		    }
 	    }

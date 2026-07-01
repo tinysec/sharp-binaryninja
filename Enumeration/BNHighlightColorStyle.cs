@@ -5,7 +5,7 @@ namespace BinaryNinja
 	/// <summary>
 	/// 
 	/// </summary>
-    public enum HighlightColorStyle : uint
+    public enum HighlightColorStyle : byte
 	{
 		/// <summary>
 		/// 

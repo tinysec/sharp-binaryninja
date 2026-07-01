@@ -5,13 +5,135 @@ using Microsoft.Win32.SafeHandles;
 
 namespace BinaryNinja
 {
-	public class TypeBuilder : AbstractSafeHandle
+	public class TypeBuilder : AbstractSafeHandle<TypeBuilder>
 	{
-		internal TypeBuilder(IntPtr handle , bool owner) 
+		internal TypeBuilder(IntPtr handle , bool owner)
 			: base(handle , owner)
 		{
-			
+
 		}
+
+        /// <summary>
+        /// Creates a TypeBuilder from an existing Type instance.
+        /// </summary>
+        /// <param name="type">The type to create a builder from.</param>
+        /// <returns>A new owned TypeBuilder, or null on failure.</returns>
+        public static TypeBuilder? FromType(BinaryNinja.Type type)
+        {
+            // 1. Validate the required type parameter.
+            if (null == type)
+            {
+                throw new ArgumentNullException(nameof(type));
+            }
+
+            // 2. Create a type builder from the given type; the returned handle is owned.
+            return TypeBuilder.TakeHandle(
+                NativeMethods.BNCreateTypeBuilderFromType(type.DangerousGetHandle())
+            );
+        }
+
+        /// <summary>
+        /// Creates a TypeBuilder representing a variable-arguments (varargs) type.
+        /// </summary>
+        /// <returns>A new owned TypeBuilder for varargs.</returns>
+        public static TypeBuilder CreateVarArgs()
+        {
+            // Create a varargs type builder; the returned handle is owned.
+            return TypeBuilder.MustTakeHandle(
+                NativeMethods.BNCreateVarArgsTypeBuilder()
+            );
+        }
+
+        /// <summary>
+        /// Creates a TypeBuilder representing a value type with the given string value.
+        /// </summary>
+        /// <param name="value">The string value for the value type.</param>
+        /// <returns>A new owned TypeBuilder for the value type.</returns>
+        public static TypeBuilder CreateValue(string value)
+        {
+            // Create a value type builder; the returned handle is owned.
+            return TypeBuilder.MustTakeHandle(
+                NativeMethods.BNCreateValueTypeBuilder(value ?? string.Empty)
+            );
+        }
+
+        /// <summary>
+        /// Creates a TypeBuilder representing a structure type from a Structure.
+        /// </summary>
+        /// <param name="structure">The structure to create a type builder from.</param>
+        /// <returns>A new owned TypeBuilder for the structure type.</returns>
+        public static TypeBuilder CreateStructureType(Structure structure)
+        {
+            // 1. Validate the required structure parameter.
+            if (null == structure)
+            {
+                throw new ArgumentNullException(nameof(structure));
+            }
+
+            // 2. Create a structure type builder; the returned handle is owned.
+            return TypeBuilder.MustTakeHandle(
+                NativeMethods.BNCreateStructureTypeBuilder(structure.DangerousGetHandle())
+            );
+        }
+
+        /// <summary>
+        /// Creates a TypeBuilder representing a structure type from a StructureBuilder.
+        /// </summary>
+        /// <param name="builder">The structure builder to create a type builder from.</param>
+        /// <returns>A new owned TypeBuilder for the structure type.</returns>
+        public static TypeBuilder CreateStructureTypeWithBuilder(StructureBuilder builder)
+        {
+            // 1. Validate the required builder parameter.
+            if (null == builder)
+            {
+                throw new ArgumentNullException(nameof(builder));
+            }
+
+            // 2. Create a structure type builder from the builder; the returned handle is owned.
+            return TypeBuilder.MustTakeHandle(
+                NativeMethods.BNCreateStructureTypeBuilderWithBuilder(builder.DangerousGetHandle())
+            );
+        }
+
+        /// <summary>
+        /// Creates a TypeBuilder representing an enumeration type from an Architecture, Enumeration, width, and signedness.
+        /// </summary>
+        /// <param name="arch">The architecture context.</param>
+        /// <param name="enumeration">The enumeration definition.</param>
+        /// <param name="width">The width of the enumeration type in bytes.</param>
+        /// <param name="isSigned">The signedness with confidence.</param>
+        /// <returns>A new owned TypeBuilder for the enumeration type.</returns>
+        public static unsafe TypeBuilder CreateEnumerationType(
+            Architecture arch,
+            Enumeration enumeration,
+            ulong width,
+            BoolWithConfidence isSigned
+        )
+        {
+            // 1. Validate required parameters.
+            if (null == arch)
+            {
+                throw new ArgumentNullException(nameof(arch));
+            }
+
+            if (null == enumeration)
+            {
+                throw new ArgumentNullException(nameof(enumeration));
+            }
+
+            // 2. Convert signedness to native struct and take its address.
+            BNBoolWithConfidence nativeSigned = isSigned.ToNative();
+
+            // 3. Create an enumeration type builder; the returned handle is owned.
+            return TypeBuilder.MustTakeHandle(
+                NativeMethods.BNCreateEnumerationTypeBuilder(
+                    arch.DangerousGetHandle(),
+                    enumeration.DangerousGetHandle(),
+                    width,
+                    (IntPtr)(&nativeSigned)
+                )
+            );
+        }
 
 		internal static TypeBuilder? TakeHandle(IntPtr handle)
 		{
@@ -174,6 +296,585 @@ namespace BinaryNinja
 			{
 				NativeMethods.BNTypeBuilderSetSigned(this.handle , value.ToNative());
 			}
+		}
+
+		/// <summary>
+		/// The reference type of this type builder (pointer, reference, etc.).
+		/// </summary>
+		public ReferenceType ReferenceType
+		{
+			get
+			{
+				return NativeMethods.BNTypeBuilderGetReferenceType(this.handle);
+			}
+		}
+
+		/// <summary>
+		/// The structure name associated with this type builder.
+		/// </summary>
+		public QualifiedName StructureName
+		{
+			get
+			{
+				return QualifiedName.FromNative(NativeMethods.BNTypeBuilderGetStructureName(this.handle));
+			}
+		}
+
+		/// <summary>
+		/// The type name associated with this type builder.
+		/// </summary>
+		public QualifiedName TypeName
+		{
+			get
+			{
+				return QualifiedName.FromNative(NativeMethods.BNTypeBuilderGetTypeName(this.handle));
+			}
+
+			set
+			{
+				using (ScopedAllocator allocator = new ScopedAllocator())
+				{
+					NativeMethods.BNTypeBuilderSetTypeName(
+						this.handle ,
+						allocator.AllocStruct<BNQualifiedName>(value.ToNativeEx(allocator))
+					);
+				}
+			}
+		}
+
+		/// <summary>
+		/// Whether this type builder has template arguments.
+		/// </summary>
+		public bool HasTemplateArguments
+		{
+			get
+			{
+				return NativeMethods.BNTypeBuilderHasTemplateArguments(this.handle);
+			}
+
+			set
+			{
+				NativeMethods.BNSetTypeBuilderHasTemplateArguments(this.handle , value);
+			}
+		}
+
+		/// <summary>
+		/// Get or set the calling convention name for this type builder.
+		/// </summary>
+		public CallingConventionName CallingConventionNameValue
+		{
+			get
+			{
+				return NativeMethods.BNGetTypeBuilderCallingConventionName(this.handle);
+			}
+
+			set
+			{
+				NativeMethods.BNTypeBuilderSetCallingConventionName(this.handle , value);
+			}
+		}
+
+		/// <summary>
+		/// The name type of this type builder (e.g. class, function, etc.).
+		/// </summary>
+		public NameType NameType
+		{
+			get
+			{
+				return NativeMethods.BNGetTypeBuilderNameType(this.handle);
+			}
+		}
+
+		/// <summary>
+		/// The enumeration associated with this type builder, or null if none.
+		/// </summary>
+		public Enumeration? EnumerationBuilder
+		{
+			get
+			{
+				return Enumeration.TakeHandle(
+					NativeMethods.BNGetTypeBuilderEnumeration(this.handle)
+				);
+			}
+		}
+
+		/// <summary>
+		/// The named type reference associated with this type builder, or null if none.
+		/// </summary>
+		public NamedTypeReference? NamedTypeReference
+		{
+			get
+			{
+				return NamedTypeReference.TakeHandle(
+					NativeMethods.BNGetTypeBuilderNamedTypeReference(this.handle)
+				);
+			}
+		}
+
+		/// <summary>
+		/// The structure associated with this type builder, or null if none.
+		/// </summary>
+		public Structure? StructureBuilder
+		{
+			get
+			{
+				return Structure.TakeHandle(
+					NativeMethods.BNGetTypeBuilderStructure(this.handle)
+				);
+			}
+		}
+
+		/// <summary>
+		/// Gets the value of a type attribute by name.
+		/// </summary>
+		public string GetAttributeByName(string name)
+		{
+			return UnsafeUtils.TakeAnsiString(
+				NativeMethods.BNGetTypeBuilderAttributeByName(this.handle , name)
+			);
+		}
+
+		/// <summary>
+		/// Gets all type attributes associated with this type builder.
+		/// </summary>
+		public unsafe TypeAttribute[] GetAttributes()
+		{
+			ulong count = 0;
+
+			IntPtr arrayPointer = NativeMethods.BNGetTypeBuilderAttributes(
+				this.handle ,
+				(IntPtr)(&count)
+			);
+
+			return UnsafeUtils.TakeStructArrayEx<BNTypeAttribute , TypeAttribute>(
+				arrayPointer ,
+				count ,
+				TypeAttribute.FromNative ,
+				NativeMethods.BNFreeTypeAttributeList
+			);
+		}
+
+		/// <summary>
+		/// Gets the string representation of this type builder.
+		/// </summary>
+		public string GetString(Platform? platform = null)
+		{
+			return UnsafeUtils.TakeAnsiString(
+				NativeMethods.BNGetTypeBuilderString(
+					this.handle ,
+					null == platform ? IntPtr.Zero : platform.DangerousGetHandle()
+				)
+			);
+		}
+
+		/// <summary>
+		/// Gets the string representation of this type builder after the name.
+		/// </summary>
+		public string GetStringAfterName(Platform? platform = null)
+		{
+			return UnsafeUtils.TakeAnsiString(
+				NativeMethods.BNGetTypeBuilderStringAfterName(
+					this.handle ,
+					null == platform ? IntPtr.Zero : platform.DangerousGetHandle()
+				)
+			);
+		}
+
+		/// <summary>
+		/// Gets the string representation of this type builder before the name.
+		/// </summary>
+		public string GetStringBeforeName(Platform? platform = null)
+		{
+			return UnsafeUtils.TakeAnsiString(
+				NativeMethods.BNGetTypeBuilderStringBeforeName(
+					this.handle ,
+					null == platform ? IntPtr.Zero : platform.DangerousGetHandle()
+				)
+			);
+		}
+
+		/// <summary>
+		/// Gets the instruction text tokens for this type builder.
+		/// </summary>
+		public unsafe InstructionTextToken[] GetTokens(
+			Platform? platform = null,
+			byte baseConfidence = Core.MaxConfidence
+		)
+		{
+			ulong count = 0;
+
+			IntPtr arrayPointer = NativeMethods.BNGetTypeBuilderTokens(
+				this.handle ,
+				null == platform ? IntPtr.Zero : platform.DangerousGetHandle() ,
+				baseConfidence ,
+				(IntPtr)(&count)
+			);
+
+			return UnsafeUtils.TakeStructArrayEx<BNInstructionTextToken , InstructionTextToken>(
+				arrayPointer ,
+				count ,
+				InstructionTextToken.FromNative ,
+				NativeMethods.BNFreeInstructionText
+			);
+		}
+
+		/// <summary>
+		/// Gets the instruction text tokens after the name for this type builder.
+		/// </summary>
+		public unsafe InstructionTextToken[] GetTokensAfterName(
+			Platform? platform = null,
+			byte baseConfidence = Core.MaxConfidence
+		)
+		{
+			ulong count = 0;
+
+			IntPtr arrayPointer = NativeMethods.BNGetTypeBuilderTokensAfterName(
+				this.handle ,
+				null == platform ? IntPtr.Zero : platform.DangerousGetHandle() ,
+				baseConfidence ,
+				(IntPtr)(&count)
+			);
+
+			return UnsafeUtils.TakeStructArrayEx<BNInstructionTextToken , InstructionTextToken>(
+				arrayPointer ,
+				count ,
+				InstructionTextToken.FromNative ,
+				NativeMethods.BNFreeInstructionText
+			);
+		}
+
+		/// <summary>
+		/// Gets the instruction text tokens before the name for this type builder.
+		/// </summary>
+		public unsafe InstructionTextToken[] GetTokensBeforeName(
+			Platform? platform = null,
+			byte baseConfidence = Core.MaxConfidence
+		)
+		{
+			ulong count = 0;
+
+			IntPtr arrayPointer = NativeMethods.BNGetTypeBuilderTokensBeforeName(
+				this.handle ,
+				null == platform ? IntPtr.Zero : platform.DangerousGetHandle() ,
+				baseConfidence ,
+				(IntPtr)(&count)
+			);
+
+			return UnsafeUtils.TakeStructArrayEx<BNInstructionTextToken , InstructionTextToken>(
+				arrayPointer ,
+				count ,
+				InstructionTextToken.FromNative ,
+				NativeMethods.BNFreeInstructionText
+			);
+		}
+
+		/// <summary>
+		/// Gets the type and name string, returning the name via out parameter.
+		/// </summary>
+		public unsafe string GetTypeAndName(out QualifiedName name)
+		{
+			BNQualifiedName rawName = default;
+
+			IntPtr raw = NativeMethods.BNGetTypeBuilderTypeAndName(
+				this.handle ,
+				(IntPtr)(&rawName)
+			);
+
+			name = QualifiedName.TakeNative(rawName);
+
+			return UnsafeUtils.TakeAnsiString(raw);
+		}
+
+		/// <summary>
+		/// Gets whether this type builder represents a floating-point type.
+		/// </summary>
+		public bool IsFloatingPoint
+		{
+			get
+			{
+				// Query the native API for the floating-point flag.
+				return NativeMethods.BNIsTypeBuilderFloatingPoint(this.handle);
+			}
+		}
+
+		/// <summary>
+		/// Removes a named attribute from this type builder.
+		/// </summary>
+		/// <param name="name">The name of the attribute to remove.</param>
+		public void RemoveAttribute(string name)
+		{
+			// Forward the removal to the native API.
+			NativeMethods.BNRemoveTypeBuilderAttribute(this.handle , name ?? string.Empty);
+		}
+
+		/// <summary>
+		/// Sets (or adds) a named attribute on this type builder.
+		/// </summary>
+		/// <param name="name">The attribute name.</param>
+		/// <param name="value">The attribute value.</param>
+		public void SetAttribute(string name , string value)
+		{
+			// Forward the name-value pair to the native API.
+			NativeMethods.BNSetTypeBuilderAttribute(
+				this.handle ,
+				name ?? string.Empty ,
+				value ?? string.Empty
+			);
+		}
+
+		/// <summary>
+		/// Replaces the entire attribute list on this type builder.
+		/// </summary>
+		/// <param name="attributes">The array of type attributes to set.</param>
+		public unsafe void SetAttributeList(TypeAttribute[] attributes)
+		{
+			// 1. Validate the required parameter.
+			if (null == attributes)
+			{
+				throw new ArgumentNullException(nameof(attributes));
+			}
+
+			// 2. Marshal the managed array to a native array and forward to the native API.
+			using (ScopedAllocator allocator = new ScopedAllocator())
+			{
+				// 2.1 Build the native array of BNTypeAttribute structs.
+				BNTypeAttribute[] nativeAttrs = new BNTypeAttribute[attributes.Length];
+
+				for (int i = 0; i < attributes.Length; i++)
+				{
+					nativeAttrs[i].name = allocator.AllocAnsiString(attributes[i].Name ?? string.Empty);
+					nativeAttrs[i]._value = allocator.AllocAnsiString(attributes[i].Value ?? string.Empty);
+				}
+
+				// 2.2 Allocate the native array and copy the structs.
+				IntPtr nativeArray = allocator.AllocStructArray<BNTypeAttribute>(nativeAttrs);
+
+				// 3. Call the native API with the marshalled array and count.
+				NativeMethods.BNSetTypeBuilderAttributeList(
+					this.handle ,
+					nativeArray ,
+					(ulong)attributes.Length
+				);
+			}
+		}
+
+		/// <summary>
+		/// Sets the name type for this type builder.
+		/// </summary>
+		/// <param name="nameType">The name type to set.</param>
+		public void SetNameType(NameType nameType)
+		{
+			// Forward the name type to the native API.
+			NativeMethods.BNSetTypeBuilderNameType(this.handle , nameType);
+		}
+
+		/// <summary>
+		/// Sets the named type reference for this type builder.
+		/// </summary>
+		/// <param name="namedTypeRef">The named type reference to set.</param>
+		public void SetNamedTypeReference(NamedTypeReference namedTypeRef)
+		{
+			// 1. Validate the required parameter.
+			if (null == namedTypeRef)
+			{
+				throw new ArgumentNullException(nameof(namedTypeRef));
+			}
+
+			// 2. Forward to the native API.
+			NativeMethods.BNSetTypeBuilderNamedTypeReference(
+				this.handle ,
+				namedTypeRef.DangerousGetHandle()
+			);
+		}
+
+		/// <summary>
+		/// Sets the integer display type for this type builder.
+		/// </summary>
+		/// <param name="displayType">The integer display type to set.</param>
+		public void SetIntegerTypeDisplayType(IntegerDisplayType displayType)
+		{
+			// Forward the display type to the native API.
+			NativeMethods.BNSetIntegerTypeDisplayType(this.handle , displayType);
+		}
+
+		/// <summary>
+		/// Creates a TypeBuilder representing an enumeration type from an Architecture, EnumerationBuilder, width, and signedness.
+		/// </summary>
+		/// <param name="arch">The architecture context.</param>
+		/// <param name="builder">The enumeration builder definition.</param>
+		/// <param name="width">The width of the enumeration type in bytes.</param>
+		/// <param name="isSigned">The signedness with confidence.</param>
+		/// <returns>A new owned TypeBuilder for the enumeration type.</returns>
+		public static unsafe TypeBuilder CreateEnumerationTypeWithBuilder(
+			Architecture arch ,
+			EnumerationBuilder builder ,
+			ulong width ,
+			BoolWithConfidence isSigned
+		)
+		{
+			// 1. Validate required parameters.
+			if (null == arch)
+			{
+				throw new ArgumentNullException(nameof(arch));
+			}
+
+			if (null == builder)
+			{
+				throw new ArgumentNullException(nameof(builder));
+			}
+
+			// 2. Convert signedness to native struct and take its address.
+			BNBoolWithConfidence nativeSigned = isSigned.ToNative();
+
+			// 3. Create an enumeration type builder from the builder; the returned handle is owned.
+			return TypeBuilder.MustTakeHandle(
+				NativeMethods.BNCreateEnumerationTypeBuilderWithBuilder(
+					arch.DangerousGetHandle() ,
+					builder.DangerousGetHandle() ,
+					width ,
+					(IntPtr)(&nativeSigned)
+				)
+			);
+		}
+
+		/// <summary>
+		/// Creates a named type reference TypeBuilder from a BinaryView and qualified name.
+		/// </summary>
+		/// <param name="view">The binary view to look up the type in.</param>
+		/// <param name="name">The qualified name of the type.</param>
+		/// <returns>A new owned TypeBuilder, or null on failure.</returns>
+		public static TypeBuilder? CreateNamedTypeReferenceBuilderFromType(
+			BinaryView view ,
+			QualifiedName name
+		)
+		{
+			// 1. Validate required parameters.
+			if (null == view)
+			{
+				throw new ArgumentNullException(nameof(view));
+			}
+
+			// 2. Marshal the qualified name and create the builder.
+			using (ScopedAllocator allocator = new ScopedAllocator())
+			{
+				return TypeBuilder.TakeHandle(
+					NativeMethods.BNCreateNamedTypeReferenceBuilderFromType(
+						view.DangerousGetHandle() ,
+						allocator.AllocStruct<BNQualifiedName>(name.ToNativeEx(allocator))
+					)
+				);
+			}
+		}
+
+		/// <summary>
+		/// Creates a named type reference TypeBuilder from an ID string, qualified name, and type.
+		/// </summary>
+		/// <param name="id">The type identifier string.</param>
+		/// <param name="name">The qualified name of the type.</param>
+		/// <param name="type">The type to create the reference from.</param>
+		/// <returns>A new owned TypeBuilder, or null on failure.</returns>
+		public static TypeBuilder? CreateNamedTypeReferenceBuilderFromTypeAndId(
+			string id ,
+			QualifiedName name ,
+			BinaryNinja.Type type
+		)
+		{
+			// 1. Validate required parameters.
+			if (null == type)
+			{
+				throw new ArgumentNullException(nameof(type));
+			}
+
+			// 2. Marshal the qualified name and create the builder.
+			using (ScopedAllocator allocator = new ScopedAllocator())
+			{
+				return TypeBuilder.TakeHandle(
+					NativeMethods.BNCreateNamedTypeReferenceBuilderFromTypeAndId(
+						id ?? string.Empty ,
+						allocator.AllocStruct<BNQualifiedName>(name.ToNativeEx(allocator)) ,
+						type.DangerousGetHandle()
+					)
+				);
+			}
+		}
+
+		/// <summary>
+		/// Creates a named type reference TypeBuilder from a NamedTypeReferenceBuilder, width, alignment, and const/volatile.
+		/// </summary>
+		/// <param name="builder">The named type reference builder.</param>
+		/// <param name="width">The width of the type in bytes.</param>
+		/// <param name="align">The alignment of the type in bytes.</param>
+		/// <param name="cnst">The const qualifier with confidence.</param>
+		/// <param name="vltl">The volatile qualifier with confidence.</param>
+		/// <returns>A new owned TypeBuilder for the named type reference.</returns>
+		public static unsafe TypeBuilder CreateNamedTypeReferenceBuilderWithBuilder(
+			NamedTypeReferenceBuilder builder ,
+			ulong width ,
+			ulong align ,
+			BoolWithConfidence cnst ,
+			BoolWithConfidence vltl
+		)
+		{
+			// 1. Validate the required builder parameter.
+			if (null == builder)
+			{
+				throw new ArgumentNullException(nameof(builder));
+			}
+
+			// 2. Convert const and volatile to native structs and take their addresses.
+			BNBoolWithConfidence nativeCnst = cnst.ToNative();
+			BNBoolWithConfidence nativeVltl = vltl.ToNative();
+
+			// 3. Create the builder; the returned handle is owned.
+			return TypeBuilder.MustTakeHandle(
+				NativeMethods.BNCreateNamedTypeReferenceBuilderWithBuilder(
+					builder.DangerousGetHandle() ,
+					width ,
+					align ,
+					(IntPtr)(&nativeCnst) ,
+					(IntPtr)(&nativeVltl)
+				)
+			);
+		}
+
+		/// <summary>
+		/// Creates a pointer TypeBuilder using an architecture to determine pointer width.
+		/// </summary>
+		/// <param name="arch">The architecture that determines pointer width.</param>
+		/// <param name="type">The pointed-to type with confidence.</param>
+		/// <param name="cnst">Optional const qualifier with confidence.</param>
+		/// <param name="vltl">Optional volatile qualifier with confidence.</param>
+		/// <param name="refType">The reference type (pointer, reference, etc.).</param>
+		/// <returns>A new owned TypeBuilder for the pointer type.</returns>
+		public static unsafe TypeBuilder CreatePointerTypeBuilder(
+			Architecture arch ,
+			TypeWithConfidence type ,
+			BoolWithConfidence? cnst = null ,
+			BoolWithConfidence? vltl = null ,
+			ReferenceType refType = ReferenceType.PointerReferenceType
+		)
+		{
+			// 1. Validate the required architecture parameter.
+			if (null == arch)
+			{
+				throw new ArgumentNullException(nameof(arch));
+			}
+
+			// 2. Convert all structs to native form and take their addresses.
+			BNTypeWithConfidence nativeType = type.ToNative();
+			BNBoolWithConfidence nativeCnst = (cnst ?? new BoolWithConfidence()).ToNative();
+			BNBoolWithConfidence nativeVltl = (vltl ?? new BoolWithConfidence()).ToNative();
+
+			// 3. Create the pointer type builder; the returned handle is owned.
+			return TypeBuilder.MustTakeHandle(
+				NativeMethods.BNCreatePointerTypeBuilder(
+					arch.DangerousGetHandle() ,
+					(IntPtr)(&nativeType) ,
+					(IntPtr)(&nativeCnst) ,
+					(IntPtr)(&nativeVltl) ,
+					refType
+				)
+			);
 		}
 	}
 
@@ -530,8 +1231,20 @@ namespace BinaryNinja
 		{
 			using (ScopedAllocator allocator = new ScopedAllocator())
 			{
+				// ABI 176 combines the return type and its location into a single BNReturnValue.
+				BNTypeWithConfidence returnTypeNative = returnType.ToNative();
+
+				BNReturnValue returnValue = new BNReturnValue()
+				{
+					type = returnTypeNative.type,
+					typeConfidence = returnTypeNative.confidence,
+					defaultLocation = true,
+					location = default,
+					locationConfidence = 0
+				};
+
 				return NativeMethods.BNCreateFunctionTypeBuilder(
-					returnType.ToNative() ,
+					returnValue ,
 					callingConvention.ToNative() ,
 					allocator.ConvertToNativeArrayEx<BNFunctionParameter,FunctionParameter>(
 						parameters
@@ -545,7 +1258,6 @@ namespace BinaryNinja
 						regStackAdjustValues
 						),
 					(ulong)regStackAdjustValues.Length ,
-					returnRegs.ToNativeEx(allocator) ,
 					ft ,
 					pure.ToNative()
 				);

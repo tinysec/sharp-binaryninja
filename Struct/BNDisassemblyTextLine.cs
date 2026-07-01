@@ -54,17 +54,17 @@ namespace BinaryNinja
 		IEquatable<DisassemblyTextLine>, 
 	    IComparable<DisassemblyTextLine>
     {
-		public ulong Address {get;} = 0;
+		public ulong Address { get;  } = 0;
 		
-		public ulong InstructionIndex { get;} = 0;
+		public ulong InstructionIndex { get;  } = 0;
 		
-		public InstructionTextToken[] Tokens {get;} = Array.Empty<InstructionTextToken>();
+		public InstructionTextToken[] Tokens { get;  } = Array.Empty<InstructionTextToken>();
 		
-		public HighlightColor Highlight { get;} = new HighlightColor();
+		public HighlightColor Highlight { get;  } = new HighlightColor();
 		
-		public Tag[] Tags { get;} = Array.Empty<Tag>();
+		public Tag[] Tags { get;  } = Array.Empty<Tag>();
 		
-		public DisassemblyTextLineTypeInfo TypeInfo { get;} = new DisassemblyTextLineTypeInfo();
+		public DisassemblyTextLineTypeInfo TypeInfo { get;  } = new DisassemblyTextLineTypeInfo();
 
 		internal DisassemblyTextLine()
 		{

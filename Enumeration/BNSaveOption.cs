@@ -5,7 +5,7 @@ namespace BinaryNinja
 	/// <summary>
 	/// 
 	/// </summary>
-    public enum SaveOption : uint
+    public enum SaveOption : byte
 	{
 		/// <summary>
 		/// 

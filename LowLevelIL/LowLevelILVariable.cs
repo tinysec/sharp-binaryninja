@@ -2,14 +2,14 @@ using System;
 
 namespace BinaryNinja
 {
-	public sealed class LowLevelILVariable : AbstractFunctionVariable
+	public sealed class LowLevelILVariable : AbstractFunctionVariable<LowLevelILVariable>
 	{
 		internal LowLevelILFunction ILFunction;
 
 		public LowLevelILVariable(LowLevelILVariable other) 
 			: base(
 				other.ILFunction.OwnerFunction , 
-				other.Source,
+				other.Type,
 				other.Index,
 				other.Storage
 			)

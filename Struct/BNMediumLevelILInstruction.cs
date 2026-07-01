@@ -57,8 +57,20 @@ namespace BinaryNinja
 		
 		public ulong[] RawOperands { get;  }= Array.Empty<ulong>();
 
-		// extra fields 
+		// extra fields
 		internal MediumLevelILFunction ILFunction { get;  }
+
+		/// <summary>
+		/// The <see cref="MediumLevelILFunction"/> that owns this instruction.
+		/// Mirrors Python <c>MediumLevelILInstruction.function</c>.
+		/// </summary>
+		public MediumLevelILFunction Function
+		{
+			get
+			{
+				return this.ILFunction;
+			}
+		}
 
 		public MediumLevelILExpressionIndex ExpressionIndex { get;  } = 0;
 
@@ -120,7 +132,7 @@ namespace BinaryNinja
         	{ MediumLevelILOperation.MLIL_RET_HINT, 0 },
         	{ MediumLevelILOperation.MLIL_CALL, 3 }, // dest, params(list), outputs(list)
         	{ MediumLevelILOperation.MLIL_CALL_UNTYPED, 3 }, // dest, params(list), outputs(list)
-        	{ MediumLevelILOperation.MLIL_CALL_OUTPUT, 2 }, // outputLoc, sourceExpr
+        	{ MediumLevelILOperation.MLIL_VAR_OUTPUT, 2 }, // outputLoc, sourceExpr
         	{ MediumLevelILOperation.MLIL_CALL_PARAM, 2 }, // paramLoc, sourceExpr
         	{ MediumLevelILOperation.MLIL_SEPARATE_PARAM_LIST, 2 }, // intParams(list), floatParams(list)
         	{ MediumLevelILOperation.MLIL_SHARED_PARAM_SLOT, 2 }, // slot, size
@@ -205,6 +217,18 @@ namespace BinaryNinja
         	{ MediumLevelILOperation.MLIL_FREE_VAR_SLOT_SSA, 2 }, // var, version
         	{ MediumLevelILOperation.MLIL_VAR_PHI, 1 }, // vars(list pairs)
         	{ MediumLevelILOperation.MLIL_MEM_PHI, 1 }, // memVersions(list)
+
+        	{ MediumLevelILOperation.MLIL_ABS, 1 },    // src
+        	{ MediumLevelILOperation.MLIL_BSWAP, 1 },  // src
+        	{ MediumLevelILOperation.MLIL_CLS, 1 },    // src
+        	{ MediumLevelILOperation.MLIL_CLZ, 1 },    // src
+        	{ MediumLevelILOperation.MLIL_CTZ, 1 },    // src
+        	{ MediumLevelILOperation.MLIL_POPCNT, 1 }, // src
+        	{ MediumLevelILOperation.MLIL_RBIT, 1 },   // src
+        	{ MediumLevelILOperation.MLIL_MAXS, 2 },   // left, right
+        	{ MediumLevelILOperation.MLIL_MAXU, 2 },   // left, right
+        	{ MediumLevelILOperation.MLIL_MINS, 2 },   // left, right
+        	{ MediumLevelILOperation.MLIL_MINU, 2 },   // left, right
 		};
 		
 		internal MediumLevelILInstruction(
@@ -496,7 +520,7 @@ namespace BinaryNinja
 				{
 					return new MLILCallUntyped(ilFunction ,  expressionIndex , native);
 				}
-				case MediumLevelILOperation.MLIL_CALL_OUTPUT:
+				case MediumLevelILOperation.MLIL_VAR_OUTPUT:
 				{
 					return new MLILCallOutput(ilFunction ,  expressionIndex , native);
 				}
@@ -832,9 +856,30 @@ namespace BinaryNinja
 				{
 					return new MLILMemoryPhi(ilFunction ,  expressionIndex , native);
 				}
+				case MediumLevelILOperation.MLIL_ABS:
+				case MediumLevelILOperation.MLIL_BSWAP:
+				case MediumLevelILOperation.MLIL_CLS:
+				case MediumLevelILOperation.MLIL_CLZ:
+				case MediumLevelILOperation.MLIL_CTZ:
+				case MediumLevelILOperation.MLIL_POPCNT:
+				case MediumLevelILOperation.MLIL_RBIT:
+				{
+					return new MLILGenericUnary(ilFunction , expressionIndex , native);
+				}
+				case MediumLevelILOperation.MLIL_MAXS:
+				case MediumLevelILOperation.MLIL_MAXU:
+				case MediumLevelILOperation.MLIL_MINS:
+				case MediumLevelILOperation.MLIL_MINU:
+				{
+					return new MLILGenericBinary(ilFunction , expressionIndex , native);
+				}
 				default:
 				{
-					throw new NotSupportedException("not supported operation");
+					// Unknown / not-yet-typed operation (e.g. PASS_BY_REF, RETURN_BY_REF,
+					// STORE_OUTPUT, VAR_OUTPUT_*, BLOCK_TO_EXPAND, or an op from a newer
+					// core). Degrade to a generic wrapper instead of throwing so
+					// navigation/iteration stays robust.
+					return new MLILGeneric(ilFunction , expressionIndex , native);
 				}
 			}
 		}
@@ -900,7 +945,7 @@ namespace BinaryNinja
 			{
 				return false;
 			}
-
+			
 			return this.ExpressionIndex == other.ExpressionIndex;
 		}
 
@@ -1381,29 +1426,6 @@ namespace BinaryNinja
 			}
 		}
 		
-		public LowLevelILInstruction[] LowLevelILInstructions
-		{
-			get
-			{
-				List<LowLevelILInstruction> lowInstrs = new List<LowLevelILInstruction>();
-				
-				foreach (LowLevelILInstruction lowExpr in this.LowLevelILExpressions)
-				{
-					LowLevelILInstruction lowInstr = lowExpr.ILFunction.MustGetInstruction(
-						lowExpr.InstructionIndex
-					);
-
-					if (!lowInstrs.Contains(lowInstr))
-					{
-						lowInstrs.Add(lowInstr);
-					}
-				}
-
-				return lowInstrs.ToArray();
-			}
-		}
-		
-		
 		// high
 		public HighLevelILInstruction? HighLevelILExpression
 		{
@@ -1426,28 +1448,6 @@ namespace BinaryNinja
 			get
 			{
 				return this.ILFunction.GetHighLevelILInstruction(this.InstructionIndex);
-			}
-		}
-		
-		public HighLevelILInstruction[] HighLevelILInstructions
-		{
-			get
-			{
-				List<HighLevelILInstruction> highInstrs = new List<HighLevelILInstruction>();
-				
-				foreach (HighLevelILInstruction highExpr in this.HighLevelILExpressions)
-				{
-					HighLevelILInstruction highInstr = highExpr.ILFunction.MustGetInstruction(
-						highExpr.InstructionIndex
-					);
-
-					if (!highInstrs.Contains(highInstr))
-					{
-						highInstrs.Add(highInstr);
-					}
-				}
-
-				return highInstrs.ToArray();
 			}
 		}
 		

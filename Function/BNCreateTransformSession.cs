@@ -7,8 +7,9 @@ namespace BinaryNinja
 {
     internal static partial class NativeMethods
     {
+
 	    /// <summary>
-		/// BNTransformSession* BNCreateTransformSession(const char* filename)
+		/// BNTransformSession* BNCreateTransformSession(const char* filename, const char* options)
 		/// </summary>
 		[DllImport(
             "binaryninjacore", 
@@ -19,7 +20,10 @@ namespace BinaryNinja
 		internal static extern IntPtr BNCreateTransformSession(
 			
 			// const char* filename
-		    string filename  
+		    string filename   , 
+			
+			// const char* options
+		    string options  
 		);
 	}
 }

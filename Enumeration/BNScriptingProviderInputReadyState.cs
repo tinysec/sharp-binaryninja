@@ -5,7 +5,7 @@ namespace BinaryNinja
 	/// <summary>
 	/// 
 	/// </summary>
-    public enum ScriptingProviderInputReadyState : uint
+    public enum ScriptingProviderInputReadyState : byte
 	{
 		/// <summary>
 		/// 

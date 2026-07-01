@@ -5,7 +5,7 @@ namespace BinaryNinja
 	/// <summary>
 	/// 
 	/// </summary>
-    public enum TransformSessionMode : uint
+    public enum TransformSessionMode : byte
 	{
 		/// <summary>
 		/// 

@@ -5,7 +5,7 @@ namespace BinaryNinja
 	/// <summary>
 	/// 
 	/// </summary>
-    public enum SettingsScope : uint
+    public enum SettingsScope : byte
 	{
 		/// <summary>
 		/// 

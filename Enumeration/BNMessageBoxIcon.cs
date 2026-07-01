@@ -5,7 +5,7 @@ namespace BinaryNinja
 	/// <summary>
 	/// 
 	/// </summary>
-    public enum MessageBoxIcon : uint
+    public enum MessageBoxIcon : byte
 	{
 		/// <summary>
 		/// 

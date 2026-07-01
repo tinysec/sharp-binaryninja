@@ -5,7 +5,7 @@ namespace BinaryNinja
 	/// <summary>
 	/// Console log levels
 	/// </summary>
-    public enum LogLevel : uint
+    public enum LogLevel : byte
 	{
 		/// <summary>
 		/// 

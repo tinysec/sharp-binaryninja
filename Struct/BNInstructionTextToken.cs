@@ -90,27 +90,27 @@ namespace BinaryNinja
 			IEquatable<InstructionTextToken>, 
 			IComparable<InstructionTextToken>
     {
-	    public InstructionTextTokenType Type { get;} = InstructionTextTokenType.TextToken;
+	    public InstructionTextTokenType Type { get;  } = InstructionTextTokenType.TextToken;
 	    
-		public string Text { get;} = string.Empty;
+		public string Text { get;  } = string.Empty;
 		
-		public ulong Value { get;} = 0;
+		public ulong Value { get;  } = 0;
 		
-		public ulong Width { get;} = 0;
+		public ulong Width { get;  } = 0;
 	
-		public ulong Size { get;} = 0;
+		public ulong Size { get; } = 0;
 	
-		public ulong Operand { get;} = 0;
+		public ulong Operand { get;  } = 0;
 		
-		public InstructionTextTokenContext Context { get;} = InstructionTextTokenContext.NoTokenContext;
+		public InstructionTextTokenContext Context { get; } = InstructionTextTokenContext.NoTokenContext;
 	
-		public byte Confidence { get;} = 0;
+		public byte Confidence { get;  } = 0;
 		
-		public ulong Address { get;} = 0;
+		public ulong Address { get;  } = 0;
 		
-		public string[] TypeNames { get;} = Array.Empty<string>();
+		public string[] TypeNames { get;  } = Array.Empty<string>();
 	
-		public ulong ExpressionIndex { get;} = 0;
+		public ulong ExpressionIndex { get;  } = 0;
 		
 		public InstructionTextToken( ) 
 		{

@@ -5,7 +5,7 @@ namespace BinaryNinja
 	/// <summary>
 	/// 
 	/// </summary>
-    public enum FindFlag : uint
+    public enum FindFlag : byte
 	{
 		/// <summary>
 		/// 

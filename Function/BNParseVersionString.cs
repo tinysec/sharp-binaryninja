@@ -7,8 +7,9 @@ namespace BinaryNinja
 {
     internal static partial class NativeMethods
     {
+
 	    /// <summary>
-		/// void BNParseVersionString(BNVersionInfo @return, const char* v)
+		/// BNVersionInfo BNParseVersionString(const char* v)
 		/// </summary>
 		[DllImport(
             "binaryninjacore", 
@@ -16,14 +17,10 @@ namespace BinaryNinja
             CharSet = CharSet.Ansi,
             EntryPoint = "BNParseVersionString"
         )]
-		internal static extern void BNParseVersionString(
-			
-			// BNVersionInfo _return
-		    VersionInfo _return  , 
+		internal static extern BNVersionInfo BNParseVersionString(
 			
 			// const char* v
 		    string v  
-			
 		);
 	}
 }

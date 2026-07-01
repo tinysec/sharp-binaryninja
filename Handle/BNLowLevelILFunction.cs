@@ -6,7 +6,7 @@ using Microsoft.Win32.SafeHandles;
 
 namespace BinaryNinja
 {
-	public sealed class LowLevelILFunction : AbstractSafeHandle
+	public sealed class LowLevelILFunction : AbstractSafeHandle<LowLevelILFunction>
 	{
 		public bool IsSSAForm { get; } = false;
 		
@@ -112,10 +112,39 @@ namespace BinaryNinja
 	            NativeMethods.BNFreeLowLevelILFunction(this.handle);
 	            this.SetHandleAsInvalid();
 	        }
-	        
+
 	        return true;
 	    }
-	    
+
+        // ===================================================================
+        // Static factory methods
+        // ===================================================================
+
+        /// <summary>
+        /// Creates a new low-level IL function for the given architecture and optional owner function.
+        /// </summary>
+        /// <param name="arch">The architecture this LLIL function targets.</param>
+        /// <param name="owner">Optional owning function; null for a standalone LLIL function.</param>
+        /// <returns>A new owned LowLevelILFunction instance.</returns>
+        public static LowLevelILFunction Create(Architecture arch , Function? owner = null)
+        {
+            // 1. Resolve the optional function handle.
+            IntPtr ownerHandle = (owner != null) ? owner.DangerousGetHandle() : IntPtr.Zero;
+
+            // 2. Call the native factory to create the LLIL function.
+            IntPtr result = NativeMethods.BNCreateLowLevelILFunction(
+                arch.DangerousGetHandle() ,
+                ownerHandle
+            );
+
+            // 3. Wrap as a new owned handle (non-SSA by default).
+            return LowLevelILFunction.MustTakeHandle(result);
+        }
+
+        // ===================================================================
+        // Instance properties and methods
+        // ===================================================================
+
 	    public Function OwnerFunction
 	    {
 		    get
@@ -426,7 +455,7 @@ namespace BinaryNinja
 		    }
 	    }
 	    
-	    public Register[] Registers
+	    public ILRegister[] Registers
 	    {
 		    get
 		    {
@@ -441,11 +470,11 @@ namespace BinaryNinja
 				    NativeMethods.BNFreeLLILVariablesList
 			    );
 			    
-			    List<Register> targets = new List<Register>();
+			    List<ILRegister> targets = new List<ILRegister>();
 
 			    foreach (RegisterIndex index in indexes)
 			    {
-				    targets.Add( new Register(this.OwnerFunction.Architecture, index) );
+				    targets.Add( new ILRegister(this.OwnerFunction.Architecture, index) );
 			    }
 			    
 			    return targets.ToArray();
@@ -475,7 +504,7 @@ namespace BinaryNinja
 
 				    foreach (ulong version in versions)
 				    {
-					    Register register = new Register(this.OwnerFunction.Architecture, index);
+					    ILRegister register = new ILRegister(this.OwnerFunction.Architecture, index);
 					    
 					    targets.Add( 
 						    new LowLevelILSSARegister(this, register, version)
@@ -548,7 +577,7 @@ namespace BinaryNinja
 		    }
 	    }
 	    
-	    public Flag[] Flags
+	    public ILFlag[] Flags
 	    {
 		    get
 		    {
@@ -563,11 +592,11 @@ namespace BinaryNinja
 				    NativeMethods.BNFreeLLILVariablesList
 			    );
 			    
-			    List<Flag> targets = new List<Flag>();
+			    List<ILFlag> targets = new List<ILFlag>();
 
 			    foreach (FlagIndex index in indexes)
 			    {
-				    targets.Add( new Flag(this.OwnerFunction.Architecture, index) );
+				    targets.Add( new ILFlag(this.OwnerFunction.Architecture, index) );
 			    }
 			    
 			    return targets.ToArray();
@@ -597,7 +626,7 @@ namespace BinaryNinja
 
 				    foreach (ulong version in versions)
 				    {
-					    Flag flag = new Flag(this.OwnerFunction.Architecture, index);
+					    ILFlag flag = new ILFlag(this.OwnerFunction.Architecture, index);
 					    
 					    targets.Add( 
 						    new LowLevelILSSAFlag(this , flag, version)
@@ -706,20 +735,13 @@ namespace BinaryNinja
 			    out ulong arrayLength 
 		    );
 
-		    ulong[] indexes =  UnsafeUtils.TakeNumberArray<ulong>(
+		    LowLevelILInstructionIndex[] indexes =  UnsafeUtils.TakeNumberArray<LowLevelILInstructionIndex>(
 			    arrayPointer ,
 			    arrayLength ,
 			    NativeMethods.BNFreeILInstructionList
 		    );
-
-		    List<LowLevelILInstruction> instructions = new List<LowLevelILInstruction>();
-
-		    foreach (LowLevelILInstructionIndex index in indexes)
-		    {
-			    instructions.Add( this.MustGetInstruction(index) );
-		    }
-
-		    return instructions.ToArray();
+		    
+		    return this.MustGetInstructions(indexes);
 	    }
 	    
 	    public LowLevelILInstruction? CurrentInstruction
@@ -1306,7 +1328,8 @@ namespace BinaryNinja
 		    return mlil.GetInstruction(mediumInstr);
 	    }
 
-	    public MediumLevelILInstruction[] GetMediumLevelILExpressions(LowLevelILExpressionIndex lowExpr)
+	    public MediumLevelILInstruction[] GetMediumLevelILExpressions(
+		    LowLevelILExpressionIndex lowExpr)
 	    {
 		    MediumLevelILFunction? mlil = this.MediumLevelIL;
 
@@ -1321,20 +1344,13 @@ namespace BinaryNinja
 			    out ulong arrayLength
 			);
 	
-		    ulong[] mediumExprIndexs = UnsafeUtils.TakeNumberArray<ulong>(
+		    MediumLevelILExpressionIndex[] mediumExprs = UnsafeUtils.TakeNumberArray<MediumLevelILExpressionIndex>(
 			    arrayPointer ,
 			    arrayLength ,
 			    NativeMethods.BNFreeILInstructionList
 		    );
 
-		    List<MediumLevelILInstruction> expressions = new List<MediumLevelILInstruction>();
-
-		    foreach (MediumLevelILExpressionIndex mediumExprIndex in mediumExprIndexs)
-		    {
-			    expressions.Add( mlil.MustGetExpression(mediumExprIndex) );
-		    }
-
-		    return expressions.ToArray();
+		    return mlil.MustGetExpressions(mediumExprs);
 	    }
 
 	    // mapped
@@ -1942,7 +1958,7 @@ namespace BinaryNinja
 		    ulong size ,
 		    LowLevelILExpressionIndex a,
 		    LowLevelILExpressionIndex b,
-		    Flag? flag = null,
+		    ILFlag? flag = null,
 		    SourceLocation? location = null)
 	    {
 		    return this.AddExpression(
@@ -1960,7 +1976,7 @@ namespace BinaryNinja
 		    LowLevelILExpressionIndex a,
 		    LowLevelILExpressionIndex b,
 		    LowLevelILExpressionIndex carray,
-		    Flag? flag = null,
+		    ILFlag? flag = null,
 		    SourceLocation? location = null)
 	    {
 		    return this.AddExpression(
@@ -1978,7 +1994,7 @@ namespace BinaryNinja
 		    ulong size ,
 		    LowLevelILExpressionIndex a,
 		    LowLevelILExpressionIndex b,
-		    Flag? flag = null,
+		    ILFlag? flag = null,
 		    SourceLocation? location = null)
 	    {
 		    return this.AddExpression(
@@ -1996,7 +2012,7 @@ namespace BinaryNinja
 		    LowLevelILExpressionIndex a,
 		    LowLevelILExpressionIndex b,
 		    LowLevelILExpressionIndex carray,
-		    Flag? flag = null,
+		    ILFlag? flag = null,
 		    SourceLocation? location = null)
 	    {
 		    return this.AddExpression(
@@ -2015,7 +2031,7 @@ namespace BinaryNinja
 		    ulong size ,
 		    LowLevelILExpressionIndex a,
 		    LowLevelILExpressionIndex b,
-		    Flag? flag = null,
+		    ILFlag? flag = null,
 		    SourceLocation? location = null)
 	    {
 		    return this.AddExpression(
@@ -2032,7 +2048,7 @@ namespace BinaryNinja
 		    ulong size ,
 		    LowLevelILExpressionIndex a,
 		    LowLevelILExpressionIndex b,
-		    Flag? flag = null,
+		    ILFlag? flag = null,
 		    SourceLocation? location = null)
 	    {
 		    return this.AddExpression(
@@ -2049,7 +2065,7 @@ namespace BinaryNinja
 		    ulong size ,
 		    LowLevelILExpressionIndex a,
 		    LowLevelILExpressionIndex b,
-		    Flag? flag = null,
+		    ILFlag? flag = null,
 		    SourceLocation? location = null)
 	    {
 		    return this.AddExpression(
@@ -2066,7 +2082,7 @@ namespace BinaryNinja
 		    ulong size ,
 		    LowLevelILExpressionIndex a,
 		    LowLevelILExpressionIndex b,
-		    Flag? flag = null,
+		    ILFlag? flag = null,
 		    SourceLocation? location = null)
 	    {
 		    return this.AddExpression(
@@ -2083,7 +2099,7 @@ namespace BinaryNinja
 		    ulong size ,
 		    LowLevelILExpressionIndex a,
 		    LowLevelILExpressionIndex b,
-		    Flag? flag = null,
+		    ILFlag? flag = null,
 		    SourceLocation? location = null)
 	    {
 		    return this.AddExpression(
@@ -2100,7 +2116,7 @@ namespace BinaryNinja
 		    ulong size ,
 		    LowLevelILExpressionIndex a,
 		    LowLevelILExpressionIndex b,
-		    Flag? flag = null,
+		    ILFlag? flag = null,
 		    SourceLocation? location = null)
 	    {
 		    return this.AddExpression(
@@ -2117,7 +2133,7 @@ namespace BinaryNinja
 		    ulong size ,
 		    LowLevelILExpressionIndex a,
 		    LowLevelILExpressionIndex b,
-		    Flag? flag = null,
+		    ILFlag? flag = null,
 		    SourceLocation? location = null)
 	    {
 		    return this.AddExpression(
@@ -2135,7 +2151,7 @@ namespace BinaryNinja
 		    LowLevelILExpressionIndex a,
 		    LowLevelILExpressionIndex b,
 		    LowLevelILExpressionIndex carray,
-		    Flag? flag = null,
+		    ILFlag? flag = null,
 		    SourceLocation? location = null)
 	    {
 		    return this.AddExpression(
@@ -2153,7 +2169,7 @@ namespace BinaryNinja
 		    ulong size ,
 		    LowLevelILExpressionIndex a,
 		    LowLevelILExpressionIndex b,
-		    Flag? flag = null,
+		    ILFlag? flag = null,
 		    SourceLocation? location = null)
 	    {
 		    return this.AddExpression(
@@ -2171,7 +2187,7 @@ namespace BinaryNinja
 		    LowLevelILExpressionIndex a,
 		    LowLevelILExpressionIndex b,
 		    LowLevelILExpressionIndex carray,
-		    Flag? flag = null,
+		    ILFlag? flag = null,
 		    SourceLocation? location = null)
 	    {
 		    return this.AddExpression(
@@ -2189,7 +2205,7 @@ namespace BinaryNinja
 		    ulong size ,
 		    LowLevelILExpressionIndex a,
 		    LowLevelILExpressionIndex b,
-		    Flag? flag = null,
+		    ILFlag? flag = null,
 		    SourceLocation? location = null)
 	    {
 		    return this.AddExpression(
@@ -2206,7 +2222,7 @@ namespace BinaryNinja
 		    ulong size ,
 		    LowLevelILExpressionIndex a,
 		    LowLevelILExpressionIndex b,
-		    Flag? flag = null,
+		    ILFlag? flag = null,
 		    SourceLocation? location = null)
 	    {
 		    return this.AddExpression(
@@ -2223,7 +2239,7 @@ namespace BinaryNinja
 		    ulong size ,
 		    LowLevelILExpressionIndex a,
 		    LowLevelILExpressionIndex b,
-		    Flag? flag = null,
+		    ILFlag? flag = null,
 		    SourceLocation? location = null)
 	    {
 		    return this.AddExpression(
@@ -2240,7 +2256,7 @@ namespace BinaryNinja
 		    ulong size ,
 		    LowLevelILExpressionIndex a,
 		    LowLevelILExpressionIndex b,
-		    Flag? flag = null,
+		    ILFlag? flag = null,
 		    SourceLocation? location = null)
 	    {
 		    return this.AddExpression(
@@ -2257,7 +2273,7 @@ namespace BinaryNinja
 		    ulong size ,
 		    LowLevelILExpressionIndex a,
 		    LowLevelILExpressionIndex b,
-		    Flag? flag = null,
+		    ILFlag? flag = null,
 		    SourceLocation? location = null)
 	    {
 		    return this.AddExpression(
@@ -2274,7 +2290,7 @@ namespace BinaryNinja
 		    ulong size ,
 		    LowLevelILExpressionIndex a,
 		    LowLevelILExpressionIndex b,
-		    Flag? flag = null,
+		    ILFlag? flag = null,
 		    SourceLocation? location = null)
 	    {
 		    return this.AddExpression(
@@ -2291,7 +2307,7 @@ namespace BinaryNinja
 		    ulong size ,
 		    LowLevelILExpressionIndex a,
 		    LowLevelILExpressionIndex b,
-		    Flag? flag = null,
+		    ILFlag? flag = null,
 		    SourceLocation? location = null)
 	    {
 		    return this.AddExpression(
@@ -2310,7 +2326,7 @@ namespace BinaryNinja
 		    ulong size ,
 		    LowLevelILExpressionIndex a,
 		    LowLevelILExpressionIndex b,
-		    Flag? flag = null,
+		    ILFlag? flag = null,
 		    SourceLocation? location = null)
 	    {
 		    return this.AddExpression(
@@ -2327,7 +2343,7 @@ namespace BinaryNinja
 		    ulong size ,
 		    LowLevelILExpressionIndex a,
 		    LowLevelILExpressionIndex b,
-		    Flag? flag = null,
+		    ILFlag? flag = null,
 		    SourceLocation? location = null)
 	    {
 		    return this.AddExpression(
@@ -2344,7 +2360,7 @@ namespace BinaryNinja
 		    ulong size ,
 		    LowLevelILExpressionIndex a,
 		    LowLevelILExpressionIndex b,
-		    Flag? flag = null,
+		    ILFlag? flag = null,
 		    SourceLocation? location = null)
 	    {
 		    return this.AddExpression(
@@ -2361,7 +2377,7 @@ namespace BinaryNinja
 		    ulong size ,
 		    LowLevelILExpressionIndex a,
 		    LowLevelILExpressionIndex b,
-		    Flag? flag = null,
+		    ILFlag? flag = null,
 		    SourceLocation? location = null)
 	    {
 		    return this.AddExpression(
@@ -2377,7 +2393,7 @@ namespace BinaryNinja
 	    public LowLevelILExpressionIndex EmitNeg(
 		    ulong size ,
 		    LowLevelILExpressionIndex value,
-		    Flag? flag = null,
+		    ILFlag? flag = null,
 		    SourceLocation? location = null)
 	    {
 		    return this.AddExpression(
@@ -2392,7 +2408,7 @@ namespace BinaryNinja
 	    public LowLevelILExpressionIndex EmitNot(
 		    ulong size ,
 		    LowLevelILExpressionIndex value,
-		    Flag? flag = null,
+		    ILFlag? flag = null,
 		    SourceLocation? location = null)
 	    {
 		    return this.AddExpression(
@@ -2407,7 +2423,7 @@ namespace BinaryNinja
 	    public LowLevelILExpressionIndex EmitSignExtend(
 		    ulong size ,
 		    LowLevelILExpressionIndex value,
-		    Flag? flag = null,
+		    ILFlag? flag = null,
 		    SourceLocation? location = null)
 	    {
 		    return this.AddExpression(
@@ -2422,7 +2438,7 @@ namespace BinaryNinja
 	    public LowLevelILExpressionIndex EmitZeroExtend(
 		    ulong size ,
 		    LowLevelILExpressionIndex value,
-		    Flag? flag = null,
+		    ILFlag? flag = null,
 		    SourceLocation? location = null)
 	    {
 		    return this.AddExpression(
@@ -2437,7 +2453,7 @@ namespace BinaryNinja
 	    public LowLevelILExpressionIndex EmitLowPart(
 		    ulong size ,
 		    LowLevelILExpressionIndex value,
-		    Flag? flag = null,
+		    ILFlag? flag = null,
 		    SourceLocation? location = null)
 	    {
 		    return this.AddExpression(

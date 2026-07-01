@@ -38,6 +38,16 @@ namespace BinaryNinja
 		/// BNMemberScope scope
 		/// </summary>
 		internal MemberScope scope;
+
+		/// <summary>
+		/// uint8_t bitPosition
+		/// </summary>
+		internal byte bitPosition;
+
+		/// <summary>
+		/// uint8_t bitWidth
+		/// </summary>
+		internal byte bitWidth;
 	}
 
     public sealed class StructureMember : INativeWrapperEx<BNStructureMember>
@@ -53,15 +63,21 @@ namespace BinaryNinja
 		public MemberAccess Access { get; set; } = MemberAccess.NoAccess;
 		
 		public MemberScope Scope { get; set; } = MemberScope.NoScope;
-		
+
+		public byte BitPosition { get; set; } = 0;
+
+		public byte BitWidth { get; set; } = 0;
+
 		public StructureMember(
 			BinaryNinja.Type kind,
 			string name,
 			ulong offset = 0,
 			byte typeConfidence = 0,
 			MemberAccess access = MemberAccess.PublicAccess,
-			MemberScope scope = MemberScope.NoScope
-		) 
+			MemberScope scope = MemberScope.NoScope,
+			byte bitPosition = 0,
+			byte bitWidth = 0
+		)
 		{
 		    this.Type = kind;
 		    this.Name = name;
@@ -69,6 +85,8 @@ namespace BinaryNinja
 		    this.TypeConfidence = typeConfidence;
 		    this.Access = access;
 		    this.Scope = scope;
+		    this.BitPosition = bitPosition;
+		    this.BitWidth = bitWidth;
 		}
 
 		internal static StructureMember MustFromNativePointer(IntPtr pointer)
@@ -99,7 +117,9 @@ namespace BinaryNinja
 				native.offset ,
 				native.typeConfidence ,
 				native.access ,
-				native.scope
+				native.scope ,
+				native.bitPosition ,
+				native.bitWidth
 			);
 		}
 
@@ -129,6 +149,8 @@ namespace BinaryNinja
 				typeConfidence = this.TypeConfidence ,
 				access = this.Access ,
 				scope = this.Scope ,
+				bitPosition = this.BitPosition ,
+				bitWidth = this.BitWidth ,
 			};
 		}
 

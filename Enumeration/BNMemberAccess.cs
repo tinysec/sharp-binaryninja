@@ -5,7 +5,7 @@ namespace BinaryNinja
 	/// <summary>
 	/// 
 	/// </summary>
-    public enum MemberAccess : uint
+    public enum MemberAccess : byte
 	{
 		/// <summary>
 		/// 

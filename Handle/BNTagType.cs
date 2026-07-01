@@ -5,7 +5,7 @@ using Microsoft.Win32.SafeHandles;
 
 namespace BinaryNinja
 {
-	public sealed class TagType : AbstractSafeHandle
+	public sealed class TagType : AbstractSafeHandle<TagType>
 	{
 	    internal TagType(IntPtr handle , bool owner) 
 		    : base(handle , owner)
@@ -158,6 +158,21 @@ namespace BinaryNinja
 	    }
 	    
 	    
+	    /// <summary>
+	    /// Gets the binary view that this tag type belongs to.
+	    /// Returns null if no view is associated.
+	    /// </summary>
+	    public BinaryView? View
+	    {
+		    get
+		    {
+			    // Retrieve a new owned reference to the binary view from the native tag type.
+			    return BinaryView.TakeHandle(
+				    NativeMethods.BNTagTypeGetView(this.handle)
+			    );
+		    }
+	    }
+
 	    public Tag CreateTag(string data)
 	    {
 		    return Tag.MustTakeHandle(

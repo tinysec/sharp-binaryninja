@@ -5,7 +5,7 @@ namespace BinaryNinja
 	/// <summary>
 	/// 
 	/// </summary>
-    public enum ExprFolding : uint
+    public enum ExprFolding : byte
 	{
 		/// <summary>
 		/// 

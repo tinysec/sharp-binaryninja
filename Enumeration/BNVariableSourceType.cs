@@ -3,23 +3,14 @@ using System;
 namespace BinaryNinja
 {
 	/// <summary>
-	/// 
+	/// BNVariableSourceType
 	/// </summary>
-    public enum VariableSourceType : uint
+    public enum VariableSourceType : byte
 	{
-		/// <summary>
-		/// 
-		/// </summary>
-		StackVariableSourceType = 0,
-		
-		/// <summary>
-		/// 
-		/// </summary>
-		RegisterVariableSourceType = 1,
-		
-		/// <summary>
-		/// 
-		/// </summary>
-		FlagVariableSourceType = 2
+		StackVariableSourceType,
+		RegisterVariableSourceType,
+		FlagVariableSourceType,
+		CompositeReturnValueSourceType,
+		CompositeParameterSourceType
 	}
 }

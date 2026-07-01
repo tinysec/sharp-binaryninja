@@ -5,7 +5,7 @@ using Microsoft.Win32.SafeHandles;
 
 namespace BinaryNinja
 {
-	public sealed class Architecture : AbstractSafeHandle
+	public sealed class Architecture : AbstractSafeHandle<Architecture>
 	{
 		internal Architecture(IntPtr handle)
 			:base(handle, false)
@@ -52,41 +52,6 @@ namespace BinaryNinja
 				Architecture.MustFromHandle ,
 				NativeMethods.BNFreeArchitectureList
 			);
-		}
-		
-		public static string[] GetAllArchitectureNames()
-		{
-			List<string> items = new List<string>();
-
-			Architecture[] architectures = Architecture.GetAllArchitectures();
-
-			foreach (Architecture architecture in architectures)
-			{
-				if (!items.Contains(architecture.Name))
-				{
-					items.Add(architecture.Name);
-				}
-			}
-		    
-			return items.ToArray();
-		}
-		
-		public static Architecture? ChooseArchitecture(string prompt = "Choose" , string title = "Choose a architecture")
-		{
-			string[] names = Architecture.GetAllArchitectureNames();
-		    
-			int? index = Core.GetLargeChoiceInput(
-				prompt ,
-				title ,
-				names
-			);
-
-			if (null == index)
-			{
-				return null;
-			}
-		    
-			return Architecture.FromName(names[(int)index]);
 		}
 	  
 		public static Architecture NativeTypeParserArchitecture()
@@ -159,7 +124,7 @@ namespace BinaryNinja
 		    }
 	    }
 	    
-	    public Register[] FullWidthRegisters
+	    public ILRegister[] FullWidthRegisters
 	    {
 		    get
 		    {
@@ -174,18 +139,18 @@ namespace BinaryNinja
 				    NativeMethods.BNFreeRegisterList
 			    );
 			    
-			    List<Register> targets = new List<Register>();
+			    List<ILRegister> targets = new List<ILRegister>();
 
 			    foreach (RegisterIndex index in indexes)
 			    {
-				    targets.Add( new Register(this , index) );
+				    targets.Add( new ILRegister(this , index) );
 			    }
 
 			    return targets.ToArray();
 		    }
 	    }
 	    
-	    public Register[] Registers
+	    public ILRegister[] Registers
 	    {
 		    get
 		    {
@@ -200,18 +165,18 @@ namespace BinaryNinja
 				    NativeMethods.BNFreeRegisterList
 			    );
 			    
-			    List<Register> targets = new List<Register>();
+			    List<ILRegister> targets = new List<ILRegister>();
 
 			    foreach (RegisterIndex index in indexes)
 			    {
-				    targets.Add( new Register(this , index) );
+				    targets.Add( new ILRegister(this , index) );
 			    }
 
 			    return targets.ToArray();
 		    }
 	    }
 	    
-	    public Register[] GlobalRegister
+	    public ILRegister[] GlobalRegister
 	    {
 		    get
 		    {
@@ -226,18 +191,18 @@ namespace BinaryNinja
 				    NativeMethods.BNFreeRegisterList
 			    );
 			    
-			    List<Register> targets = new List<Register>();
+			    List<ILRegister> targets = new List<ILRegister>();
 
 			    foreach (RegisterIndex index in indexes)
 			    {
-				    targets.Add( new Register(this , index) );
+				    targets.Add( new ILRegister(this , index) );
 			    }
 
 			    return targets.ToArray();
 		    }
 	    }
 	    
-	    public Register[] SystemRegister
+	    public ILRegister[] SystemRegister
 	    {
 		    get
 		    {
@@ -252,18 +217,18 @@ namespace BinaryNinja
 				    NativeMethods.BNFreeRegisterList
 			    );
 			    
-			    List<Register> targets = new List<Register>();
+			    List<ILRegister> targets = new List<ILRegister>();
 
 			    foreach (RegisterIndex index in indexes)
 			    {
-				    targets.Add( new Register(this , index) );
+				    targets.Add( new ILRegister(this , index) );
 			    }
 
 			    return targets.ToArray();
 		    }
 	    }
 	    
-	    public Flag[] Flags
+	    public ILFlag[] Flags
 	    {
 		    get
 		    {
@@ -278,11 +243,11 @@ namespace BinaryNinja
 				    NativeMethods.BNFreeRegisterList
 			    );
 			    
-			    List<Flag> targets = new List<Flag>();
+			    List<ILFlag> targets = new List<ILFlag>();
 
 			    foreach (FlagIndex index in indexes)
 			    {
-				    targets.Add( new Flag(this , index) );
+				    targets.Add( new ILFlag(this , index) );
 			    }
 
 			    return targets.ToArray();
@@ -521,41 +486,41 @@ namespace BinaryNinja
 		    );
 	    }
 	    
-	    public InstructionInfo? GetInstructionInfo(
+	 
+	    
+
+	    public bool GetInstructionInfo(
 		    byte[] data ,
-		    ulong address 
+		    ulong address ,
+		    ulong maxLength ,
+		    out InstructionInfo info
 	    )
 	    {
 		    bool ok = false;
-		    
+
+		    BNInstructionInfo raw;
+
 		    ok = NativeMethods.BNGetInstructionInfo(
 			    this.handle ,
 			    data ,
 			    address ,
-			     Math.Min(this.MaxInstructionLength , (ulong)data.Length) ,
-			    out BNInstructionInfo raw
+			    maxLength ,
+			    out raw
 		    );
 
-		    if (!ok)
+		    if (ok)
 		    {
-			    return null;
+			    info = InstructionInfo.FromNative(raw);
+		    }
+		    else
+		    {
+			    info = new InstructionInfo();
 		    }
 		    
-		    return InstructionInfo.FromNative(raw);
+		    return ok;
 	    }
 	    
-	    /// <summary>
-	    /// 
-	    /// </summary>
-	    /// <param name="data"></param>
-	    /// <param name="address"></param>
-	    /// <param name="length">instruction length in bytes</param>
-	    /// <returns></returns>
-	    public InstructionTextToken[] GetInstructionText(
-		    byte[]data , 
-		    ulong address , 
-		    out ulong length  
-		)
+	    public InstructionTextToken[] GetInstructionText(byte[]data , ulong address , ref ulong length )
 	    {
 		    IntPtr arrayPointer = IntPtr.Zero;
 
@@ -563,33 +528,27 @@ namespace BinaryNinja
 
 		    bool ok = false;
 
-		    ulong bufferLength = (ulong)data.Length;
+		    length = (ulong)data.Length;
 
 		    ok = NativeMethods.BNGetInstructionText(
 			    this.handle ,
 			    data ,
 			    address ,
-			    ref bufferLength ,
+			    ref length ,
 			    out arrayPointer ,
 			    out arrayLength 
 		    );
-		   
+
 		    InstructionTextToken[] tokens = Array.Empty<InstructionTextToken>();
 		
 		    if (ok )
 		    {
-			    length = bufferLength;
-			    
 			    tokens = UnsafeUtils.TakeStructArrayEx<BNInstructionTextToken ,InstructionTextToken>(
 				    arrayPointer ,
 				    arrayLength,
 				    InstructionTextToken.FromNative,
 				    NativeMethods.BNFreeInstructionText
 			    );
-		    }
-		    else
-		    {
-			    length = 0;
 		    }
 
 		    return tokens;
@@ -609,9 +568,9 @@ namespace BinaryNinja
 		    );
 	    }
 	    
-	    public Register GetRegisterByName(string name)
+	    public ILRegister GetRegisterByName(string name)
 	    {
-		    return new Register(
+		    return new ILRegister(
 			    this ,
 			    NativeMethods.BNGetArchitectureRegisterByName(this.handle , name)
 		    );
@@ -920,18 +879,281 @@ namespace BinaryNinja
 		    NativeMethods.BNFinalizeArchitectureHook(this.handle);
 	    }
 
-	    public Register StackPointerRegister
+	    public ILRegister StackPointerRegister
 	    {
 		    get
 		    {
-			    return new Register(
+			    return new ILRegister(
 				    this ,
 				    (RegisterIndex)NativeMethods.BNGetArchitectureStackPointerRegister(this.handle)
 			    );
 		    }
 	    }
 
-	    
+	    /// <summary>
+	    /// Gets the relocation handler registered for this architecture under the given view name.
+	    /// Returns null if no handler is registered.
+	    /// </summary>
+	    /// <param name="viewName">The binary view type name (e.g., "ELF", "PE") to look up the handler for.</param>
+	    /// <returns>The relocation handler, or null if none is registered.</returns>
+	    public RelocationHandler? GetRelocationHandler(string viewName)
+	    {
+		    return RelocationHandler.TakeHandle(
+			    NativeMethods.BNArchitectureGetRelocationHandler(this.handle, viewName)
+		    );
+	    }
+
+	    /// <summary>
+	    /// Registers a relocation handler for this architecture under the given view name.
+	    /// The handler will be used to apply relocations when loading binaries of the specified type.
+	    /// </summary>
+	    /// <param name="viewName">The binary view type name (e.g., "ELF", "PE") to register the handler for.</param>
+	    /// <param name="handler">The relocation handler to register.</param>
+	    public void RegisterRelocationHandler(string viewName, RelocationHandler handler)
+	    {
+		    NativeMethods.BNArchitectureRegisterRelocationHandler(
+			    this.handle, viewName, handler.DangerousGetHandle()
+		    );
+	    }
+
+	    /// <summary>
+	    /// Invokes the architecture's basic block analysis callback on a function with the given context.
+	    /// This drives the disassembly and basic block discovery for the specified function.
+	    /// </summary>
+	    /// <param name="function">The function to analyze.</param>
+	    /// <param name="context">Pointer to a BNBasicBlockAnalysisContext structure controlling the analysis.</param>
+	    public void AnalyzeBasicBlocks(Function function, IntPtr context)
+	    {
+		    NativeMethods.BNArchitectureAnalyzeBasicBlocks(
+			    this.handle, function.DangerousGetHandle(), context
+		    );
+	    }
+
+	    /// <summary>
+	    /// Invokes the default basic block analysis implementation, bypassing any custom architecture override.
+	    /// Useful when a custom architecture wants to fall back to the base analysis behavior.
+	    /// </summary>
+	    /// <param name="function">The function to analyze.</param>
+	    /// <param name="context">Pointer to a BNBasicBlockAnalysisContext structure controlling the analysis.</param>
+	    public void DefaultAnalyzeBasicBlocks(Function function, IntPtr context)
+	    {
+		    NativeMethods.BNArchitectureDefaultAnalyzeBasicBlocks(
+			    function.DangerousGetHandle(), context
+		    );
+	    }
+
+	    /// <summary>
+	    /// Returns all register stacks defined by this architecture. Register stacks represent
+	    /// groups of registers that behave as a stack (e.g., x87 FPU register stack).
+	    /// </summary>
+	    public unsafe uint[] GetAllRegisterStacks()
+	    {
+		    // 1. Call the native API to retrieve the register stack index array.
+		    ulong count = 0;
+		    IntPtr ptr = NativeMethods.BNGetAllArchitectureRegisterStacks(
+			    this.handle, (IntPtr)(&count)
+		    );
+
+		    // 2. Return empty if no register stacks or null pointer.
+		    if (0 == count || IntPtr.Zero == ptr)
+		    {
+			    return Array.Empty<uint>();
+		    }
+
+		    // 3. Marshal the native array into a managed uint[] and free the native buffer.
+		    return UnsafeUtils.TakeNumberArray<uint>(ptr, count, NativeMethods.BNFreeRegisterList);
+	    }
+
+	    // ===================================================================
+	    // Architecture redirection
+	    // ===================================================================
+
+	    /// <summary>
+	    /// Adds a redirection from one architecture to another through this architecture.
+	    /// </summary>
+	    /// <param name="from">The source architecture to redirect from.</param>
+	    /// <param name="to">The target architecture to redirect to.</param>
+	    public void AddRedirection(Architecture from , Architecture to)
+	    {
+		    NativeMethods.BNAddArchitectureRedirection(
+			    this.handle ,
+			    from.DangerousGetHandle() ,
+			    to.DangerousGetHandle()
+		    );
+	    }
+
+	    // ===================================================================
+	    // Link register
+	    // ===================================================================
+
+	    /// <summary>
+	    /// Returns the link register index for this architecture.
+	    /// </summary>
+	    /// <returns>The register index of the link register.</returns>
+	    public uint GetLinkRegister()
+	    {
+		    return NativeMethods.BNGetArchitectureLinkRegister(this.handle);
+	    }
+
+	    // ===================================================================
+	    // Register stack queries
+	    // ===================================================================
+
+	    /// <summary>
+	    /// Returns the register stack index that contains the given register.
+	    /// </summary>
+	    /// <param name="reg">The register index to look up.</param>
+	    /// <returns>The register stack index containing this register.</returns>
+	    public uint GetRegisterStackForRegister(uint reg)
+	    {
+		    return NativeMethods.BNGetArchitectureRegisterStackForRegister(this.handle , reg);
+	    }
+
+	    /// <summary>
+	    /// Returns detailed information about the specified register stack.
+	    /// </summary>
+	    /// <param name="regStack">The register stack index to query.</param>
+	    /// <returns>A RegisterStackInfo describing the register stack layout.</returns>
+	    public RegisterStackInfo GetRegisterStackInfo(uint regStack)
+	    {
+		    return new RegisterStackInfo(
+			    NativeMethods.BNGetArchitectureRegisterStackInfo(this.handle , regStack)
+		    );
+	    }
+
+	    // ===================================================================
+	    // Default flag condition lowering
+	    // ===================================================================
+
+	    /// <summary>
+	    /// Returns the default Low Level IL expression index for a flag condition in this architecture.
+	    /// </summary>
+	    /// <param name="cond">The flag condition to lower.</param>
+	    /// <param name="semClass">The semantic flag class.</param>
+	    /// <param name="il">The LLIL function to add the expression to.</param>
+	    /// <returns>The expression index of the lowered flag condition.</returns>
+	    public ulong GetDefaultFlagConditionLowLevelIL(
+		    LowLevelILFlagCondition cond ,
+		    uint semClass ,
+		    LowLevelILFunction il
+	    )
+	    {
+		    return NativeMethods.BNGetDefaultArchitectureFlagConditionLowLevelIL(
+			    this.handle ,
+			    cond ,
+			    semClass ,
+			    il.DangerousGetHandle()
+		    );
+	    }
+
+	    // ===================================================================
+	    // Calling conventions
+	    // ===================================================================
+
+	    /// <summary>
+	    /// Retrieves a calling convention registered with this architecture by its name.
+	    /// </summary>
+	    /// <param name="name">The name of the calling convention.</param>
+	    /// <returns>The matching CallingConvention, or null if not found.</returns>
+	    public CallingConvention? GetCallingConventionByName(string name)
+	    {
+		    return CallingConvention.NewFromHandle(
+			    NativeMethods.BNGetArchitectureCallingConventionByName(this.handle , name)
+		    );
+	    }
+
+	    /// <summary>
+	    /// Gets the cdecl calling convention for this architecture.
+	    /// </summary>
+	    /// <returns>The cdecl CallingConvention, or null if not set.</returns>
+	    public CallingConvention? GetCdeclCallingConvention()
+	    {
+		    return CallingConvention.NewFromHandle(
+			    NativeMethods.BNGetArchitectureCdeclCallingConvention(this.handle)
+		    );
+	    }
+
+	    /// <summary>
+	    /// Sets the cdecl calling convention for this architecture.
+	    /// </summary>
+	    /// <param name="cc">The calling convention to set as cdecl.</param>
+	    public void SetCdeclCallingConvention(CallingConvention cc)
+	    {
+		    NativeMethods.BNSetArchitectureCdeclCallingConvention(
+			    this.handle ,
+			    cc.DangerousGetHandle()
+		    );
+	    }
+
+	    /// <summary>
+	    /// Gets the default calling convention for this architecture.
+	    /// </summary>
+	    /// <returns>The default CallingConvention, or null if not set.</returns>
+	    public CallingConvention? GetDefaultCallingConvention()
+	    {
+		    return CallingConvention.NewFromHandle(
+			    NativeMethods.BNGetArchitectureDefaultCallingConvention(this.handle)
+		    );
+	    }
+
+	    /// <summary>
+	    /// Sets the default calling convention for this architecture.
+	    /// </summary>
+	    /// <param name="cc">The calling convention to set as default.</param>
+	    public void SetDefaultCallingConvention(CallingConvention cc)
+	    {
+		    NativeMethods.BNSetArchitectureDefaultCallingConvention(
+			    this.handle ,
+			    cc.DangerousGetHandle()
+		    );
+	    }
+
+	    /// <summary>
+	    /// Gets the fastcall calling convention for this architecture.
+	    /// </summary>
+	    /// <returns>The fastcall CallingConvention, or null if not set.</returns>
+	    public CallingConvention? GetFastcallCallingConvention()
+	    {
+		    return CallingConvention.NewFromHandle(
+			    NativeMethods.BNGetArchitectureFastcallCallingConvention(this.handle)
+		    );
+	    }
+
+	    /// <summary>
+	    /// Sets the fastcall calling convention for this architecture.
+	    /// </summary>
+	    /// <param name="cc">The calling convention to set as fastcall.</param>
+	    public void SetFastcallCallingConvention(CallingConvention cc)
+	    {
+		    NativeMethods.BNSetArchitectureFastcallCallingConvention(
+			    this.handle ,
+			    cc.DangerousGetHandle()
+		    );
+	    }
+
+	    /// <summary>
+	    /// Gets the stdcall calling convention for this architecture.
+	    /// </summary>
+	    /// <returns>The stdcall CallingConvention, or null if not set.</returns>
+	    public CallingConvention? GetStdcallCallingConvention()
+	    {
+		    return CallingConvention.NewFromHandle(
+			    NativeMethods.BNGetArchitectureStdcallCallingConvention(this.handle)
+		    );
+	    }
+
+	    /// <summary>
+	    /// Sets the stdcall calling convention for this architecture.
+	    /// </summary>
+	    /// <param name="cc">The calling convention to set as stdcall.</param>
+	    public void SetStdcallCallingConvention(CallingConvention cc)
+	    {
+		    NativeMethods.BNSetArchitectureStdcallCallingConvention(
+			    this.handle ,
+			    cc.DangerousGetHandle()
+		    );
+	    }
+
 	}
-	
+
 }

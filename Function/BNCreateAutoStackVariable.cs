@@ -25,7 +25,7 @@ namespace BinaryNinja
 		    long offset  , 
 			
 			// BNTypeWithConfidence* type
-		    in BNTypeWithConfidence type  , 
+		    IntPtr type  , 
 			
 			// const char* name
 		    string name  

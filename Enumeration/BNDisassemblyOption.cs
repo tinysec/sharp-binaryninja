@@ -5,7 +5,7 @@ namespace BinaryNinja
 	/// <summary>
 	/// 
 	/// </summary>
-    public enum DisassemblyOption : uint
+    public enum DisassemblyOption : byte
 	{
 		/// <summary>
 		/// 

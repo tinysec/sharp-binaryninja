@@ -65,7 +65,19 @@ namespace BinaryNinja
 		public ulong[] RawOperands { get;  } = Array.Empty<ulong>();
 		
 		// related
-		internal LowLevelILFunction ILFunction  { get;  } 
+		internal LowLevelILFunction ILFunction  { get;  }
+
+		/// <summary>
+		/// The <see cref="LowLevelILFunction"/> that owns this instruction.
+		/// Mirrors Python <c>LowLevelILInstruction.function</c>.
+		/// </summary>
+		public LowLevelILFunction Function
+		{
+			get
+			{
+				return this.ILFunction;
+			}
+		}
 
 		public LowLevelILExpressionIndex ExpressionIndex { get; } = 0;
 
@@ -230,6 +242,18 @@ namespace BinaryNinja
 			{ LowLevelILOperation.LLIL_REG_STACK_PHI, 1 },           // regStackVersions(list)
 			{ LowLevelILOperation.LLIL_FLAG_PHI, 1 },                // flagVersions(list)
 			{ LowLevelILOperation.LLIL_MEM_PHI, 1 },                 // memVersions(list)
+
+			{ LowLevelILOperation.LLIL_ABS, 1 },                     // src
+			{ LowLevelILOperation.LLIL_BSWAP, 1 },                   // src
+			{ LowLevelILOperation.LLIL_CLS, 1 },                     // src
+			{ LowLevelILOperation.LLIL_CLZ, 1 },                     // src
+			{ LowLevelILOperation.LLIL_CTZ, 1 },                     // src
+			{ LowLevelILOperation.LLIL_POPCNT, 1 },                  // src
+			{ LowLevelILOperation.LLIL_RBIT, 1 },                    // src
+			{ LowLevelILOperation.LLIL_MAXS, 2 },                    // left, right
+			{ LowLevelILOperation.LLIL_MAXU, 2 },                    // left, right
+			{ LowLevelILOperation.LLIL_MINS, 2 },                    // left, right
+			{ LowLevelILOperation.LLIL_MINU, 2 },                    // left, right
 		};
 		
 	
@@ -973,9 +997,29 @@ namespace BinaryNinja
 				{
 					return new LLILMemoryPhi(ilFunction , expression , native );
 				}
+				case LowLevelILOperation.LLIL_ABS:
+				case LowLevelILOperation.LLIL_BSWAP:
+				case LowLevelILOperation.LLIL_CLS:
+				case LowLevelILOperation.LLIL_CLZ:
+				case LowLevelILOperation.LLIL_CTZ:
+				case LowLevelILOperation.LLIL_POPCNT:
+				case LowLevelILOperation.LLIL_RBIT:
+				{
+					return new LLILGenericUnary(ilFunction , expression , native );
+				}
+				case LowLevelILOperation.LLIL_MAXS:
+				case LowLevelILOperation.LLIL_MAXU:
+				case LowLevelILOperation.LLIL_MINS:
+				case LowLevelILOperation.LLIL_MINU:
+				{
+					return new LLILGenericBinary(ilFunction , expression , native );
+				}
 				default:
 				{
-					throw new NotSupportedException("not supported operation");
+					// Unknown / not-yet-typed operation (or an op from a newer core).
+					// Degrade to a generic wrapper instead of throwing so
+					// navigation/iteration stays robust.
+					return new LLILGeneric(ilFunction , expression , native );
 				}
 			}
 		}
@@ -1181,9 +1225,9 @@ namespace BinaryNinja
 			);
 		}
 		
-		public Flag GetOperandAsFlag(OperandIndex operand)
+		public ILFlag GetOperandAsFlag(OperandIndex operand)
 		{
-			return new Flag(
+			return new ILFlag(
 				this.ILFunction.OwnerFunction.Architecture , 
 				(FlagIndex)this.RawOperands[(ulong)operand]
 			);
@@ -1223,7 +1267,7 @@ namespace BinaryNinja
 				FlagIndex index = (FlagIndex)indexAndVersions[i];
 				ulong version = indexAndVersions[i + 1];
 				
-				Flag register = new Flag(
+				ILFlag register = new ILFlag(
 					this.ILFunction.OwnerFunction.Architecture ,
 					index
 				);
@@ -1236,9 +1280,9 @@ namespace BinaryNinja
 			return flags.ToArray();
 		}
 		
-		public Register GetOperandAsRegister(OperandIndex operand)
+		public ILRegister GetOperandAsRegister(OperandIndex operand)
 		{
-			return new Register(
+			return new ILRegister(
 				this.ILFunction.OwnerFunction.Architecture , 
 				(RegisterIndex)this.RawOperands[(ulong)operand]
 			);
@@ -1278,7 +1322,7 @@ namespace BinaryNinja
 				RegisterIndex index = (RegisterIndex)indexAndVersions[i];
 				ulong version = indexAndVersions[i + 1];
 				
-				Register register = new Register(
+				ILRegister register = new ILRegister(
 					this.ILFunction.OwnerFunction.Architecture ,
 					index
 				);
@@ -1450,7 +1494,7 @@ namespace BinaryNinja
 			{
 				if (0 != ( value & ( 1UL << 32 ) ))
 				{
-					Flag flag = new Flag(
+					ILFlag flag = new ILFlag(
 						this.ILFunction.OwnerFunction.Architecture ,
 						(FlagIndex)( value & 0xffffffff )
 					);
@@ -1459,7 +1503,7 @@ namespace BinaryNinja
 				}
 				else
 				{
-					Register register = new Register(
+					ILRegister register = new ILRegister(
 						this.ILFunction.OwnerFunction.Architecture ,
 						(RegisterIndex)( value & 0xffffffff )
 					);
@@ -1496,7 +1540,7 @@ namespace BinaryNinja
 
 				if (0 != ( paires[i] & ( 1UL << 32 ) ))
 				{
-					Flag flag = new Flag(
+					ILFlag flag = new ILFlag(
 						this.ILFunction.OwnerFunction.Architecture ,
 						(FlagIndex)( paires[i] & 0xffffffff )
 					);
@@ -1507,7 +1551,7 @@ namespace BinaryNinja
 				}
 				else
 				{
-					Register register = new Register(
+					ILRegister register = new ILRegister(
 						this.ILFunction.OwnerFunction.Architecture ,
 						(RegisterIndex)( paires[i] & 0xffffffff )
 					);
@@ -1528,7 +1572,20 @@ namespace BinaryNinja
 				return this.GetExpressionTextTokens();
 			}
 		}
-		
+
+		/// <summary>
+		/// The text tokens of this expression. Alias of
+		/// <see cref="ExpressionTextTokens"/> for parity with Python
+		/// <c>LowLevelILInstruction.tokens</c> and the MLIL/HLIL <c>Tokens</c> members.
+		/// </summary>
+		public InstructionTextToken[] Tokens
+		{
+			get
+			{
+				return this.ExpressionTextTokens;
+			}
+		}
+
 		public InstructionTextToken[] GetExpressionTextTokens(
 			Architecture? arch = null,
 			DisassemblySettings? settings = null
@@ -1790,28 +1847,6 @@ namespace BinaryNinja
 			}
 		}
 		
-		public MediumLevelILInstruction[] MediumLevelILInstructions
-		{
-			get
-			{
-				List<MediumLevelILInstruction> mediumInstrs = new List<MediumLevelILInstruction>();
-				
-				foreach (MediumLevelILInstruction mediumExpr in this.MediumLevelILExpressions)
-				{
-					MediumLevelILInstruction mediumInst = mediumExpr.ILFunction.MustGetInstruction(
-						mediumExpr.InstructionIndex
-					);
-
-					if (!mediumInstrs.Contains(mediumInst))
-					{
-						mediumInstrs.Add(mediumInst);
-					}
-				}
-
-				return mediumInstrs.ToArray();
-			}
-		}
-		
 		public MediumLevelILInstruction? MappedMediumLevelILExpression
 		{
 			get
@@ -1859,28 +1894,6 @@ namespace BinaryNinja
 				return this.ILFunction.GetHighLevelILInstruction(
 					this.InstructionIndex
 				);
-			}
-		}
-		
-		public HighLevelILInstruction[] HighLevelILInstructions
-		{
-			get
-			{
-				List<HighLevelILInstruction> highInstrs = new List<HighLevelILInstruction>();
-				
-				foreach (HighLevelILInstruction highExpr in this.HighLevelILExpressions)
-				{
-					HighLevelILInstruction highInst = highExpr.ILFunction.MustGetInstruction(
-						highExpr.InstructionIndex
-					);
-
-					if (!highInstrs.Contains(highInst))
-					{
-						highInstrs.Add(highInst);
-					}
-				}
-
-				return highInstrs.ToArray();
 			}
 		}
 		

@@ -8,7 +8,7 @@ namespace BinaryNinja
     internal static partial class NativeMethods
     {
 	    /// <summary>
-		/// void BNAddStructureBuilderMemberAtOffset(BNStructureBuilder* s, BNTypeWithConfidence* type, const char* name, uint64_t offset, bool overwriteExisting, BNMemberAccess access, BNMemberScope scope)
+		/// void BNAddStructureBuilderMemberAtOffset(BNStructureBuilder* s, BNTypeWithConfidence* type, const char* name, uint64_t offset, bool overwriteExisting, BNMemberAccess access, BNMemberScope scope, uint8_t bitPosition, uint8_t bitWidth)
 		/// </summary>
 		[DllImport(
             "binaryninjacore", 
@@ -37,7 +37,13 @@ namespace BinaryNinja
 		    MemberAccess access  , 
 			
 			// BNMemberScope scope
-		    MemberScope scope  
+		    MemberScope scope  ,
+
+			// uint8_t bitPosition
+		    byte bitPosition  ,
+
+			// uint8_t bitWidth
+		    byte bitWidth
 		);
 	}
 }

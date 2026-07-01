@@ -5,7 +5,7 @@ namespace BinaryNinja
 	/// <summary>
 	/// 
 	/// </summary>
-    public enum DataFlowQueryOption : uint
+    public enum DataFlowQueryOption : byte
 	{
 		/// <summary>
 		/// 

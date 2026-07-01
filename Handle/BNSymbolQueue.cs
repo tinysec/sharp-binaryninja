@@ -5,7 +5,7 @@ using Microsoft.Win32.SafeHandles;
 
 namespace BinaryNinja
 {
-	public sealed class SymbolQueue : AbstractSafeHandle
+	public sealed class SymbolQueue : AbstractSafeHandle<SymbolQueue>
 	{
 		public SymbolQueue() 
 			: this( NativeMethods.BNCreateSymbolQueue() , true)

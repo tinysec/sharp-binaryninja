@@ -5,7 +5,7 @@ namespace BinaryNinja
 	/// <summary>
 	/// 
 	/// </summary>
-    public enum RemoteFileType : uint
+    public enum RemoteFileType : byte
 	{
 		/// <summary>
 		/// 

@@ -6,7 +6,7 @@ using Microsoft.Win32.SafeHandles;
 
 namespace BinaryNinja
 {
-	public sealed class LinearViewCursor : AbstractSafeHandle
+	public sealed class LinearViewCursor : AbstractSafeHandle<LinearViewCursor>
 	{
 		public LinearViewCursor(LinearViewObject root) 
 			: this( 
@@ -203,6 +203,45 @@ namespace BinaryNinja
 	    public void SeekToOrderingIndex(ulong index)
 	    {
 		    NativeMethods.BNSeekLinearViewCursorToOrderingIndex(this.handle , index);
+	    }
+
+	    /// <summary>
+	    /// Seek the cursor to match the path of another cursor.
+	    /// </summary>
+	    public bool SeekToCursorPath(LinearViewCursor path)
+	    {
+		    return NativeMethods.BNSeekLinearViewCursorToCursorPath(
+			    this.handle ,
+			    path.DangerousGetHandle()
+		    );
+	    }
+
+	    /// <summary>
+	    /// Seek the cursor to match the path of another cursor at a specific address.
+	    /// </summary>
+	    public bool SeekToCursorPathAndAddress(LinearViewCursor path , ulong addr)
+	    {
+		    return NativeMethods.BNSeekLinearViewCursorToCursorPathAndAddress(
+			    this.handle ,
+			    path.DangerousGetHandle() ,
+			    addr
+		    );
+	    }
+
+	    /// <summary>
+	    /// Seek the cursor to a path specified by an array of identifier IDs at a specific address.
+	    /// </summary>
+	    public unsafe bool SeekToPathAndAddress(ulong[] ids , ulong addr)
+	    {
+		    fixed (ulong* ptr = ids)
+		    {
+			    return NativeMethods.BNSeekLinearViewCursorToPathAndAddress(
+				    this.handle ,
+				    (IntPtr)ptr ,
+				    (ulong)ids.Length ,
+				    addr
+			    );
+		    }
 	    }
 	    
 	    public bool Previous()

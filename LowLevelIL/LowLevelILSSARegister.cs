@@ -5,13 +5,13 @@ namespace BinaryNinja
 {
 	public sealed class LowLevelILSSARegister 
 	{
-		public Register Register { get; }
+		public ILRegister Register { get; }
 		
 		public ulong Vesion { get; set; } = 0;
 		
 		public LowLevelILFunction ILFunction { get; }
 
-		public LowLevelILSSARegister(LowLevelILFunction function , Register register , ulong vesion)
+		public LowLevelILSSARegister(LowLevelILFunction function , ILRegister register , ulong vesion)
 		{
 			this.ILFunction = function;
 			
