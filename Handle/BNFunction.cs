@@ -107,6 +107,18 @@ namespace BinaryNinja
 		    }
 	    }
 
+	    /// <summary>
+	    /// Components in the component tree that contain this function.
+	    /// Mirrors Python <c>Function.components</c> / C++ <c>Function::GetParentComponents</c>.
+	    /// </summary>
+	    public Component[] Components
+	    {
+		    get
+		    {
+			    return this.View.GetFunctionParentComponents(this);
+		    }
+	    }
+
 	    public Architecture Architecture
 	    {
 		    get

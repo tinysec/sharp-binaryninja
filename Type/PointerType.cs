@@ -54,8 +54,20 @@ namespace BinaryNinja
 			get
 			{
 				BNTypeWithConfidence  raw = NativeMethods.BNGetChildType(this.handle);
-				
+
 				return TypeWithConfidence.FromNative(raw);
+			}
+		}
+
+		/// <summary>
+		/// The type this pointer points to. Alias of <see cref="Pointee"/> that matches
+		/// the Python <c>PointerType.target</c> naming.
+		/// </summary>
+		public TypeWithConfidence Target
+		{
+			get
+			{
+				return this.Pointee;
 			}
 		}
 

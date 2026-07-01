@@ -245,6 +245,39 @@ namespace BinaryNinja
 			}
 		}
 
+		/// <summary>
+		/// Sibling BinaryView of another view type (for example "Raw" or "PE") backed by the
+		/// same file. Mirrors Python <c>BinaryView.get_view_of_type</c>. Returns null when the
+		/// file has no view of that type.
+		/// </summary>
+		public BinaryView? GetViewOfType(string viewType)
+		{
+			return this.File.GetFileViewOfType(viewType);
+		}
+
+		/// <summary>
+		/// The raw ("Raw") BinaryView backed by the same file. Mirrors Python <c>BinaryView.raw</c>.
+		/// </summary>
+		public BinaryView? RawView
+		{
+			get
+			{
+				return this.File.RawBinaryView;
+			}
+		}
+
+		/// <summary>
+		/// The ProjectFile backing this view, if it belongs to a project.
+		/// Mirrors Python <c>BinaryView.project_file</c>.
+		/// </summary>
+		public ProjectFile? ProjectFile
+		{
+			get
+			{
+				return this.File.ProjectFile;
+			}
+		}
+
 		public ulong ImageBase
 		{
 			get

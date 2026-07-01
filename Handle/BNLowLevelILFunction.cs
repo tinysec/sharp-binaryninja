@@ -744,6 +744,29 @@ namespace BinaryNinja
 		    return this.MustGetInstructions(indexes);
 	    }
 	    
+	    /// <summary>
+	    /// LLIL exit instructions for the instruction at the given index (for example the
+	    /// instructions a call may return to). Mirrors Python
+	    /// <c>LowLevelILFunction.get_exits_for_instr</c> /
+	    /// C++ <c>LowLevelILFunction::GetExitsForInstruction</c>.
+	    /// </summary>
+	    public LowLevelILInstruction[] GetExitsForInstruction(LowLevelILInstructionIndex instruction)
+	    {
+		    IntPtr arrayPointer = NativeMethods.BNLowLevelILGetExitsForInstruction(
+			    this.handle ,
+			    instruction ,
+			    out ulong arrayLength
+		    );
+
+		    LowLevelILInstructionIndex[] indexes = UnsafeUtils.TakeNumberArray<LowLevelILInstructionIndex>(
+			    arrayPointer ,
+			    arrayLength ,
+			    NativeMethods.BNFreeILInstructionList
+		    );
+
+		    return this.MustGetInstructions(indexes);
+	    }
+
 	    public LowLevelILInstruction? CurrentInstruction
 	    {
 		    get

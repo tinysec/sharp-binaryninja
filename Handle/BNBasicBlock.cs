@@ -126,14 +126,22 @@ namespace BinaryNinja
 		    }
 	    }
 	    
-	    public ulong InstructionCount
+	    /// <summary>
+	    /// Number of instructions in this block.
+	    ///
+	    /// For IL basic blocks <see cref="Start"/> and <see cref="End"/> are instruction
+	    /// indices, so their difference is the instruction count. Native (disassembly)
+	    /// blocks express <see cref="Start"/>/<see cref="End"/> as addresses, so the
+	    /// native <see cref="BasicBlock"/> overrides this to walk and count instructions.
+	    /// </summary>
+	    public virtual ulong InstructionCount
 	    {
 		    get
 		    {
 			    return (ulong)this.End - (ulong)this.Start;
 		    }
 	    }
-	    
+
 	    public ulong Length
 	    {
 		    get
@@ -445,7 +453,50 @@ namespace BinaryNinja
 			    );
 		    }
 	    }
-	    
+
+	    /// <summary>
+	    /// Number of instructions in this native (disassembly) block.
+	    ///
+	    /// Native block <see cref="AbstractBasicBlock{T}.Start"/>/<see cref="AbstractBasicBlock{T}.End"/>
+	    /// are addresses, so the base <c>End - Start</c> would be a byte span, not an
+	    /// instruction count. This walks the block one instruction at a time, mirroring
+	    /// the Python <c>BasicBlock.instruction_count</c> implementation.
+	    /// </summary>
+	    public override ulong InstructionCount
+	    {
+		    get
+		    {
+			    BinaryView? view = this.View;
+
+			    if (null == view)
+			    {
+				    return 0;
+			    }
+
+			    Architecture architecture = this.Architecture;
+
+			    ulong count = 0;
+			    ulong address = this.Start;
+			    ulong end = this.End;
+
+			    while (address < end)
+			    {
+				    ulong length = view.GetInstructionLength(address, architecture);
+
+				    // A zero length means an invalid instruction; stop to avoid an infinite loop.
+				    if (0 == length)
+				    {
+					    break;
+				    }
+
+				    count = count + 1;
+				    address = address + length;
+			    }
+
+			    return count;
+		    }
+	    }
+
 		internal static BasicBlock? NewFromHandle(IntPtr handle)
 		{
 			if (handle == IntPtr.Zero)
