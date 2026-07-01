@@ -136,8 +136,19 @@ namespace BinaryNinja
 			    return this.OwnerFunction.Architecture;
 		    }
 	    }
-	    
-	    public ulong ExpressionCount 
+
+	    /// <summary>
+	    /// BinaryView that contains the owning function. Matches the LLIL/HLIL <c>View</c> accessors.
+	    /// </summary>
+	    public BinaryView View
+	    {
+		    get
+		    {
+			    return this.OwnerFunction.View;
+		    }
+	    }
+
+	    public ulong ExpressionCount
 	    {
 		    get
 		    {

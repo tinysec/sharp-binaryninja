@@ -160,6 +160,19 @@ namespace BinaryNinja
 		    return this.FullName;
 	    }
 
+	    /// <summary>
+	    /// Given an import-address symbol, navigate to the imported-function symbol placed
+	    /// at <paramref name="address"/>. Mirrors Python
+	    /// <c>Symbol.imported_function_from_import_address_symbol</c>. Returns null when
+	    /// there is no associated imported-function symbol.
+	    /// </summary>
+	    public Symbol? GetImportedFunctionFromImportAddressSymbol(ulong address)
+	    {
+		    return Symbol.TakeHandle(
+			    NativeMethods.BNImportedFunctionFromImportAddressSymbol(this.handle, address)
+		    );
+	    }
+
 	    public SymbolType Type
 	    {
 		    get

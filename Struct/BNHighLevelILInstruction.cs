@@ -613,7 +613,7 @@ namespace BinaryNinja
 				}
 				case HighLevelILOperation.HLIL_CMP_UGE:
 				{
-					return new HLILUnsignedLessEqual(ilFunction, expressionIndex , native);
+					return new HLILUnsignedGreaterEqual(ilFunction, expressionIndex , native);
 				}
 				case HighLevelILOperation.HLIL_CMP_SGT:
 				{
@@ -741,7 +741,7 @@ namespace BinaryNinja
 				}
 				case HighLevelILOperation.HLIL_FCMP_GE:
 				{
-					return new HLILFloatGreaterThan(ilFunction, expressionIndex , native);
+					return new HLILFloatGreaterEqual(ilFunction, expressionIndex , native);
 				}
 				case HighLevelILOperation.HLIL_FCMP_GT:
 				{

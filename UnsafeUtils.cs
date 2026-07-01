@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Numerics;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
 namespace BinaryNinja
@@ -20,8 +21,16 @@ namespace BinaryNinja
 			return 0 != Marshal.ReadByte(address);
 		}
 		
-		internal static T ReadNumber<T>(IntPtr address) where T : unmanaged
+		internal static unsafe T ReadNumber<T>(IntPtr address) where T : unmanaged
 		{
+			// Enum index types (for example LowLevelILInstructionIndex : ulong) are not matched
+			// by the primitive dispatch below, and Marshal-based reads throw on them. Read those
+			// by their raw width. Unsafe.ReadUnaligned is AOT-safe and needs no reflection.
+			if (typeof(T).IsEnum)
+			{
+				return Unsafe.ReadUnaligned<T>((void*)address);
+			}
+
 			if (typeof(T).UnderlyingSystemType == typeof(sbyte))
 			{
 				return UnsafeUtils.ForceConvert<byte, T>(Marshal.ReadByte(address) );
@@ -104,14 +113,16 @@ namespace BinaryNinja
 		{
 			List<T> targets = new List<T>();
 
-			int integerSize = Marshal.SizeOf<T>();
-			
+			// Unsafe.SizeOf matches Marshal.SizeOf for the numeric primitives but also works for
+			// enum index types, whereas Marshal.SizeOf throws on them.
+			int integerSize = Unsafe.SizeOf<T>();
+
 			if (( IntPtr.Zero != arrayPointer ) && ( 0 != arrayLength ))
 			{
 				for (ulong i = 0; i < arrayLength; i++)
 				{
 					int offset = checked((int)(i * (ulong)integerSize));
-					
+
 					IntPtr addressOfElement = IntPtr.Add(arrayPointer, offset);
 
 					targets.Add(UnsafeUtils.ReadNumber<T>(addressOfElement));

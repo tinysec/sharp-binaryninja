@@ -102,8 +102,30 @@ namespace BinaryNinja
 		    get
 		    {
 			    return Function.MustTakeHandle(
-				    NativeMethods.BNGetHighLevelILOwnerFunction(this.handle) 
+				    NativeMethods.BNGetHighLevelILOwnerFunction(this.handle)
 			    );
+		    }
+	    }
+
+	    /// <summary>
+	    /// Architecture of the owning function. Matches the LLIL/MLIL <c>Architecture</c> accessors.
+	    /// </summary>
+	    public Architecture Architecture
+	    {
+		    get
+		    {
+			    return this.OwnerFunction.Architecture;
+		    }
+	    }
+
+	    /// <summary>
+	    /// BinaryView that contains the owning function. Matches the LLIL/MLIL <c>View</c> accessors.
+	    /// </summary>
+	    public BinaryView View
+	    {
+		    get
+		    {
+			    return this.OwnerFunction.View;
 		    }
 	    }
 
@@ -461,6 +483,64 @@ namespace BinaryNinja
 		    return instructions.ToArray();
 	    }
 	    
+	    /// <summary>
+	    /// All HLIL instructions that define the given variable.
+	    /// Mirrors Python <c>HighLevelILFunction.get_var_definitions</c> and matches the
+	    /// existing MLIL <c>GetVariableDefinitions</c>. The core returns expression indices.
+	    /// </summary>
+	    public HighLevelILInstruction[] GetVariableDefinitions(Variable variable)
+	    {
+		    IntPtr arrayPointer = NativeMethods.BNGetHighLevelILVariableDefinitions(
+			    this.handle ,
+			    variable.ToNative() ,
+			    out ulong arrayLength
+		    );
+
+		    ulong[] indexes = UnsafeUtils.TakeNumberArray<ulong>(
+			    arrayPointer ,
+			    arrayLength ,
+			    NativeMethods.BNFreeILInstructionList
+		    );
+
+		    List<HighLevelILInstruction> instructions = new List<HighLevelILInstruction>();
+
+		    foreach (HighLevelILExpressionIndex index in indexes)
+		    {
+			    instructions.Add(this.MustGetExpression(index));
+		    }
+
+		    return instructions.ToArray();
+	    }
+
+	    /// <summary>
+	    /// All HLIL instructions that use the given variable.
+	    /// Mirrors Python <c>HighLevelILFunction.get_var_uses</c> and matches the existing
+	    /// MLIL <c>GetVariableUses</c>. The core returns expression indices.
+	    /// </summary>
+	    public HighLevelILInstruction[] GetVariableUses(Variable variable)
+	    {
+		    IntPtr arrayPointer = NativeMethods.BNGetHighLevelILVariableUses(
+			    this.handle ,
+			    variable.ToNative() ,
+			    out ulong arrayLength
+		    );
+
+		    ulong[] indexes = UnsafeUtils.TakeNumberArray<ulong>(
+			    arrayPointer ,
+			    arrayLength ,
+			    NativeMethods.BNFreeILInstructionList
+		    );
+
+		    List<HighLevelILInstruction> instructions = new List<HighLevelILInstruction>();
+
+		    foreach (HighLevelILExpressionIndex index in indexes)
+		    {
+			    instructions.Add(this.MustGetExpression(index));
+		    }
+
+		    return instructions.ToArray();
+	    }
+
 	    public HighLevelILInstruction? GetSSAMemoryDefinition(ulong version)
 	    {
 		    return this.GetExpression(
@@ -1197,7 +1277,7 @@ namespace BinaryNinja
 		    SourceLocation? location = null)
 	    {
 		    return this.AddExpression(
-			    HighLevelILOperation.HLIL_SPLIT ,
+			    HighLevelILOperation.HLIL_ARRAY_INDEX ,
 			    location,
 			    size,
 			    (ulong)source,

@@ -12,12 +12,16 @@ namespace BinaryNinja
 		
 		public LibraryResolver()
 		{
-			this.AddSearchDir( 
+			this.AddSearchDir(
 				Directory.GetCurrentDirectory()
 			);
-			
+
+			// Accept both names: BINARYNINJA_HOME is the historical variable, BINARYNINJA_BASE is
+			// the one documented in the README. Supporting both avoids a silent load failure when
+			// a user follows either instruction.
 			this.AddEnvironment(
-				"BINARYNINJA_HOME"
+				"BINARYNINJA_HOME" ,
+				"BINARYNINJA_BASE"
 			);
 		}
 		

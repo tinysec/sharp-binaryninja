@@ -27,7 +27,7 @@ dotnet add package BinaryNinja
 - .NET 8.0 or newer
 - Binary Ninja installed (Desktop or Headless)
 - Ensure the Binary Ninja native libraries are discoverable at runtime:
-    - environment variable: BINARYNINJA_BASE (points to Binary Ninja installation root)
+    - environment variable: BINARYNINJA_BASE or BINARYNINJA_HOME (points to Binary Ninja installation root)
 
 ## Using in cli
 ```csharp
