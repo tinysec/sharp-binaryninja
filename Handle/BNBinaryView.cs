@@ -1425,23 +1425,35 @@ namespace BinaryNinja
 			{
 				return Array.Empty<float>();
 			}
-				
+
 			if (0 == blockSize)
 			{
 				blockSize = this.Length;
 			}
-			
-			float[] entropy= new float[ ( length / blockSize) + 1];
-			
-			ulong arrayLength = NativeMethods.BNGetEntropy(
-				this.handle , 
-				offset , 
+
+			// The core writes into this caller-allocated buffer (same sizing as the C++ API).
+			float[] buffer = new float[( length / blockSize ) + 1];
+
+			ulong writtenCount = NativeMethods.BNGetEntropy(
+				this.handle ,
+				offset ,
 				length ,
 				blockSize,
-				ref entropy
+				buffer
 			);
 
-			return entropy;
+			// The core returns the number of block values it wrote; the buffer is one larger,
+			// so trim to the written count (matches the C++ BinaryView::GetEntropy behavior).
+			if (writtenCount >= (ulong)buffer.Length)
+			{
+				return buffer;
+			}
+
+			float[] result = new float[writtenCount];
+
+			Array.Copy(buffer , result , (long)writtenCount);
+
+			return result;
 		}
 
 		public ModificationStatus GetModification(ulong offset)
