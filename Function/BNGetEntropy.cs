@@ -27,10 +27,10 @@ namespace BinaryNinja
 		    ulong len  , 
 			
 			// uint64_t blockSize
-		    ulong blockSize  , 
-			
-			// float* result
-		    ref float[] result  
+		    ulong blockSize  ,
+
+			// float* result (caller-allocated buffer the core writes into)
+		    [Out] float[] result
 		);
 	}
 }
