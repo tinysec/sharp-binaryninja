@@ -14,11 +14,11 @@
         <IsAotCompatible>true</IsAotCompatible>
         <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
 
-        <!-- version -->
-        <Version>0.1.0.0</Version>
+        <!-- version: NuGet package version is 3-part SemVer (0.1.{build}); CI overrides {build}
+             with the workflow run number. AssemblyVersion/FileVersion stay 4-part as .NET requires. -->
+        <Version>0.1.0</Version>
         <AssemblyVersion>0.1.0.0</AssemblyVersion>
         <FileVersion>0.1.0.0</FileVersion>
-        <ProductVersion>0.1.0.0</ProductVersion>
         <Company>https://github.com/tinysec</Company>
         <Product>BinaryNinja</Product>
         <Copyright>tinysec©2006</Copyright>
