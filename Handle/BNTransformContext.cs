@@ -192,7 +192,46 @@ namespace BinaryNinja
 			    );
 		    }
 	    }
-	    
+
+	    /// <summary>
+	    /// The session-time settings overrides for this transform context. Mirrors Python
+	    /// TransformContext.settings / C++ TransformContext::GetSettings().
+	    /// </summary>
+	    public Settings? Settings
+	    {
+		    get
+		    {
+			    return Settings.TakeHandle(
+				    NativeMethods.BNTransformContextGetSettings(this.handle)
+			    );
+		    }
+	    }
+
+	    /// <summary>
+	    /// The names of the transforms that can decode this context's input. Mirrors Python
+	    /// TransformContext.available_transforms / C++ GetAvailableTransforms().
+	    /// </summary>
+	    public string[] GetAvailableTransforms()
+	    {
+		    using (ScopedAllocator allocator = new ScopedAllocator())
+		    {
+			    IntPtr countPtr = allocator.AllocStruct<ulong>(0);
+
+			    IntPtr arrayPointer = NativeMethods.BNTransformContextGetAvailableTransforms(
+				    this.handle ,
+				    countPtr
+			    );
+
+			    ulong arrayLength = (ulong)Marshal.ReadInt64(countPtr);
+
+			    return UnsafeUtils.TakeAnsiStringArray(
+				    arrayPointer ,
+				    arrayLength ,
+				    NativeMethods.BNFreeStringList
+			    );
+		    }
+	    }
+
 	    public TransformContext? Parent
 	    {
 		    get

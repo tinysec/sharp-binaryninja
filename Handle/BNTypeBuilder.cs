@@ -1035,6 +1035,23 @@ namespace BinaryNinja
 			return new PointerType( NativeMethods.BNFinalizeTypeBuilder(this.handle) , true);
 		}
 
+		/// <summary>
+		/// The type this pointer builder points to. Mirrors Python PointerBuilder.target and
+		/// the sibling ArrayTypeBuilder.ElementType / FunctionTypeBuilder.ReturnType accessors.
+		/// </summary>
+		public TypeWithConfidence Target
+		{
+			get
+			{
+				return TypeWithConfidence.FromNative( NativeMethods.BNGetTypeBuilderChildType(this.handle) );
+			}
+
+			set
+			{
+				NativeMethods.BNTypeBuilderSetChildType(this.handle , value.ToNative());
+			}
+		}
+
 		public ulong Offset
 		{
 			get
