@@ -541,6 +541,49 @@ namespace BinaryNinja
 		    return instructions.ToArray();
 	    }
 
+	    /// <summary>
+	    /// The HLIL instruction for the given goto label id, or <c>null</c> if the label has no
+	    /// expression. Mirrors Python <c>HighLevelILFunction.get_label</c>.
+	    /// </summary>
+	    public HighLevelILInstruction? GetLabel(ulong label)
+	    {
+		    return this.GetExpression(
+			    NativeMethods.BNGetHighLevelILExprIndexForLabel(
+				    this.handle ,
+				    label
+			    )
+		    );
+	    }
+
+	    /// <summary>
+	    /// All HLIL instructions that reference the given goto label id.
+	    /// Mirrors Python <c>HighLevelILFunction.get_label_uses</c>. The core returns
+	    /// expression indices.
+	    /// </summary>
+	    public HighLevelILInstruction[] GetLabelUses(ulong label)
+	    {
+		    IntPtr arrayPointer = NativeMethods.BNGetHighLevelILUsesForLabel(
+			    this.handle ,
+			    label ,
+			    out ulong arrayLength
+		    );
+
+		    ulong[] indexes = UnsafeUtils.TakeNumberArray<ulong>(
+			    arrayPointer ,
+			    arrayLength ,
+			    NativeMethods.BNFreeILInstructionList
+		    );
+
+		    List<HighLevelILInstruction> instructions = new List<HighLevelILInstruction>();
+
+		    foreach (HighLevelILExpressionIndex index in indexes)
+		    {
+			    instructions.Add(this.MustGetExpression(index));
+		    }
+
+		    return instructions.ToArray();
+	    }
+
 	    public HighLevelILInstruction? GetSSAMemoryDefinition(ulong version)
 	    {
 		    return this.GetExpression(

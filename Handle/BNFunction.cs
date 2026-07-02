@@ -715,7 +715,20 @@ namespace BinaryNinja
 
 		    return new LowLevelILFunction(raw , true);
 	    }
-	    
+
+	    /// <summary>
+	    /// The Lifted IL for this function (generating variant), or <c>null</c> if unavailable.
+	    /// Null-safe counterpart of <see cref="LiftedIL"/>, mirroring <see cref="GetLowLevelIL"/>.
+	    /// </summary>
+	    public LowLevelILFunction? GetLiftedIL()
+	    {
+		    return LowLevelILFunction.TakeHandle(
+			    NativeMethods.BNGetFunctionLiftedIL(
+				    this.handle
+			    )
+		    );
+	    }
+
 	    public MediumLevelILFunction MediumLevelIL
 	    {
 		    get
@@ -1376,6 +1389,25 @@ namespace BinaryNinja
 	    }
 
 	    /// <summary>
+	    /// The Lifted IL instruction at <paramref name="address"/>, or <c>null</c>.
+	    /// Mirrors Python <c>Function.get_lifted_il_at</c>.
+	    /// </summary>
+	    public LowLevelILInstruction? GetLiftedILAt(ulong address , Architecture? arch = null)
+	    {
+		    return this.GetLiftedIL()?.GetInstructionStart(address , arch);
+	    }
+
+	    /// <summary>
+	    /// Every Lifted IL instruction at <paramref name="address"/>.
+	    /// Mirrors Python <c>Function.get_lifted_ils_at</c>.
+	    /// </summary>
+	    public LowLevelILInstruction[] GetLiftedILsAt(ulong address , Architecture? arch = null)
+	    {
+		    return this.GetLiftedIL()?.GetInstructionsAt(address , arch)
+			    ?? Array.Empty<LowLevelILInstruction>();
+	    }
+
+	    /// <summary>
 	    /// The Medium Level IL instruction at <paramref name="address"/>, or <c>null</c>.
 	    /// Mirrors Python <c>Function.get_medium_level_il_at</c> / <c>get_mlil_at</c>.
 	    /// </summary>
@@ -1573,6 +1605,59 @@ namespace BinaryNinja
 				    language
 			    )
 		    );
+	    }
+
+	    /// <summary>
+	    /// Builds a FlowGraph (disassembly or IL) for this function, waiting for analysis.
+	    /// Mirrors Python <c>Function.create_graph</c>. A null <paramref name="type"/> defaults
+	    /// to the normal disassembly graph; null <paramref name="settings"/> uses core defaults.
+	    /// </summary>
+	    public FlowGraph CreateGraph(
+		    FunctionViewType? type = null ,
+		    DisassemblySettings? settings = null
+	    )
+	    {
+		    if (null == type)
+		    {
+			    type = new FunctionViewType(FunctionGraphType.NormalFunctionGraph);
+		    }
+
+		    using (ScopedAllocator allocator = new ScopedAllocator())
+		    {
+			    return FlowGraph.MustTakeHandle(
+				    NativeMethods.BNCreateFunctionGraph(
+					    this.handle ,
+					    type.ToNativeEx(allocator) ,
+					    null == settings ? IntPtr.Zero : settings.DangerousGetHandle()
+				    )
+			    );
+		    }
+	    }
+
+	    /// <summary>
+	    /// Builds a FlowGraph from the function's current contents without waiting for analysis
+	    /// (intended for workflow use). Mirrors Python <c>Function.create_graph_immediate</c>.
+	    /// </summary>
+	    public FlowGraph CreateGraphImmediate(
+		    FunctionViewType? type = null ,
+		    DisassemblySettings? settings = null
+	    )
+	    {
+		    if (null == type)
+		    {
+			    type = new FunctionViewType(FunctionGraphType.NormalFunctionGraph);
+		    }
+
+		    using (ScopedAllocator allocator = new ScopedAllocator())
+		    {
+			    return FlowGraph.MustTakeHandle(
+				    NativeMethods.BNCreateImmediateFunctionGraph(
+					    this.handle ,
+					    type.ToNativeEx(allocator) ,
+					    null == settings ? IntPtr.Zero : settings.DangerousGetHandle()
+				    )
+			    );
+		    }
 	    }
 
 		//  disassembly
