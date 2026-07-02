@@ -123,10 +123,10 @@ namespace BinaryNinja
 	        
 	    }
 
-	    public Metadata(string[] value) 
-		    : this(NativeMethods.BNCreateMetadataStringListData(value , (ulong)value.Length) , true)
+	    public Metadata(string[] value)
+		    : this(Metadata.rawCreateMetadataStringList(value) , true)
 	    {
-	        
+
 	    }
 	    
 	    public Metadata(Metadata[] value) 
@@ -225,12 +225,21 @@ namespace BinaryNinja
 		    {
 			    handles.Add(item.DangerousGetHandle());
 		    }
-		    
-		    return NativeMethods.BNCreateMetadataValueStore(
-			    dict.Keys.ToArray() ,
-			    handles.ToArray(),
-				(ulong)handles.Count
-			 );
+
+		    string[] keys = dict.Keys.ToArray();
+
+		    // Keys are a UTF-8 char** block (see rawCreateMetadataStringList); the
+		    // core copies them, so freeing after the call is safe.
+		    using (ScopedAllocator allocator = new ScopedAllocator())
+		    {
+			    IntPtr keyBlock = allocator.AllocUtf8StringArray(keys);
+
+			    return NativeMethods.BNCreateMetadataValueStore(
+				    keyBlock ,
+				    handles.ToArray() ,
+				    (ulong)handles.Count
+			    );
+		    }
 	    }
 	    
 	    public static Metadata FromBoolArray(bool[] values)
@@ -264,8 +273,26 @@ namespace BinaryNinja
 	    public static Metadata FromStringArray(string[] values)
 	    {
 		    return Metadata.MustTakeHandle(
-			    NativeMethods.BNCreateMetadataStringListData(values , (ulong)values.Length)
+			    Metadata.rawCreateMetadataStringList(values)
 		    );
+	    }
+
+	    // BN stores string lists as UTF-8 char** blocks. .NET cannot marshal a
+	    // string[] element as UTF-8 via [MarshalAs] (LPUTF8Str is rejected for an
+	    // array subtype), so build the char** block by hand. The core copies the
+	    // strings, so freeing the block after the call (ScopedAllocator dispose)
+	    // is safe.
+	    private static IntPtr rawCreateMetadataStringList(string[] values)
+	    {
+		    using (ScopedAllocator allocator = new ScopedAllocator())
+		    {
+			    IntPtr block = allocator.AllocUtf8StringArray(values);
+
+			    return NativeMethods.BNCreateMetadataStringListData(
+				    block ,
+				    (ulong)values.Length
+			    );
+		    }
 	    }
 	    
 	    internal static Metadata? NewFromHandle(IntPtr handle)
@@ -425,7 +452,7 @@ namespace BinaryNinja
 			    out ulong arrayLength
 		    );
 		    
-		    string[] values = UnsafeUtils.ReadAnsiStringArray(arrayPointer , arrayLength);
+		    string[] values = UnsafeUtils.ReadUtf8StringArray(arrayPointer , arrayLength);
 
 		    if (arrayPointer != IntPtr.Zero )
 		    {
@@ -730,9 +757,9 @@ namespace BinaryNinja
 	    public bool SetValue(string key , string[] values)
 	    {
 		    return NativeMethods.BNMetadataSetValueForKey(
-			    this.handle, 
-			    key, 
-			    NativeMethods.BNCreateMetadataStringListData(values , (ulong)values.Length)
+			    this.handle,
+			    key,
+			    Metadata.rawCreateMetadataStringList(values)
 		    );
 	    }
 
