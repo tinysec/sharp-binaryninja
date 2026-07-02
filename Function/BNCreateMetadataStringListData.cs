@@ -17,12 +17,13 @@ namespace BinaryNinja
             EntryPoint = "BNCreateMetadataStringListData"
         )]
 		internal static extern IntPtr BNCreateMetadataStringListData(
-			
-			// const char** data
-		    string[] data  , 
-			
+
+			// const char** data (UTF-8 block built by the caller; string[] cannot be
+			// marshaled as UTF-8 by attribute, so it is passed as a raw pointer)
+		    IntPtr data  ,
+
 			// uint64_t size
-		    ulong size  
+		    ulong size
 		);
 	}
 }

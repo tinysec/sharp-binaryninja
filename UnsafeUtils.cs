@@ -136,21 +136,15 @@ namespace BinaryNinja
 			return targets.ToArray();
 		}
 		
+		// BN core stores and returns every string as UTF-8 (the reference binding
+		// decodes core strings with bytes.decode('utf8'); see the generator's
+		// pyNativeStr helper). This reader and its Take/array variants all funnel
+		// their per-element decode through here, so decoding as UTF-8 here fixes
+		// every core-string reader at once. The "Ansi" name is a misnomer retained
+		// only for the generated call sites that reference it.
 		internal static string ReadAnsiString(IntPtr address)
 		{
-			string text = string.Empty;
-			
-			if (IntPtr.Zero != address)
-			{
-				string? optional = Marshal.PtrToStringAnsi(address);
-
-				if (null != optional)
-				{
-					text = optional;
-				}
-			}
-
-			return text;
+			return UnsafeUtils.ReadUtf8String(address);
 		}
 		
 		internal static string ReadUtf8String(IntPtr address)
@@ -595,9 +589,19 @@ namespace BinaryNinja
 		}
 
 	
+		// BN core expects UTF-8 for every string input. Encode into an HGlobal buffer
+		// so the existing Marshal.FreeHGlobal ownership at the call sites is unchanged.
+		// The "Ansi" name is a misnomer retained only for the generated call sites.
 		internal static IntPtr AllocAnsiString(string text)
 		{
-			return Marshal.StringToHGlobalAnsi(text);
+			byte[] utf8 = System.Text.Encoding.UTF8.GetBytes(text ?? string.Empty);
+
+			IntPtr pointer = Marshal.AllocHGlobal(utf8.Length + 1);
+
+			Marshal.Copy(utf8 , 0 , pointer , utf8.Length);
+			Marshal.WriteByte(pointer , utf8.Length , 0);
+
+			return pointer;
 		}
 		
 		internal static IntPtr AllocUtf8String(string text)

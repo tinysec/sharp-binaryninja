@@ -38,16 +38,21 @@ namespace BinaryNinja
 			return pointer;
 		}
 		
-		internal IntPtr AllocAnsiString(string text)
+		// BN core expects UTF-8 for every string input. Encode into an HGlobal buffer
+		// tracked by this allocator, so disposal keeps using Marshal.FreeHGlobal.
+		internal IntPtr AllocUtf8String(string text)
 		{
-			IntPtr pointer = Marshal.StringToHGlobalAnsi(text);
-			
-			m_pointers.Add(pointer);
+			byte[] utf8 = Encoding.UTF8.GetBytes(text ?? string.Empty);
+
+			IntPtr pointer = this.AllocHGlobal(utf8.Length + 1);
+
+			Marshal.Copy(utf8 , 0 , pointer , utf8.Length);
+			Marshal.WriteByte(pointer , utf8.Length , 0);
 
 			return pointer;
 		}
-		
-		internal IntPtr AllocAnsiStringArray(string[] texts)
+
+		internal IntPtr AllocUtf8StringArray(string[] texts)
 		{
 			if (texts == null || texts.Length == 0)
 			{
@@ -55,15 +60,27 @@ namespace BinaryNinja
 			}
 
 			IntPtr arrayPointer = this.AllocHGlobal(IntPtr.Size * texts.Length);
-			
+
 			for (int i = 0; i < texts.Length; i++)
 			{
-				IntPtr textPointer = this.AllocAnsiString(texts[i]);
-				
+				IntPtr textPointer = this.AllocUtf8String(texts[i]);
+
 				Marshal.WriteIntPtr(arrayPointer , i * IntPtr.Size , textPointer);
 			}
 
 			return arrayPointer;
+		}
+
+		// The "Ansi"-named builders are misnomers retained for the generated call
+		// sites; they delegate to the UTF-8 builders so every write path emits UTF-8.
+		internal IntPtr AllocAnsiString(string text)
+		{
+			return this.AllocUtf8String(text);
+		}
+
+		internal IntPtr AllocAnsiStringArray(string[] texts)
+		{
+			return this.AllocUtf8StringArray(texts);
 		}
 
 		internal IntPtr AllocInteger<T>(T value) where T : IConvertible
