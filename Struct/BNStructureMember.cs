@@ -68,6 +68,18 @@ namespace BinaryNinja
 
 		public byte BitWidth { get; set; } = 0;
 
+		/// <summary>
+		/// Total bit offset from the start of the structure (<c>Offset * 8 + BitPosition</c>).
+		/// Mirrors Python <c>StructureMember.bit_offset</c>.
+		/// </summary>
+		public ulong BitOffset
+		{
+			get
+			{
+				return (this.Offset * 8) + this.BitPosition;
+			}
+		}
+
 		public StructureMember(
 			BinaryNinja.Type kind,
 			string name,

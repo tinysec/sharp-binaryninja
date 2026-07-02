@@ -227,7 +227,25 @@ namespace BinaryNinja
 			    return targets.ToArray();
 		    }
 	    }
-	    
+
+	    /// <summary>
+	    /// Whether the given register is a global register for this architecture.
+	    /// Mirrors C++ <c>Architecture::IsGlobalRegister</c>.
+	    /// </summary>
+	    public bool IsGlobalRegister(RegisterIndex reg)
+	    {
+		    return NativeMethods.BNIsArchitectureGlobalRegister(this.handle , reg);
+	    }
+
+	    /// <summary>
+	    /// Whether the given register is a system register for this architecture.
+	    /// Mirrors C++ <c>Architecture::IsSystemRegister</c>.
+	    /// </summary>
+	    public bool IsSystemRegister(RegisterIndex reg)
+	    {
+		    return NativeMethods.BNIsArchitectureSystemRegister(this.handle , reg);
+	    }
+
 	    public ILFlag[] Flags
 	    {
 		    get
