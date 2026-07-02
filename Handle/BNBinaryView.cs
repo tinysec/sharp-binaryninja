@@ -1180,6 +1180,51 @@ namespace BinaryNinja
 			}
 		}
 
+		/// <summary>
+		/// The user-specified global-pointer register values (read-only).
+		/// Empty when the user has not overridden them. Mirrors Python
+		/// <c>BinaryView.user_global_pointer_values</c>.
+		/// </summary>
+		public RegisterValueWithConfidenceAndRegister[] UserGlobalPointerValues
+		{
+			get
+			{
+				IntPtr arrayPointer = NativeMethods.BNGetUserGlobalPointerValues(
+					this.handle ,
+					out ulong arrayLength
+				);
+
+				return UnsafeUtils.TakeStructArray<BNRegisterValueWithConfidenceAndRegister , RegisterValueWithConfidenceAndRegister>(
+					arrayPointer ,
+					arrayLength ,
+					RegisterValueWithConfidenceAndRegister.FromNative ,
+					NativeMethods.BNFreeRegisterValueWithConfidenceAndRegisterList
+				);
+			}
+		}
+
+		/// <summary>
+		/// The default (analysis-derived) global-pointer register values (read-only).
+		/// Mirrors Python <c>BinaryView.default_global_pointer_values</c>.
+		/// </summary>
+		public RegisterValueWithConfidenceAndRegister[] DefaultGlobalPointerValues
+		{
+			get
+			{
+				IntPtr arrayPointer = NativeMethods.BNGetDefaultGlobalPointerValues(
+					this.handle ,
+					out ulong arrayLength
+				);
+
+				return UnsafeUtils.TakeStructArray<BNRegisterValueWithConfidenceAndRegister , RegisterValueWithConfidenceAndRegister>(
+					arrayPointer ,
+					arrayLength ,
+					RegisterValueWithConfidenceAndRegister.FromNative ,
+					NativeMethods.BNFreeRegisterValueWithConfidenceAndRegisterList
+				);
+			}
+		}
+
 		public bool UserGlobalPointerValuesSet
 		{
 			get
@@ -1235,6 +1280,19 @@ namespace BinaryNinja
 				arrayLength ,
 				Relocation.MustNewFromHandle ,
 				NativeMethods.BNFreeRelocationList
+			);
+		}
+
+		/// <summary>
+		/// The first relocation at or after <paramref name="address"/>, or <c>null</c> if none.
+		/// When <paramref name="maxAddr"/> is non-zero the search stops before that address.
+		/// Mirrors C++ <c>BinaryView::GetNextRelocation</c>.
+		/// </summary>
+		public Relocation? GetNextRelocation(ulong address , ulong maxAddr = 0)
+		{
+			// The core returns an already-owned reference (or NULL), so take ownership directly.
+			return Relocation.TakeHandle(
+				NativeMethods.BNGetNextRelocation(this.handle , address , maxAddr)
 			);
 		}
 

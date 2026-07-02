@@ -22,7 +22,7 @@ namespace BinaryNinja
 		    IntPtr view   , 
 			
 			// size_t* count
-		    IntPtr count  
+		    out ulong count
 		);
 	}
 }
