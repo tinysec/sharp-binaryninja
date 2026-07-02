@@ -608,6 +608,22 @@ namespace BinaryNinja
 	    }
 
 	    /// <summary>
+	    /// Generates an auto platform NamedTypeReference for the given qualified name and class.
+	    /// Mirrors C++ <c>Platform::GenerateAutoPlatformTypeReference</c> / Python
+	    /// <c>Platform.generate_auto_platform_type_ref</c>: builds the auto platform type ID for
+	    /// the name, then constructs a NamedTypeReference from the class, ID, and name.
+	    /// </summary>
+	    public NamedTypeReference GenerateAutoPlatformTypeReference(
+		    NamedTypeReferenceClass cls ,
+		    QualifiedName name
+	    )
+	    {
+		    string typeId = this.GenerateAutoPlatformTypeId(name);
+
+		    return new NamedTypeReference(cls , typeId , name);
+	    }
+
+	    /// <summary>
 	    /// Creates a new platform with types loaded from a type definition file.
 	    /// </summary>
 	    /// <param name="arch">The architecture for the new platform.</param>
