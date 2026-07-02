@@ -22,7 +22,7 @@ namespace BinaryNinja
 		    LogLevel minimumLevel  , 
 			
 			// const char* path
-		    string path  , 
+		    [MarshalAs(UnmanagedType.LPUTF8Str)] string path  , 
 			
 			// bool append
 		    bool append  

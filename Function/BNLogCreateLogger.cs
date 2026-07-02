@@ -19,7 +19,7 @@ namespace BinaryNinja
 		internal static extern IntPtr BNLogCreateLogger(
 			
 			// const char* loggerName
-		    string loggerName  , 
+		    [MarshalAs(UnmanagedType.LPUTF8Str)] string loggerName  , 
 			
 			// uint64_t sessionId
 		    ulong sessionId  

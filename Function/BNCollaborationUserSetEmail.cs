@@ -22,7 +22,7 @@ namespace BinaryNinja
 		    IntPtr user  , 
 			
 			// const char* email
-		    string email  
+		    [MarshalAs(UnmanagedType.LPUTF8Str)] string email  
 		);
 	}
 }

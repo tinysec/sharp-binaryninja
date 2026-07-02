@@ -26,7 +26,7 @@ namespace BinaryNinja
 		    LogLevel level   , 
 			
 			// const char* fmt
-		    string fmt   , 
+		    [MarshalAs(UnmanagedType.LPUTF8Str)] string fmt   , 
 			
 			// ...
 		    IntPtr arg3  

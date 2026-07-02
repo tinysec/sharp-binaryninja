@@ -20,7 +20,7 @@ namespace BinaryNinja
 		internal static extern IntPtr BNRepositoryGetRepositoryByPath(
 			
 			// const char* repoPath
-		    string repoPath  
+		    [MarshalAs(UnmanagedType.LPUTF8Str)] string repoPath  
 		);
 	}
 }

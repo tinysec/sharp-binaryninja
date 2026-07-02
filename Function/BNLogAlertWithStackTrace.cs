@@ -19,10 +19,10 @@ namespace BinaryNinja
 		internal static extern void BNLogAlertWithStackTrace(
 			
 			// const char* stackTrace
-		    string stackTrace  , 
+		    [MarshalAs(UnmanagedType.LPUTF8Str)] string stackTrace  , 
 			
 			// const char* fmt
-		    string fmt  
+		    [MarshalAs(UnmanagedType.LPUTF8Str)] string fmt  
 			
 		);
 	}

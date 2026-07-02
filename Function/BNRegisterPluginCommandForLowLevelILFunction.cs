@@ -19,10 +19,10 @@ namespace BinaryNinja
 		internal static extern void BNRegisterPluginCommandForLowLevelILFunction(
 			
 			// const char* name
-		    string name  , 
+		    [MarshalAs(UnmanagedType.LPUTF8Str)] string name  , 
 			
 			// const char* description
-		    string description  , 
+		    [MarshalAs(UnmanagedType.LPUTF8Str)] string description  , 
 			
 			// void** action
 		    IntPtr action  , 

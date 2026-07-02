@@ -18,7 +18,7 @@ namespace BinaryNinja
 		internal static extern IntPtr BNRegisterRenderLayer(
 			
 			// const char* name
-		    string name  , 
+		    [MarshalAs(UnmanagedType.LPUTF8Str)] string name  , 
 			
 			// BNRenderLayerCallbacks* callbacks
 		    IntPtr callbacks  , 

@@ -19,7 +19,7 @@ namespace BinaryNinja
 		internal static extern bool BNDemangleLLVM(
 			
 			// const char* mangledName
-		    string mangledName  , 
+		    [MarshalAs(UnmanagedType.LPUTF8Str)] string mangledName  , 
 			
 			// const char*** outVarName
 		    IntPtr outVarName  , 

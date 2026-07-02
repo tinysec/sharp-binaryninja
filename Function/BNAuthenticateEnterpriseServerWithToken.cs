@@ -20,7 +20,7 @@ namespace BinaryNinja
 		internal static extern bool BNAuthenticateEnterpriseServerWithToken(
 			
 			// const char* token
-		    string token   , 
+		    [MarshalAs(UnmanagedType.LPUTF8Str)] string token   , 
 			
 			// bool remember
 		    bool remember  

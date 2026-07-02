@@ -31,10 +31,10 @@ namespace BinaryNinja
 		    IntPtr folder  , 
 			
 			// const char* name
-		    string name  , 
+		    [MarshalAs(UnmanagedType.LPUTF8Str)] string name  , 
 			
 			// const char* description
-		    string description  , 
+		    [MarshalAs(UnmanagedType.LPUTF8Str)] string description  , 
 			
 			// void* ctxt
 		    IntPtr ctxt  , 

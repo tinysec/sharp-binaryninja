@@ -22,7 +22,7 @@ namespace BinaryNinja
 		    IntPtr archive  , 
 			
 			// const char* id
-		    string id  , 
+		    [MarshalAs(UnmanagedType.LPUTF8Str)] string id  , 
 			
 			// BNQualifiedName* newName
 		    IntPtr newName  

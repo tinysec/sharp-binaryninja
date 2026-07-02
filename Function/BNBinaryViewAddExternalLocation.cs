@@ -28,7 +28,7 @@ namespace BinaryNinja
 		    IntPtr library  , 
 			
 			// const char* targetSymbol
-		    string targetSymbol  , 
+		    [MarshalAs(UnmanagedType.LPUTF8Str)] string targetSymbol  , 
 			
 			// uint64_t* targetAddress
 		    IntPtr targetAddress  , 

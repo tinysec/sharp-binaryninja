@@ -22,7 +22,7 @@ namespace BinaryNinja
 		    IntPtr project  , 
 			
 			// const char* userId
-		    string userId  , 
+		    [MarshalAs(UnmanagedType.LPUTF8Str)] string userId  , 
 			
 			// BNCollaborationPermissionLevel level
 		    CollaborationPermissionLevel level  , 

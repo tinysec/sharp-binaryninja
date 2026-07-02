@@ -48,10 +48,10 @@ namespace BinaryNinja
 		    out long result  , 
 			
 			// const char* prompt
-		    string prompt  , 
+		    [MarshalAs(UnmanagedType.LPUTF8Str)] string prompt  , 
 			
 			// const char* title
-		    string title  , 
+		    [MarshalAs(UnmanagedType.LPUTF8Str)] string title  , 
 			
 			// int64_t* defaultChoice
 		    ref long defaultChoice  

@@ -22,7 +22,7 @@ namespace BinaryNinja
 		    IntPtr platform  , 
 			
 			// const char* fileName
-		    string fileName  , 
+		    [MarshalAs(UnmanagedType.LPUTF8Str)] string fileName  , 
 			
 			// BNTypeParserResult* result
 		    IntPtr result  , 
@@ -37,7 +37,7 @@ namespace BinaryNinja
 		    ulong includeDirCount  , 
 			
 			// const char* autoTypeSource
-		    string autoTypeSource  
+		    [MarshalAs(UnmanagedType.LPUTF8Str)] string autoTypeSource  
 			
 		);
 	}

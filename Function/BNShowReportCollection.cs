@@ -19,7 +19,7 @@ namespace BinaryNinja
 		internal static extern void BNShowReportCollection(
 			
 			// const char* title
-		    string title  , 
+		    [MarshalAs(UnmanagedType.LPUTF8Str)] string title  , 
 			
 			// BNReportCollection* reports
 		    IntPtr reports  

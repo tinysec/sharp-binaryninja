@@ -22,7 +22,7 @@ namespace BinaryNinja
 		    IntPtr container  , 
 			
 			// const char* typeId
-		    string typeId  , 
+		    [MarshalAs(UnmanagedType.LPUTF8Str)] string typeId  , 
 			
 			// BNQualifiedName* result
 		    out BNQualifiedName result  

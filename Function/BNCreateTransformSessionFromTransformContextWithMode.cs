@@ -26,7 +26,7 @@ namespace BinaryNinja
 		    TransformSessionMode mode   , 
 			
 			// const char* options
-		    string options  
+		    [MarshalAs(UnmanagedType.LPUTF8Str)] string options  
 		);
 	}
 }

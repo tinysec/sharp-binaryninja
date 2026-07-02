@@ -22,7 +22,7 @@ namespace BinaryNinja
 		    IntPtr archive  , 
 			
 			// const char* snapshotId
-		    string snapshotId  
+		    [MarshalAs(UnmanagedType.LPUTF8Str)] string snapshotId  
 		);
 	}
 }

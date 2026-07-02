@@ -19,7 +19,7 @@ namespace BinaryNinja
 		internal static extern IntPtr BNDecodeBase64(
 			
 			// const char* str
-		    string str  
+		    [MarshalAs(UnmanagedType.LPUTF8Str)] string str  
 		);
 	}
 }

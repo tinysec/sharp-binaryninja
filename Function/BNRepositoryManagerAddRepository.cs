@@ -20,10 +20,10 @@ namespace BinaryNinja
 		internal static extern bool BNRepositoryManagerAddRepository(
 			
 			// const char* url
-		    string url   , 
+		    [MarshalAs(UnmanagedType.LPUTF8Str)] string url   , 
 			
 			// const char* repoPath
-		    string repoPath  
+		    [MarshalAs(UnmanagedType.LPUTF8Str)] string repoPath  
 		);
 	}
 }

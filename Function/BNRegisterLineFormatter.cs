@@ -19,7 +19,7 @@ namespace BinaryNinja
 		internal static extern IntPtr BNRegisterLineFormatter(
 			
 			// const char* name
-		    string name  , 
+		    [MarshalAs(UnmanagedType.LPUTF8Str)] string name  , 
 			
 			// BNCustomLineFormatter* callbacks
 		    IntPtr callbacks  

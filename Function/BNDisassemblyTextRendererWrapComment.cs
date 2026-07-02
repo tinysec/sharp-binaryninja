@@ -28,16 +28,16 @@ namespace BinaryNinja
 		    IntPtr outLineCount  , 
 			
 			// const char* comment
-		    string comment  , 
+		    [MarshalAs(UnmanagedType.LPUTF8Str)] string comment  , 
 			
 			// bool hasAutoAnnotations
 		    bool hasAutoAnnotations  , 
 			
 			// const char* leadingSpaces
-		    string leadingSpaces  , 
+		    [MarshalAs(UnmanagedType.LPUTF8Str)] string leadingSpaces  , 
 			
 			// const char* indentSpaces
-		    string indentSpaces  
+		    [MarshalAs(UnmanagedType.LPUTF8Str)] string indentSpaces  
 			
 		);
 	}

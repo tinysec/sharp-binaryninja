@@ -19,10 +19,10 @@ namespace BinaryNinja
 		internal static extern IntPtr BNCollaborationCreateRemote(
 			
 			// const char* name
-		    string name  , 
+		    [MarshalAs(UnmanagedType.LPUTF8Str)] string name  , 
 			
 			// const char* address
-		    string address  
+		    [MarshalAs(UnmanagedType.LPUTF8Str)] string address  
 		);
 	}
 }

@@ -19,7 +19,7 @@ namespace BinaryNinja
 		internal static extern IntPtr BNParseTextFormat(
 			
 			// const char* filename
-		    string filename  
+		    [MarshalAs(UnmanagedType.LPUTF8Str)] string filename  
 			
 		);
 	}

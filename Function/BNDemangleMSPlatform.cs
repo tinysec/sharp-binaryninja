@@ -22,7 +22,7 @@ namespace BinaryNinja
 		    IntPtr platform  , 
 			
 			// const char* mangledName
-		    string mangledName  , 
+		    [MarshalAs(UnmanagedType.LPUTF8Str)] string mangledName  , 
 			
 			// BNType** outType
 		    IntPtr outType  , 

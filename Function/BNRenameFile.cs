@@ -19,10 +19,10 @@ namespace BinaryNinja
 		internal static extern bool BNRenameFile(
 			
 			// const char* source
-		    string source  , 
+		    [MarshalAs(UnmanagedType.LPUTF8Str)] string source  , 
 			
 			// const char* dest
-		    string dest  
+		    [MarshalAs(UnmanagedType.LPUTF8Str)] string dest  
 			
 		);
 	}

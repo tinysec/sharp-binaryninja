@@ -19,13 +19,13 @@ namespace BinaryNinja
 		internal static extern IntPtr BNLoadFilename(
 			
 			// const char* filename
-		    string filename  , 
+		    [MarshalAs(UnmanagedType.LPUTF8Str)] string filename  , 
 			
 			// bool updateAnalysis
 		    bool updateAnalysis  , 
 			
 			// const char* options
-		    string options  , 
+		    [MarshalAs(UnmanagedType.LPUTF8Str)] string options  , 
 			
 			// void** progress
 		    IntPtr progress  , 

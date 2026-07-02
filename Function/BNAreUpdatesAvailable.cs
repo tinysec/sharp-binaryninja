@@ -19,7 +19,7 @@ namespace BinaryNinja
 		internal static extern bool BNAreUpdatesAvailable(
 			
 			// const char* channel
-		    string channel  , 
+		    [MarshalAs(UnmanagedType.LPUTF8Str)] string channel  , 
 			
 			// uint64_t* expireTime
 		    out ulong expireTime  , 

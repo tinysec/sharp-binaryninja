@@ -19,7 +19,7 @@ namespace BinaryNinja
 		internal static extern void BNRegisterPlatform(
 			
 			// const char* os
-		    string os  , 
+		    [MarshalAs(UnmanagedType.LPUTF8Str)] string os  , 
 			
 			// BNPlatform* platform
 		    IntPtr platform  

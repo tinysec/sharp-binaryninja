@@ -25,7 +25,7 @@ namespace BinaryNinja
 		    ulong idx  , 
 			
 			// const char* name
-		    string name  , 
+		    [MarshalAs(UnmanagedType.LPUTF8Str)] string name  , 
 			
 			// uint64_t _value
 		    ulong _value  

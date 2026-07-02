@@ -25,10 +25,10 @@ namespace BinaryNinja
 		    LogLevel level  , 
 			
 			// const char* stackTrace
-		    string stackTrace  , 
+		    [MarshalAs(UnmanagedType.LPUTF8Str)] string stackTrace  , 
 			
 			// const char* msg
-		    string msg  
+		    [MarshalAs(UnmanagedType.LPUTF8Str)] string msg  
 			
 		);
 	}

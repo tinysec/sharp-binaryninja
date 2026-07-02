@@ -20,7 +20,7 @@ namespace BinaryNinja
 		internal static extern bool BNParseValueLocation(
 			
 			// const char* str
-		    string str   , 
+		    [MarshalAs(UnmanagedType.LPUTF8Str)] string str   , 
 			
 			// BNArchitecture* arch
 		    IntPtr arch   , 

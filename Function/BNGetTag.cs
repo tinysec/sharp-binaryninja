@@ -22,7 +22,7 @@ namespace BinaryNinja
 		    IntPtr view  , 
 			
 			// const char* tagId
-		    string tagId  
+		    [MarshalAs(UnmanagedType.LPUTF8Str)] string tagId  
 			
 		);
 	}

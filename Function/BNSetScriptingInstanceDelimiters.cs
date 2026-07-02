@@ -22,7 +22,7 @@ namespace BinaryNinja
 		    IntPtr instance  , 
 			
 			// const char* delimiters
-		    string delimiters  
+		    [MarshalAs(UnmanagedType.LPUTF8Str)] string delimiters  
 			
 		);
 	}

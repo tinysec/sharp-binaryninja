@@ -22,7 +22,7 @@ namespace BinaryNinja
 		    IntPtr project  , 
 			
 			// const char* filename
-		    string filename  , 
+		    [MarshalAs(UnmanagedType.LPUTF8Str)] string filename  , 
 			
 			// uint8_t* contents
 		    IntPtr contents  , 
@@ -31,10 +31,10 @@ namespace BinaryNinja
 		    ulong contentsSize  , 
 			
 			// const char* name
-		    string name  , 
+		    [MarshalAs(UnmanagedType.LPUTF8Str)] string name  , 
 			
 			// const char* description
-		    string description  , 
+		    [MarshalAs(UnmanagedType.LPUTF8Str)] string description  , 
 			
 			// BNRemoteFolder* folder
 		    IntPtr folder  , 

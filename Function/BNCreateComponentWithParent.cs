@@ -22,7 +22,7 @@ namespace BinaryNinja
 		    IntPtr view  , 
 			
 			// const char* parentGUID
-		    string parentGUID  
+		    [MarshalAs(UnmanagedType.LPUTF8Str)] string parentGUID  
 		);
 	}
 }

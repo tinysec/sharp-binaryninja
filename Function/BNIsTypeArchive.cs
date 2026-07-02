@@ -19,7 +19,7 @@ namespace BinaryNinja
 		internal static extern bool BNIsTypeArchive(
 			
 			// const char* path
-		    string path  
+		    [MarshalAs(UnmanagedType.LPUTF8Str)] string path  
 			
 		);
 	}

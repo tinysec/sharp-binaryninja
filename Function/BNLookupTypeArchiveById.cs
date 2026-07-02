@@ -19,7 +19,7 @@ namespace BinaryNinja
 		internal static extern IntPtr BNLookupTypeArchiveById(
 			
 			// const char* id
-		    string id  
+		    [MarshalAs(UnmanagedType.LPUTF8Str)] string id  
 			
 		);
 	}

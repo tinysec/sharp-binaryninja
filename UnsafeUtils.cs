@@ -91,8 +91,12 @@ namespace BinaryNinja
 		{
 			List<bool> targets = new List<bool>();
 
-			int integerSize = Marshal.SizeOf<bool>();
-			
+			// Binary Ninja stores bool arrays as 1-byte elements (C++ bool), and ReadBool reads
+			// a single byte. The default managed marshaling of bool is a 4-byte Win32 BOOL, so
+			// Marshal.SizeOf<bool>() returns 4; striding by that would read past the native
+			// buffer into uninitialized memory. The native element stride is one byte.
+			int integerSize = 1;
+
 			if (( IntPtr.Zero != arrayPointer ) && ( 0 != arrayLength ))
 			{
 				for (ulong i = 0; i < arrayLength; i++)

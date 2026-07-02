@@ -19,7 +19,7 @@ namespace BinaryNinja
 		internal static extern void BNUnregisterDebugInfoParser(
 			
 			// const char* rawName
-		    string rawName  
+		    [MarshalAs(UnmanagedType.LPUTF8Str)] string rawName  
 			
 		);
 	}

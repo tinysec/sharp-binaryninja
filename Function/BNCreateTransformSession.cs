@@ -20,10 +20,10 @@ namespace BinaryNinja
 		internal static extern IntPtr BNCreateTransformSession(
 			
 			// const char* filename
-		    string filename   , 
+		    [MarshalAs(UnmanagedType.LPUTF8Str)] string filename   , 
 			
 			// const char* options
-		    string options  
+		    [MarshalAs(UnmanagedType.LPUTF8Str)] string options  
 		);
 	}
 }

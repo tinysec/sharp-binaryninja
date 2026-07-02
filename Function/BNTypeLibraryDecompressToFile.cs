@@ -19,10 +19,10 @@ namespace BinaryNinja
 		public static extern bool BNTypeLibraryDecompressToFile(
 			
 			// const char* file
-		    string file  , 
+		    [MarshalAs(UnmanagedType.LPUTF8Str)] string file  , 
 			
 			// const char* output
-		    string output  
+		    [MarshalAs(UnmanagedType.LPUTF8Str)] string output  
 		);
 	}
 }

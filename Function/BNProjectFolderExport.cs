@@ -22,7 +22,7 @@ namespace BinaryNinja
 		    IntPtr folder  , 
 			
 			// const char* destination
-		    string destination  , 
+		    [MarshalAs(UnmanagedType.LPUTF8Str)] string destination  , 
 			
 			// void* ctxt
 		    IntPtr ctxt  , 

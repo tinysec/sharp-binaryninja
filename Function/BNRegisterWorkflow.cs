@@ -22,7 +22,7 @@ namespace BinaryNinja
 		    IntPtr workflow  , 
 			
 			// const char* configuration
-		    string configuration  
+		    [MarshalAs(UnmanagedType.LPUTF8Str)] string configuration  
 		);
 	}
 }

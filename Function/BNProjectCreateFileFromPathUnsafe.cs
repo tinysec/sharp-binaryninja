@@ -22,19 +22,19 @@ namespace BinaryNinja
 		    IntPtr project  , 
 			
 			// const char* path
-		    string path  , 
+		    [MarshalAs(UnmanagedType.LPUTF8Str)] string path  , 
 			
 			// BNProjectFolder* folder
 		    IntPtr folder  , 
 			
 			// const char* name
-		    string name  , 
+		    [MarshalAs(UnmanagedType.LPUTF8Str)] string name  , 
 			
 			// const char* description
-		    string description  , 
+		    [MarshalAs(UnmanagedType.LPUTF8Str)] string description  , 
 			
 			// const char* id
-		    string id  , 
+		    [MarshalAs(UnmanagedType.LPUTF8Str)] string id  , 
 			
 			// int64_t creationTimestamp
 		    long creationTimestamp  , 

@@ -31,7 +31,7 @@ namespace BinaryNinja
 		    SettingsScope scope  , 
 			
 			// const char* key
-		    string key  , 
+		    [MarshalAs(UnmanagedType.LPUTF8Str)] string key  , 
 			
 			// uint64_t _value
 		    ulong _value  

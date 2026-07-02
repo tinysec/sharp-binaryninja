@@ -35,7 +35,7 @@ namespace BinaryNinja
 	    internal static extern IntPtr BNGenerateAutoTypeId(
 			
 		    // const char* source
-		    string source  , 
+		    [MarshalAs(UnmanagedType.LPUTF8Str)] string source  , 
 			
 		    // BNQualifiedName* name
 		    in BNQualifiedName name  

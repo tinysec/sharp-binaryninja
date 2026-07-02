@@ -25,7 +25,7 @@ namespace BinaryNinja
 		    IntPtr types  , 
 			
 			// const char* name
-		    string name  , 
+		    [MarshalAs(UnmanagedType.LPUTF8Str)] string name  , 
 			
 			// int32_t paddingCols
 		    int paddingCols  , 

@@ -30,7 +30,7 @@ namespace BinaryNinja
 		internal static extern IntPtr BNDetectSearchMode(
 			
 			// const char* query
-		    string query  
+		    [MarshalAs(UnmanagedType.LPUTF8Str)] string query  
 		);
 	}
 }

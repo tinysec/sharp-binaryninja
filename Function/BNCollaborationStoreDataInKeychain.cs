@@ -19,7 +19,7 @@ namespace BinaryNinja
 		internal static extern bool BNCollaborationStoreDataInKeychain(
 			
 			// const char* key
-		    string key  , 
+		    [MarshalAs(UnmanagedType.LPUTF8Str)] string key  , 
 			
 			// const char** dataKeys
 		    string[] dataKeys  , 

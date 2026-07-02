@@ -20,13 +20,13 @@ namespace BinaryNinja
 		internal static extern IntPtr BNCreateTransformSessionWithMode(
 			
 			// const char* filename
-		    string filename   , 
+		    [MarshalAs(UnmanagedType.LPUTF8Str)] string filename   , 
 			
 			// BNTransformSessionMode mode
 		    TransformSessionMode mode   , 
 			
 			// const char* options
-		    string options  
+		    [MarshalAs(UnmanagedType.LPUTF8Str)] string options  
 		);
 	}
 }

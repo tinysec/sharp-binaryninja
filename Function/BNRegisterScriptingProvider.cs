@@ -19,10 +19,10 @@ namespace BinaryNinja
 		internal static extern IntPtr BNRegisterScriptingProvider(
 			
 			// const char* name
-		    string name  , 
+		    [MarshalAs(UnmanagedType.LPUTF8Str)] string name  , 
 			
 			// const char* apiName
-		    string apiName  , 
+		    [MarshalAs(UnmanagedType.LPUTF8Str)] string apiName  , 
 			
 			// BNScriptingProviderCallbacks* callbacks
 		    IntPtr callbacks  

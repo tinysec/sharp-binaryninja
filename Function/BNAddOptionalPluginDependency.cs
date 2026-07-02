@@ -27,7 +27,7 @@ namespace BinaryNinja
 		public static extern void BNAddOptionalPluginDependency(
 			
 			// const char* name
-		    string name  
+		    [MarshalAs(UnmanagedType.LPUTF8Str)] string name  
 		);
 	}
 }

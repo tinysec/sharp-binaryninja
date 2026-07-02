@@ -19,7 +19,7 @@ namespace BinaryNinja
 		internal static extern IntPtr BNCreateValueTypeBuilder(
 			
 			// const char* _value
-		    string _value  
+		    [MarshalAs(UnmanagedType.LPUTF8Str)] string _value  
 		);
 	}
 }

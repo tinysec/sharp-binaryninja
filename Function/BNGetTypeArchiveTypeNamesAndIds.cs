@@ -22,7 +22,7 @@ namespace BinaryNinja
 		    IntPtr archive  , 
 			
 			// const char* snapshot
-		    string snapshot  , 
+		    [MarshalAs(UnmanagedType.LPUTF8Str)] string snapshot  , 
 			
 			// BNQualifiedName** names
 		    IntPtr names  , 

@@ -19,7 +19,7 @@ namespace BinaryNinja
 		internal static extern bool BNPathExists(
 			
 			// const char* path
-		    string path  
+		    [MarshalAs(UnmanagedType.LPUTF8Str)] string path  
 			
 		);
 	}

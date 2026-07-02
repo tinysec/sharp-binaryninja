@@ -22,7 +22,7 @@ namespace BinaryNinja
 		    IntPtr rel  , 
 			
 			// const char* provenance
-		    string provenance  
+		    [MarshalAs(UnmanagedType.LPUTF8Str)] string provenance  
 			
 		);
 	}

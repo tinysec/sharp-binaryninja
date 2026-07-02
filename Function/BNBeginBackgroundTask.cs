@@ -18,7 +18,7 @@ namespace BinaryNinja
 		internal static extern IntPtr BNBeginBackgroundTask(
 			
 			// const char* initialText
-		    string initialText  , 
+		    [MarshalAs(UnmanagedType.LPUTF8Str)] string initialText  , 
 			
 			// bool canCancel
 		    bool canCancel  

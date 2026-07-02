@@ -29,7 +29,7 @@ namespace BinaryNinja
 		internal static extern IntPtr BNMarkdownToHTML(
 			
 			// const char* contents
-		    string contents  
+		    [MarshalAs(UnmanagedType.LPUTF8Str)] string contents  
 		);
 	}
 }

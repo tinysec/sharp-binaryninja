@@ -28,7 +28,7 @@ namespace BinaryNinja
 		    ulong parent  , 
 			
 			// const char* data
-		    string data  
+		    [MarshalAs(UnmanagedType.LPUTF8Str)] string data  
 		);
 	}
 }

@@ -20,7 +20,7 @@ namespace BinaryNinja
 		internal static extern IntPtr BNCreateStringRefOfLength(
 			
 			// const char* str
-		    string str   , 
+		    [MarshalAs(UnmanagedType.LPUTF8Str)] string str   , 
 			
 			// size_t len
 		    UIntPtr len  

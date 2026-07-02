@@ -22,7 +22,7 @@ namespace BinaryNinja
 		    IntPtr instance  , 
 			
 			// const char* url
-		    string url  , 
+		    [MarshalAs(UnmanagedType.LPUTF8Str)] string url  , 
 			
 			// BNDownloadInstanceOutputCallbacks* callbacks
 		    IntPtr callbacks  

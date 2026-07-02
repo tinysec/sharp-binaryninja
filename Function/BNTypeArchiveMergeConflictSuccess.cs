@@ -22,7 +22,7 @@ namespace BinaryNinja
 		    IntPtr conflict  , 
 			
 			// const char* _value
-		    string _value  
+		    [MarshalAs(UnmanagedType.LPUTF8Str)] string _value  
 			
 		);
 	}

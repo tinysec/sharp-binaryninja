@@ -22,7 +22,7 @@ namespace BinaryNinja
 		    IntPtr func  , 
 			
 			// const char* comment
-		    string comment  
+		    [MarshalAs(UnmanagedType.LPUTF8Str)] string comment  
 		);
 	}
 }

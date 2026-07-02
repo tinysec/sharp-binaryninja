@@ -22,7 +22,7 @@ namespace BinaryNinja
 		    ulong width  , 
 			
 			// const char* altName
-		    string altName  
+		    [MarshalAs(UnmanagedType.LPUTF8Str)] string altName  
 		);
 	}
 }

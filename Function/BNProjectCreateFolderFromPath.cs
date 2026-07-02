@@ -22,13 +22,13 @@ namespace BinaryNinja
 		    IntPtr project  , 
 			
 			// const char* path
-		    string path  , 
+		    [MarshalAs(UnmanagedType.LPUTF8Str)] string path  , 
 			
 			// BNProjectFolder* parent
 		    IntPtr parent  , 
 			
 			// const char* description
-		    string description  , 
+		    [MarshalAs(UnmanagedType.LPUTF8Str)] string description  , 
 			
 			// void* ctxt
 		    IntPtr ctxt  , 

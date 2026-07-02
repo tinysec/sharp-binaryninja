@@ -20,7 +20,7 @@ namespace BinaryNinja
 		internal static extern IntPtr BNRegisterConstantRenderer(
 			
 			// const char* name
-		    string name   , 
+		    [MarshalAs(UnmanagedType.LPUTF8Str)] string name   , 
 			
 			// BNCustomConstantRenderer* renderer
 		    IntPtr renderer  

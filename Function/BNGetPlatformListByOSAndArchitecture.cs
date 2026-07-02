@@ -19,7 +19,7 @@ namespace BinaryNinja
 		internal static extern IntPtr BNGetPlatformListByOSAndArchitecture(
 			
 			// const char* os
-		    string os  , 
+		    [MarshalAs(UnmanagedType.LPUTF8Str)] string os  , 
 			
 			// BNArchitecture* arch
 		    IntPtr arch  , 

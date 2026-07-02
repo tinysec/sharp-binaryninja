@@ -28,7 +28,7 @@ namespace BinaryNinja
 		    IntPtr type  , 
 			
 			// const char* name
-		    string name  , 
+		    [MarshalAs(UnmanagedType.LPUTF8Str)] string name  , 
 			
 			// bool ignoreDisjointUses
 		    bool ignoreDisjointUses  

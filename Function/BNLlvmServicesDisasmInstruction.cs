@@ -19,7 +19,7 @@ namespace BinaryNinja
 		internal static extern int BNLlvmServicesDisasmInstruction(
 			
 			// const char* triplet
-		    string triplet  , 
+		    [MarshalAs(UnmanagedType.LPUTF8Str)] string triplet  , 
 			
 			// uint8_t* src
 		    IntPtr src  , 
@@ -31,7 +31,7 @@ namespace BinaryNinja
 		    ulong addr  , 
 			
 			// const char* result
-		    string result  , 
+		    [MarshalAs(UnmanagedType.LPUTF8Str)] string result  , 
 			
 			// uint64_t resultMaxSize
 		    ulong resultMaxSize  

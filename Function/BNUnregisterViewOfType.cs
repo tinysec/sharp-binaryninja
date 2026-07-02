@@ -22,7 +22,7 @@ namespace BinaryNinja
 		    IntPtr file  , 
 			
 			// const char* type
-		    string type  , 
+		    [MarshalAs(UnmanagedType.LPUTF8Str)] string type  , 
 			
 			// BNBinaryView* view
 		    IntPtr view  

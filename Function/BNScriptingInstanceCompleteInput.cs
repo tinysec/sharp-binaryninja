@@ -22,7 +22,7 @@ namespace BinaryNinja
 		    IntPtr instance  , 
 			
 			// const char* text
-		    string text  , 
+		    [MarshalAs(UnmanagedType.LPUTF8Str)] string text  , 
 			
 			// uint64_t state
 		    ulong state  

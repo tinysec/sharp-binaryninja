@@ -22,7 +22,7 @@ namespace BinaryNinja
 		    IntPtr settings  , 
 			
 			// const char* schema
-		    string schema  , 
+		    [MarshalAs(UnmanagedType.LPUTF8Str)] string schema  , 
 			
 			// BNSettingsScope scope
 		    SettingsScope scope  , 

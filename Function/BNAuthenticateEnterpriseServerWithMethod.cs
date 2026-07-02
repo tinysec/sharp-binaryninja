@@ -19,7 +19,7 @@ namespace BinaryNinja
 		internal static extern bool BNAuthenticateEnterpriseServerWithMethod(
 			
 			// const char* method
-		    string method  , 
+		    [MarshalAs(UnmanagedType.LPUTF8Str)] string method  , 
 			
 			// bool remember
 		    bool remember  

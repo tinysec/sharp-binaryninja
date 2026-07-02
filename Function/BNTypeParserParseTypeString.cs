@@ -22,7 +22,7 @@ namespace BinaryNinja
 		    IntPtr parser  , 
 			
 			// const char* source
-		    string source  , 
+		    [MarshalAs(UnmanagedType.LPUTF8Str)] string source  , 
 			
 			// BNPlatform* platform
 		    IntPtr platform  , 

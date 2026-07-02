@@ -25,7 +25,7 @@ namespace BinaryNinja
 		    IntPtr snapshot  , 
 			
 			// const char* author
-		    string author  
+		    [MarshalAs(UnmanagedType.LPUTF8Str)] string author  
 		);
 	}
 }

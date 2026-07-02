@@ -22,7 +22,7 @@ namespace BinaryNinja
 		    IntPtr view  , 
 			
 			// const char* text
-		    string text  , 
+		    [MarshalAs(UnmanagedType.LPUTF8Str)] string text  , 
 			
 			// const char** options
 		    string[] options  , 

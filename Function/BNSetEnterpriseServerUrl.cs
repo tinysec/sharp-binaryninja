@@ -19,7 +19,7 @@ namespace BinaryNinja
 		internal static extern bool BNSetEnterpriseServerUrl(
 			
 			// const char* url
-		    string url  
+		    [MarshalAs(UnmanagedType.LPUTF8Str)] string url  
 			
 		);
 	}

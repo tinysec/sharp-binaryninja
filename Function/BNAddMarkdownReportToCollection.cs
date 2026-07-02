@@ -25,13 +25,13 @@ namespace BinaryNinja
 		    IntPtr view  , 
 			
 			// const char* title
-		    string title  , 
+		    [MarshalAs(UnmanagedType.LPUTF8Str)] string title  , 
 			
 			// const char* contents
-		    string contents  , 
+		    [MarshalAs(UnmanagedType.LPUTF8Str)] string contents  , 
 			
 			// const char* plaintext
-		    string plaintext  
+		    [MarshalAs(UnmanagedType.LPUTF8Str)] string plaintext  
 		);
 	}
 }

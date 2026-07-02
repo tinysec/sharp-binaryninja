@@ -19,13 +19,13 @@ namespace BinaryNinja
 		internal static extern int BNLlvmServicesAssemble(
 			
 			// const char* src
-		    string src  , 
+		    [MarshalAs(UnmanagedType.LPUTF8Str)] string src  , 
 			
 			// int32_t dialect
 		    int dialect  , 
 			
 			// const char* triplet
-		    string triplet  , 
+		    [MarshalAs(UnmanagedType.LPUTF8Str)] string triplet  , 
 			
 			// int32_t codeModel
 		    int codeModel  , 

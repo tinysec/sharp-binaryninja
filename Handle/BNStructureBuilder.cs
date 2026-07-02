@@ -99,7 +99,11 @@ namespace BinaryNinja
 		{
 			if (!this.IsInvalid)
 			{
-				NativeMethods.BNFreeTypeBuilder(this.handle);
+				// A StructureBuilder handle is a BNStructureBuilder*, which must be released with
+				// BNFreeStructureBuilder. Using BNFreeTypeBuilder here is a type-confusion free
+				// (BNTypeBuilder* deallocator on a BNStructureBuilder*) that corrupts the heap
+				// and access-violates on dispose.
+				NativeMethods.BNFreeStructureBuilder(this.handle);
 				this.SetHandleAsInvalid();
 			}
 

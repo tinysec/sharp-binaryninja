@@ -26,13 +26,13 @@ namespace BinaryNinja
 		    LogLevel level   , 
 			
 			// const char* logger_name
-		    string logger_name   , 
+		    [MarshalAs(UnmanagedType.LPUTF8Str)] string logger_name   , 
 			
 			// size_t tid
 		    UIntPtr tid   , 
 			
 			// const char* fmt
-		    string fmt   , 
+		    [MarshalAs(UnmanagedType.LPUTF8Str)] string fmt   , 
 			
 			// ...
 		    IntPtr arg5  

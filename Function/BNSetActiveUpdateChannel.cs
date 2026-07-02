@@ -19,7 +19,7 @@ namespace BinaryNinja
 		internal static extern void BNSetActiveUpdateChannel(
 			
 			// const char* channel
-		    string channel  
+		    [MarshalAs(UnmanagedType.LPUTF8Str)] string channel  
 			
 		);
 	}

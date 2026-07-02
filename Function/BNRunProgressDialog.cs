@@ -19,7 +19,7 @@ namespace BinaryNinja
 		internal static extern bool BNRunProgressDialog(
 			
 			// const char* title
-		    string title  , 
+		    [MarshalAs(UnmanagedType.LPUTF8Str)] string title  , 
 			
 			// bool canCancel
 		    bool canCancel  , 

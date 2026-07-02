@@ -25,7 +25,7 @@ namespace BinaryNinja
 		    IntPtr name  , 
 			
 			// const char* snapshot
-		    string snapshot  
+		    [MarshalAs(UnmanagedType.LPUTF8Str)] string snapshot  
 			
 		);
 	}

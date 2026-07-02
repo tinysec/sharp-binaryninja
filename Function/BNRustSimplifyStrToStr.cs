@@ -19,7 +19,7 @@ namespace BinaryNinja
 		internal static extern IntPtr BNRustSimplifyStrToStr(
 			
 			// const char* param1
-		    string param1  
+		    [MarshalAs(UnmanagedType.LPUTF8Str)] string param1  
 			
 		);
 	}

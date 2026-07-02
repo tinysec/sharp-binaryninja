@@ -25,7 +25,7 @@ namespace BinaryNinja
 		    IntPtr arch  , 
 			
 			// const char* board
-		    string board  , 
+		    [MarshalAs(UnmanagedType.LPUTF8Str)] string board  , 
 			
 			// BNFirmwareNinjaDevice** devices
 		    IntPtr devices  

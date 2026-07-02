@@ -19,7 +19,7 @@ namespace BinaryNinja
 		internal static extern ulong BNCollaborationGetDataFromKeychain(
 			
 			// const char* key
-		    string key  , 
+		    [MarshalAs(UnmanagedType.LPUTF8Str)] string key  , 
 			
 			// const char*** foundKeys
 		    IntPtr foundKeys  , 

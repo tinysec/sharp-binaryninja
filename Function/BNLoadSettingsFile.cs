@@ -22,7 +22,7 @@ namespace BinaryNinja
 		    IntPtr settings  , 
 			
 			// const char* fileName
-		    string fileName  , 
+		    [MarshalAs(UnmanagedType.LPUTF8Str)] string fileName  , 
 			
 			// BNSettingsScope scope
 		    SettingsScope scope  , 

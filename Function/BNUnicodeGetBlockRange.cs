@@ -19,7 +19,7 @@ namespace BinaryNinja
 		internal static extern bool BNUnicodeGetBlockRange(
 			
 			// const char* name
-		    string name  , 
+		    [MarshalAs(UnmanagedType.LPUTF8Str)] string name  , 
 			
 			// uint32_t* rangeStart
 		    IntPtr rangeStart  , 

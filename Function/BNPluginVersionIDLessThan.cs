@@ -23,10 +23,10 @@ namespace BinaryNinja
 		    IntPtr p   , 
 			
 			// const char* smaller
-		    string smaller   , 
+		    [MarshalAs(UnmanagedType.LPUTF8Str)] string smaller   , 
 			
 			// const char* larger
-		    string larger  
+		    [MarshalAs(UnmanagedType.LPUTF8Str)] string larger  
 		);
 	}
 }

@@ -18,7 +18,7 @@ namespace BinaryNinja
 		internal static extern IntPtr BNCreateCustomBinaryView(
 			
 			// const char* name
-		    string name  , 
+		    [MarshalAs(UnmanagedType.LPUTF8Str)] string name  , 
 			
 			// BNFileMetadata* file
 		    IntPtr file  , 

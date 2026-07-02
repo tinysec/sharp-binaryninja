@@ -19,7 +19,7 @@ namespace BinaryNinja
 		internal static extern IntPtr BNCreateNamedTypeReferenceBuilderFromTypeAndId(
 			
 			// const char* id
-		    string id  , 
+		    [MarshalAs(UnmanagedType.LPUTF8Str)] string id  , 
 			
 			// BNQualifiedName* name
 		    IntPtr name  , 
