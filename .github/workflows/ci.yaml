@@ -25,17 +25,21 @@ jobs:
         id: version
         shell: bash
         run: |
-          BUILD_NUMBER=0
-          REVISION=${{ github.run_number }}
-          VERSION="${{ env.VERSION_MAJOR }}.${{ env.VERSION_MINOR }}.${BUILD_NUMBER}.${REVISION}"
+          # NuGet package version is 3-part SemVer: MAJOR.MINOR.BUILD (e.g. 0.1.42).
+          # The build number is the monotonically increasing workflow run number.
+          BUILD_NUMBER=${{ github.run_number }}
+          PACKAGE_VERSION="${{ env.VERSION_MAJOR }}.${{ env.VERSION_MINOR }}.${BUILD_NUMBER}"
 
-          echo "version=${VERSION}" >> $GITHUB_OUTPUT
+          # .NET AssemblyVersion/FileVersion must be a 4-part version, so pad with a trailing 0.
+          ASSEMBLY_VERSION="${PACKAGE_VERSION}.0"
+
+          echo "version=${PACKAGE_VERSION}" >> $GITHUB_OUTPUT
+          echo "assembly_version=${ASSEMBLY_VERSION}" >> $GITHUB_OUTPUT
           echo "build=${BUILD_NUMBER}" >> $GITHUB_OUTPUT
-          echo "revision=${REVISION}" >> $GITHUB_OUTPUT
 
-          echo "Generated version: ${VERSION}"
-          echo "  - Build: ${BUILD_NUMBER}"
-          echo "  - Revision (Run Number): ${REVISION}"
+          echo "Generated package version (SemVer): ${PACKAGE_VERSION}"
+          echo "  - Build number (run number): ${BUILD_NUMBER}"
+          echo "  - Assembly version (4-part): ${ASSEMBLY_VERSION}"
 
       - name: setup .NET
         uses: actions/setup-dotnet@v5
@@ -45,8 +49,14 @@ jobs:
       - name: pack
         if: runner.os == 'Linux'
         run: |
-          echo "[+] Packing NuGet package"
-          dotnet pack --configuration Release -o artifacts -p:PublishDir=artifacts /p:Version=${{ steps.version.outputs.version }} /p:FileVersion=${{ steps.version.outputs.version }} /p:AssemblyVersion=${{ steps.version.outputs.version }} /p:ProductVersion=${{ steps.version.outputs.version }}
+          echo "[+] Packing NuGet package version ${{ steps.version.outputs.version }}"
+          dotnet pack --configuration Release -o artifacts \
+            -p:PublishAot=false \
+            -p:PublishDir=artifacts \
+            -p:Version=${{ steps.version.outputs.version }} \
+            -p:PackageVersion=${{ steps.version.outputs.version }} \
+            -p:FileVersion=${{ steps.version.outputs.assembly_version }} \
+            -p:AssemblyVersion=${{ steps.version.outputs.assembly_version }}
 
       - name: create release
         if: github.event_name == 'push' && github.ref == 'refs/heads/master'
