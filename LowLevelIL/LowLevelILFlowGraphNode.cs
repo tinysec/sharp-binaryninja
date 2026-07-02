@@ -108,7 +108,7 @@ namespace BinaryNinja
 		}
 		
 		
-		public LowLevelILBasicBlock? BasicBlock
+		public new LowLevelILBasicBlock? BasicBlock
 		{
 			get
 			{
@@ -127,7 +127,7 @@ namespace BinaryNinja
 			}
 		}
 		
-		public LowLevelILFlowGraphEdge[] IncomingEdges
+		public new LowLevelILFlowGraphEdge[] IncomingEdges
 		{
 			get
 			{
@@ -147,7 +147,7 @@ namespace BinaryNinja
 			}
 		}
 	    
-		public LowLevelILFlowGraphEdge[] OutgoingEdges
+		public new LowLevelILFlowGraphEdge[] OutgoingEdges
 		{
 			get
 			{

@@ -371,6 +371,24 @@ namespace BinaryNinja
 		    );
 	    }
 	    
+	    public static LinearViewObject LiftedIL(
+		    BinaryView view,
+		    DisassemblySettings? settings = null
+	    )
+	    {
+		    if (null == settings)
+		    {
+			    settings = DisassemblySettings.DefaultLinear();
+		    }
+
+		    return LinearViewObject.MustTakeHandle(
+			    NativeMethods.BNCreateLinearViewLiftedIL(
+				    view.DangerousGetHandle() ,
+				    null == settings ? IntPtr.Zero : settings.DangerousGetHandle()
+			    )
+		    );
+	    }
+
 	    public static LinearViewObject MediumLevelIL(
 		    BinaryView view,
 		    DisassemblySettings? settings = null
@@ -380,7 +398,7 @@ namespace BinaryNinja
 		    {
 			    settings = DisassemblySettings.DefaultLinear();
 		    }
-		    
+
 		    return LinearViewObject.MustTakeHandle(
 			    NativeMethods.BNCreateLinearViewMediumLevelIL(
 				    view.DangerousGetHandle() ,
@@ -388,7 +406,25 @@ namespace BinaryNinja
 			    )
 		    );
 	    }
-	    
+
+	    public static LinearViewObject MappedMediumLevelIL(
+		    BinaryView view,
+		    DisassemblySettings? settings = null
+	    )
+	    {
+		    if (null == settings)
+		    {
+			    settings = DisassemblySettings.DefaultLinear();
+		    }
+
+		    return LinearViewObject.MustTakeHandle(
+			    NativeMethods.BNCreateLinearViewMappedMediumLevelIL(
+				    view.DangerousGetHandle() ,
+				    null == settings ? IntPtr.Zero : settings.DangerousGetHandle()
+			    )
+		    );
+	    }
+
 	    public static LinearViewObject MediumLevelILSSAForm(
 		    BinaryView view,
 		    DisassemblySettings? settings = null
@@ -526,7 +562,7 @@ namespace BinaryNinja
 		    {
 			    settings = DisassemblySettings.DefaultLinear();
 		    }
-		    
+
 		    return LinearViewObject.MustTakeHandle(
 			    NativeMethods.BNCreateLinearViewSingleFunctionLiftedIL(
 				    function.DangerousGetHandle() ,
@@ -534,7 +570,43 @@ namespace BinaryNinja
 			    )
 		    );
 	    }
-	    
+
+	    public static LinearViewObject SingleFunctionLowLevelIL(
+		    Function function,
+		    DisassemblySettings? settings = null
+	    )
+	    {
+		    if (null == settings)
+		    {
+			    settings = DisassemblySettings.DefaultLinear();
+		    }
+
+		    return LinearViewObject.MustTakeHandle(
+			    NativeMethods.BNCreateLinearViewSingleFunctionLowLevelIL(
+				    function.DangerousGetHandle() ,
+				    null == settings ? IntPtr.Zero : settings.DangerousGetHandle()
+			    )
+		    );
+	    }
+
+	    public static LinearViewObject SingleFunctionMappedMediumLevelIL(
+		    Function function,
+		    DisassemblySettings? settings = null
+	    )
+	    {
+		    if (null == settings)
+		    {
+			    settings = DisassemblySettings.DefaultLinear();
+		    }
+
+		    return LinearViewObject.MustTakeHandle(
+			    NativeMethods.BNCreateLinearViewSingleFunctionMappedMediumLevelIL(
+				    function.DangerousGetHandle() ,
+				    null == settings ? IntPtr.Zero : settings.DangerousGetHandle()
+			    )
+		    );
+	    }
+
 	    public static LinearViewObject SingleFunctionLowLevelILSSAForm(
 		    Function function,
 		    DisassemblySettings? settings = null

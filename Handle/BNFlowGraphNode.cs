@@ -39,6 +39,72 @@ namespace BinaryNinja
             return new FlowGraphNode(raw, true);
         }
 
+	    internal static FlowGraphNode? NewFromHandle(IntPtr handle)
+	    {
+		    if (handle == IntPtr.Zero)
+		    {
+			    return null;
+		    }
+
+		    return new FlowGraphNode(
+			    NativeMethods.BNNewFlowGraphNodeReference(handle) ,
+			    true
+		    );
+	    }
+
+	    internal static FlowGraphNode MustNewFromHandle(IntPtr handle)
+	    {
+		    if (handle == IntPtr.Zero)
+		    {
+			    throw new ArgumentNullException(nameof(handle));
+		    }
+
+		    return new FlowGraphNode(
+			    NativeMethods.BNNewFlowGraphNodeReference(handle) ,
+			    true
+		    );
+	    }
+
+	    internal static FlowGraphNode? TakeHandle(IntPtr handle)
+	    {
+		    if (handle == IntPtr.Zero)
+		    {
+			    return null;
+		    }
+
+		    return new FlowGraphNode(handle, true);
+	    }
+
+	    internal static FlowGraphNode MustTakeHandle(IntPtr handle)
+	    {
+		    if (handle == IntPtr.Zero)
+		    {
+			    throw new ArgumentNullException(nameof(handle));
+		    }
+
+		    return new FlowGraphNode(handle, true);
+	    }
+
+	    internal static FlowGraphNode? BorrowHandle(IntPtr handle)
+	    {
+		    if (handle == IntPtr.Zero)
+		    {
+			    return null;
+		    }
+
+		    return new FlowGraphNode(handle, false);
+	    }
+
+	    internal static FlowGraphNode MustBorrowHandle(IntPtr handle)
+	    {
+		    if (handle == IntPtr.Zero)
+		    {
+			    throw new ArgumentNullException(nameof(handle));
+		    }
+
+		    return new FlowGraphNode(handle, false);
+	    }
+
 	    protected override bool ReleaseHandle()
 	    {
 	        if ( !this.IsInvalid )
@@ -181,8 +247,70 @@ namespace BinaryNinja
 			    (ulong)points.Length
 		    );
 	    }
-	    
-	   
+
+	    /// <summary>
+	    /// The basic block this node renders, or null for a synthetic node. Mirrors
+	    /// Python FlowGraphNode.basic_block.
+	    /// </summary>
+	    public BasicBlock? BasicBlock
+	    {
+		    get
+		    {
+			    return BasicBlock.TakeHandle(
+				    NativeMethods.BNGetFlowGraphBasicBlock(this.handle)
+			    );
+		    }
+
+		    set
+		    {
+			    NativeMethods.BNSetFlowGraphBasicBlock(
+				    this.handle ,
+				    null == value ? IntPtr.Zero : value.DangerousGetHandle()
+			    );
+		    }
+	    }
+
+	    /// <summary>
+	    /// Edges entering this node. Mirrors Python FlowGraphNode.incoming_edges.
+	    /// </summary>
+	    public FlowGraphEdge[] IncomingEdges
+	    {
+		    get
+		    {
+			    IntPtr arrayPointer = NativeMethods.BNGetFlowGraphNodeIncomingEdges(
+				    this.handle ,
+				    out ulong arrayLength
+			    );
+
+			    return UnsafeUtils.TakeStructArrayEx<BNFlowGraphEdge,FlowGraphEdge>(
+				    arrayPointer ,
+				    arrayLength ,
+				    FlowGraphEdge.FromNative ,
+				    NativeMethods.BNFreeFlowGraphNodeEdgeList
+			    );
+		    }
+	    }
+
+	    /// <summary>
+	    /// Edges leaving this node. Mirrors Python FlowGraphNode.outgoing_edges.
+	    /// </summary>
+	    public FlowGraphEdge[] OutgoingEdges
+	    {
+		    get
+		    {
+			    IntPtr arrayPointer = NativeMethods.BNGetFlowGraphNodeOutgoingEdges(
+				    this.handle ,
+				    out ulong arrayLength
+			    );
+
+			    return UnsafeUtils.TakeStructArrayEx<BNFlowGraphEdge,FlowGraphEdge>(
+				    arrayPointer ,
+				    arrayLength ,
+				    FlowGraphEdge.FromNative ,
+				    NativeMethods.BNFreeFlowGraphNodeEdgeList
+			    );
+		    }
+	    }
 
 	}
 }

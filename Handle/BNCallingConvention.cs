@@ -258,6 +258,46 @@ namespace BinaryNinja
         }
 
         /// <summary>
+        /// Returns the registers that must be used as arguments for the heuristic calling
+        /// convention detection to pick this convention. Mirrors Python required_arg_regs.
+        /// </summary>
+        public unsafe uint[] GetRequiredArgumentRegisters()
+        {
+            // 1. Call the native API to retrieve the required-argument register list.
+            ulong count = 0;
+            IntPtr ptr = NativeMethods.BNGetRequiredArgumentRegisters(this.handle, (IntPtr)(&count));
+
+            // 2. Return empty if no registers or null pointer.
+            if (0 == count || IntPtr.Zero == ptr)
+            {
+                return Array.Empty<uint>();
+            }
+
+            // 3. Marshal the native array into a managed uint[] and free the native buffer.
+            return UnsafeUtils.TakeNumberArray<uint>(ptr, count, NativeMethods.BNFreeRegisterList);
+        }
+
+        /// <summary>
+        /// Returns the registers that must be clobbered for the heuristic calling convention
+        /// detection to pick this convention. Mirrors Python required_clobbered_regs.
+        /// </summary>
+        public unsafe uint[] GetRequiredClobberedRegisters()
+        {
+            // 1. Call the native API to retrieve the required-clobbered register list.
+            ulong count = 0;
+            IntPtr ptr = NativeMethods.BNGetRequiredClobberedRegisters(this.handle, (IntPtr)(&count));
+
+            // 2. Return empty if no registers or null pointer.
+            if (0 == count || IntPtr.Zero == ptr)
+            {
+                return Array.Empty<uint>();
+            }
+
+            // 3. Marshal the native array into a managed uint[] and free the native buffer.
+            return UnsafeUtils.TakeNumberArray<uint>(ptr, count, NativeMethods.BNFreeRegisterList);
+        }
+
+        /// <summary>
         /// Returns the ordered list of registers used to pass integer arguments
         /// to functions using this calling convention.
         /// </summary>
