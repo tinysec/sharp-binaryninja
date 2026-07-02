@@ -54,19 +54,31 @@ namespace BinaryNinja
 			);
 		}
 
+		// NOTE: this.handle here is a BNType*, NOT a BNNamedTypeReference*. The
+		// BNGetTypeReference{Class,Id,Name} core APIs all expect a BNNamedTypeReference*,
+		// so they must be reached through the type's underlying named-type reference
+		// obtained via GetNamedTypeReference() (BNGetTypeNamedTypeReference). Calling them
+		// directly on this.handle is type confusion and returns garbage (an empty id).
+
 		public NamedTypeReferenceClass NamedTypeReferenceClass
 		{
 			get
 			{
-				return NativeMethods.BNGetTypeReferenceClass(this.handle);
+				using (NamedTypeReference reference = this.GetNamedTypeReference())
+				{
+					return reference.TypeReferenceClass;
+				}
 			}
 		}
-		
+
 		public string TypeReferenceId
 		{
 			get
 			{
-				return UnsafeUtils.TakeAnsiString(NativeMethods.BNGetTypeReferenceId(this.handle));
+				using (NamedTypeReference reference = this.GetNamedTypeReference())
+				{
+					return reference.TypeId;
+				}
 			}
 		}
 

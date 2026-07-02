@@ -558,7 +558,16 @@ namespace BinaryNinja
 	    {
 		    return NativeMethods.BNMetadataIsSignedInteger(this.handle);
 	    }
-	    
+
+	    /// <summary>
+	    /// Whether this value is an integer of either signedness. Mirrors Python
+	    /// Metadata.is_integer.
+	    /// </summary>
+	    public bool IsInteger()
+	    {
+		    return this.IsSignedInteger() || this.IsUnsignedInteger();
+	    }
+
 	    public bool IsDouble()
 	    {
 		    return NativeMethods.BNMetadataIsDouble(this.handle);

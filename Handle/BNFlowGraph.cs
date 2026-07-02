@@ -702,5 +702,76 @@ namespace BinaryNinja
 		    // Delegate to the native API.
 		    NativeMethods.BNFinishPrepareForLayout(this.handle);
 	    }
+
+	    /// <summary>
+	    /// All nodes in the graph. Mirrors Python FlowGraph.nodes / iteration.
+	    /// </summary>
+	    public FlowGraphNode[] Nodes
+	    {
+		    get
+		    {
+			    IntPtr arrayPointer = NativeMethods.BNGetFlowGraphNodes(
+				    this.handle ,
+				    out ulong arrayLength
+			    );
+
+			    return UnsafeUtils.TakeHandleArrayEx<FlowGraphNode>(
+				    arrayPointer ,
+				    arrayLength ,
+				    FlowGraphNode.MustNewFromHandle ,
+				    NativeMethods.BNFreeFlowGraphNodeList
+			    );
+		    }
+	    }
+
+	    /// <summary>
+	    /// The node at the given index, or null when out of range. Mirrors Python
+	    /// FlowGraph.__getitem__.
+	    /// </summary>
+	    public FlowGraphNode? GetNode(ulong index)
+	    {
+		    return FlowGraphNode.TakeHandle(
+			    NativeMethods.BNGetFlowGraphNode(this.handle, index)
+		    );
+	    }
+
+	    /// <summary>
+	    /// The nodes intersecting the given rectangular region. Mirrors Python
+	    /// FlowGraph.get_nodes_in_region.
+	    /// </summary>
+	    public FlowGraphNode[] GetNodesInRegion(
+		    int left ,
+		    int top ,
+		    int right ,
+		    int bottom
+	    )
+	    {
+		    IntPtr arrayPointer = NativeMethods.BNGetFlowGraphNodesInRegion(
+			    this.handle ,
+			    left ,
+			    top ,
+			    right ,
+			    bottom ,
+			    out ulong arrayLength
+		    );
+
+		    return UnsafeUtils.TakeHandleArrayEx<FlowGraphNode>(
+			    arrayPointer ,
+			    arrayLength ,
+			    FlowGraphNode.MustNewFromHandle ,
+			    NativeMethods.BNFreeFlowGraphNodeList
+		    );
+	    }
+
+	    /// <summary>
+	    /// Produces an updated copy of the graph when it has pending updates, or null.
+	    /// Mirrors Python CoreFlowGraph.update().
+	    /// </summary>
+	    public FlowGraph? Update()
+	    {
+		    return FlowGraph.TakeHandle(
+			    NativeMethods.BNUpdateFlowGraph(this.handle)
+		    );
+	    }
 	}
 }

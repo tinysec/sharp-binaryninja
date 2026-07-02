@@ -177,5 +177,33 @@ namespace BinaryNinja
 				);
 		    }
 	    }
+
+	    /// <summary>
+	    /// The type id this reference points at. Mirrors C++ NamedTypeReference::GetTypeId()
+	    /// and Python NamedTypeReference.type_id.
+	    /// </summary>
+	    public string TypeId
+	    {
+		    get
+		    {
+			    // this.handle is a genuine BNNamedTypeReference*, which is exactly what
+			    // BNGetTypeReferenceId expects.
+			    return UnsafeUtils.TakeAnsiString(
+				    NativeMethods.BNGetTypeReferenceId(this.handle)
+			    );
+		    }
+	    }
+
+	    /// <summary>
+	    /// The reference class (struct/enum/union/typedef/unknown). Mirrors C++
+	    /// NamedTypeReference::GetTypeReferenceClass() and Python NamedTypeReference.named_type_class.
+	    /// </summary>
+	    public NamedTypeReferenceClass TypeReferenceClass
+	    {
+		    get
+		    {
+			    return NativeMethods.BNGetTypeReferenceClass(this.handle);
+		    }
+	    }
 	}
 }

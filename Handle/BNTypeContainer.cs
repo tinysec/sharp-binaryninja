@@ -112,7 +112,18 @@ namespace BinaryNinja
 			    return NativeMethods.BNTypeContainerIsMutable(this.handle);
 		    }
 	    }
-	    
+
+	    /// <summary>
+	    /// The number of types in this container. Mirrors Python TypeContainer.type_count.
+	    /// </summary>
+	    public ulong TypeCount
+	    {
+		    get
+		    {
+			    return (ulong)NativeMethods.BNTypeContainerGetTypeCount(this.handle);
+		    }
+	    }
+
 	    public Platform Platform
 	    {
 		    get
