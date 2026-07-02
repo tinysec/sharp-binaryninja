@@ -127,7 +127,26 @@ namespace BinaryNinja
 			    NativeMethods.BNGetTypeNamedTypeReference(this.handle)
 			);
 	    }
-	    
+
+	    /// <summary>
+	    /// Dereferences any named type references to find the underlying type. If this type is
+	    /// not a named type reference, the same type is returned unchanged. The result may still
+	    /// be a named type reference if there are circular references. Mirrors Python
+	    /// <c>Type.deref_named_type_reference</c> / C++ <c>Type::DerefNamedTypeReference</c>.
+	    /// </summary>
+	    /// <param name="view">The BinaryView that owns this type (used to resolve the reference).</param>
+	    /// <returns>The resolved type, or null if the core returned no type.</returns>
+	    public BinaryNinja.Type? DerefNamedTypeReference(BinaryView view)
+	    {
+		    return BinaryNinja.Type.TakeHandle(
+			    NativeMethods.BNDerefNamedTypeReference(
+				    view.DangerousGetHandle() ,
+				    this.handle
+			    )
+		    );
+	    }
+
+
 	    public NameType GetNameType()
 	    {
 		    return NativeMethods.BNTypeGetNameType(this.handle);
