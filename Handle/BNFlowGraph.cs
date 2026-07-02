@@ -546,14 +546,17 @@ namespace BinaryNinja
 			    throw new ArgumentNullException(nameof(viewType));
 		    }
 
-		    // 2. Call the native API with the FunctionViewType directly.
-		    return FlowGraph.TakeHandle(
-			    NativeMethods.BNCreateFunctionGraph(
-				    func.DangerousGetHandle() ,
-				    viewType ,
-				    null == settings ? IntPtr.Zero : settings.DangerousGetHandle()
-			    )
-		    );
+		    // 2. Marshal the view type to its native struct and call the core API.
+		    using (ScopedAllocator allocator = new ScopedAllocator())
+		    {
+			    return FlowGraph.TakeHandle(
+				    NativeMethods.BNCreateFunctionGraph(
+					    func.DangerousGetHandle() ,
+					    viewType.ToNativeEx(allocator) ,
+					    null == settings ? IntPtr.Zero : settings.DangerousGetHandle()
+				    )
+			    );
+		    }
 	    }
 
 	    /// <summary>
@@ -580,14 +583,17 @@ namespace BinaryNinja
 			    throw new ArgumentNullException(nameof(viewType));
 		    }
 
-		    // 2. Call the native API with the FunctionViewType directly.
-		    return FlowGraph.TakeHandle(
-			    NativeMethods.BNCreateImmediateFunctionGraph(
-				    func.DangerousGetHandle() ,
-				    viewType ,
-				    null == settings ? IntPtr.Zero : settings.DangerousGetHandle()
-			    )
-		    );
+		    // 2. Marshal the view type to its native struct and call the core API.
+		    using (ScopedAllocator allocator = new ScopedAllocator())
+		    {
+			    return FlowGraph.TakeHandle(
+				    NativeMethods.BNCreateImmediateFunctionGraph(
+					    func.DangerousGetHandle() ,
+					    viewType.ToNativeEx(allocator) ,
+					    null == settings ? IntPtr.Zero : settings.DangerousGetHandle()
+				    )
+			    );
+		    }
 	    }
 
 	    /// <summary>

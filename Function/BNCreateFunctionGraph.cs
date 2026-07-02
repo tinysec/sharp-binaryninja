@@ -21,7 +21,7 @@ namespace BinaryNinja
 		    IntPtr func  , 
 			
 			// BNFunctionViewType type
-		    FunctionViewType type  , 
+		    in BNFunctionViewType type  ,
 			
 			// BNDisassemblySettings* settings
 		    IntPtr settings  
