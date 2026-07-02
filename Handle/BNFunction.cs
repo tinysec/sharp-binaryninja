@@ -1370,6 +1370,28 @@ namespace BinaryNinja
 	    }
 
 	    /// <summary>
+	    /// The analysis hint used to order the basic block containing <paramref name="address"/>
+	    /// during layout, or <c>null</c> when no hint exists. Mirrors C++
+	    /// <c>Function::GetBlockSortHint</c>.
+	    /// </summary>
+	    public long? GetBlockSortHint(ulong address , Architecture? arch = null)
+	    {
+		    bool ok = NativeMethods.BNGetFunctionBlockSortHint(
+			    this.handle ,
+			    null == arch ? IntPtr.Zero : arch.DangerousGetHandle() ,
+			    address ,
+			    out long result
+		    );
+
+		    if (!ok)
+		    {
+			    return null;
+		    }
+
+		    return result;
+	    }
+
+	    /// <summary>
 	    /// The Low Level IL instruction at <paramref name="address"/>, or <c>null</c>.
 	    /// Mirrors Python <c>Function.get_low_level_il_at</c> / <c>get_llil_at</c>.
 	    /// </summary>
@@ -1656,6 +1678,22 @@ namespace BinaryNinja
 					    type.ToNativeEx(allocator) ,
 					    null == settings ? IntPtr.Zero : settings.DangerousGetHandle()
 				    )
+			    );
+		    }
+	    }
+
+	    /// <summary>
+	    /// A FlowGraph highlighting basic blocks whose stack-pointer adjustment could not be
+	    /// resolved by analysis, or <c>null</c> when none. Mirrors Python
+	    /// <c>Function.unresolved_stack_adjustment_graph</c>.
+	    /// </summary>
+	    public FlowGraph? UnresolvedStackAdjustmentGraph
+	    {
+		    get
+		    {
+			    // The core returns an already-owned reference (or NULL), so take ownership directly.
+			    return FlowGraph.TakeHandle(
+				    NativeMethods.BNGetUnresolvedStackAdjustmentGraph(this.handle)
 			    );
 		    }
 	    }

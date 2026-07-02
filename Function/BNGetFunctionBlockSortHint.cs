@@ -28,7 +28,7 @@ namespace BinaryNinja
 		    ulong addr   , 
 			
 			// int64_t* result
-		    IntPtr result  
+		    out long result
 		);
 	}
 }
