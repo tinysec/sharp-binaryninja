@@ -22,7 +22,7 @@ namespace BinaryNinja
 		    IntPtr file  , 
 			
 			// const char* view
-		    string view  , 
+		    [MarshalAs(UnmanagedType.LPUTF8Str)] string view  , 
 			
 			// uint64_t offset
 		    ulong offset  

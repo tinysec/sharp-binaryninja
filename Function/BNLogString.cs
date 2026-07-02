@@ -80,13 +80,13 @@ namespace BinaryNinja
 		    LogLevel level  , 
 			
 		    // const char* logger_name
-		    string logger_name  , 
+		    [MarshalAs(UnmanagedType.LPUTF8Str)] string logger_name  , 
 			
 		    // uint64_t tid
 		    ulong tid  , 
 			
 		    // const char* str
-		    string str  
+		    [MarshalAs(UnmanagedType.LPUTF8Str)] string str  
 	    );
     }
 }

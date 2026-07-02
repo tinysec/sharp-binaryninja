@@ -23,7 +23,7 @@ namespace BinaryNinja
 		    IntPtr p   , 
 			
 			// const char* versionID
-		    string versionID  
+		    [MarshalAs(UnmanagedType.LPUTF8Str)] string versionID  
 		);
 	}
 }

@@ -22,7 +22,7 @@ namespace BinaryNinja
 		    IntPtr r  , 
 			
 			// const char* pluginPath
-		    string pluginPath  
+		    [MarshalAs(UnmanagedType.LPUTF8Str)] string pluginPath  
 			
 		);
 	}

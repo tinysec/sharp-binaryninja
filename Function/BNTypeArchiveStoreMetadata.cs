@@ -22,7 +22,7 @@ namespace BinaryNinja
 		    IntPtr archive  , 
 			
 			// const char* key
-		    string key  , 
+		    [MarshalAs(UnmanagedType.LPUTF8Str)] string key  , 
 			
 			// BNMetadata* _value
 		    IntPtr _value  

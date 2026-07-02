@@ -26,13 +26,13 @@ namespace BinaryNinja
 		    IntPtr data   , 
 			
 			// const char* filename
-		    string filename   , 
+		    [MarshalAs(UnmanagedType.LPUTF8Str)] string filename   , 
 			
 			// BNTransformResult result
 		    TransformResult result   , 
 			
 			// const char* message
-		    string message   , 
+		    [MarshalAs(UnmanagedType.LPUTF8Str)] string message   , 
 			
 			// bool filenameIsDescriptor
 		    bool filenameIsDescriptor  

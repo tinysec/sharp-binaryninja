@@ -22,10 +22,10 @@ namespace BinaryNinja
 		    IntPtr project  , 
 			
 			// const char* name
-		    string name  , 
+		    [MarshalAs(UnmanagedType.LPUTF8Str)] string name  , 
 			
 			// const char* description
-		    string description  , 
+		    [MarshalAs(UnmanagedType.LPUTF8Str)] string description  , 
 			
 			// BNRemoteFolder* parent
 		    IntPtr parent  , 

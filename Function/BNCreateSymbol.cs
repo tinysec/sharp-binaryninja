@@ -22,13 +22,13 @@ namespace BinaryNinja
 		    SymbolType type  , 
 			
 			// const char* shortName
-		    string shortName  , 
+		    [MarshalAs(UnmanagedType.LPUTF8Str)] string shortName  , 
 			
 			// const char* fullName
-		    string fullName  , 
+		    [MarshalAs(UnmanagedType.LPUTF8Str)] string fullName  , 
 			
 			// const char* rawName
-		    string rawName  , 
+		    [MarshalAs(UnmanagedType.LPUTF8Str)] string rawName  , 
 			
 			// uint64_t addr
 		    ulong addr  , 

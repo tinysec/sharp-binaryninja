@@ -22,7 +22,7 @@ namespace BinaryNinja
 		    IntPtr fn  , 
 			
 			// const char* name
-		    string name  , 
+		    [MarshalAs(UnmanagedType.LPUTF8Str)] string name  , 
 			
 			// uint64_t start
 		    ulong start  , 
@@ -31,7 +31,7 @@ namespace BinaryNinja
 		    ulong end  , 
 			
 			// const char* info
-		    string info  
+		    [MarshalAs(UnmanagedType.LPUTF8Str)] string info  
 			
 		);
 	}

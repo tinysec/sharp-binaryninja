@@ -27,7 +27,7 @@ namespace BinaryNinja
 		public static extern bool BNIsDatabase(
 			
 			// const char* filename
-		    string filename  
+		    [MarshalAs(UnmanagedType.LPUTF8Str)] string filename  
 		);
 	}
 }

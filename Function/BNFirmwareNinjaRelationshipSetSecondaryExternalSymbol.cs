@@ -25,7 +25,7 @@ namespace BinaryNinja
 		    IntPtr projectFile  , 
 			
 			// const char* symbol
-		    string symbol  
+		    [MarshalAs(UnmanagedType.LPUTF8Str)] string symbol  
 			
 		);
 	}

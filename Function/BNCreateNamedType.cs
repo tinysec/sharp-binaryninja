@@ -22,7 +22,7 @@ namespace BinaryNinja
 		    NamedTypeReferenceClass cls  , 
 			
 			// const char* id
-		    string id  , 
+		    [MarshalAs(UnmanagedType.LPUTF8Str)] string id  , 
 			
 			// BNQualifiedName* name
 		    in BNQualifiedName name  

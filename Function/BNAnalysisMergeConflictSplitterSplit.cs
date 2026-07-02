@@ -22,7 +22,7 @@ namespace BinaryNinja
 		    IntPtr splitter  , 
 			
 			// const char* originalKey
-		    string originalKey  , 
+		    [MarshalAs(UnmanagedType.LPUTF8Str)] string originalKey  , 
 			
 			// BNAnalysisMergeConflict* originalConflict
 		    IntPtr originalConflict  , 

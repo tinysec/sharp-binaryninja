@@ -20,7 +20,7 @@ namespace BinaryNinja
 		internal static extern BNVersionInfo BNParseVersionString(
 			
 			// const char* v
-		    string v  
+		    [MarshalAs(UnmanagedType.LPUTF8Str)] string v  
 		);
 	}
 }

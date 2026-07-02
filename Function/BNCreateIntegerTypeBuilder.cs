@@ -25,7 +25,7 @@ namespace BinaryNinja
 			in BNBoolWithConfidence sign  , 
 			
 			// const char* altName
-		    string altName  
+		    [MarshalAs(UnmanagedType.LPUTF8Str)] string altName  
 		);
 	}
 }

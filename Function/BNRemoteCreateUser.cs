@@ -22,16 +22,16 @@ namespace BinaryNinja
 		    IntPtr remote  , 
 			
 			// const char* username
-		    string username  , 
+		    [MarshalAs(UnmanagedType.LPUTF8Str)] string username  , 
 			
 			// const char* email
-		    string email  , 
+		    [MarshalAs(UnmanagedType.LPUTF8Str)] string email  , 
 			
 			// bool isActive
 		    bool isActive  , 
 			
 			// const char* password
-		    string password  , 
+		    [MarshalAs(UnmanagedType.LPUTF8Str)] string password  , 
 			
 			// uint64_t* groupIds
 		    IntPtr groupIds  , 

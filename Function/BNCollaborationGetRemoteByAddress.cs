@@ -19,7 +19,7 @@ namespace BinaryNinja
 		internal static extern IntPtr BNCollaborationGetRemoteByAddress(
 			
 			// const char* remoteAddress
-		    string remoteAddress  
+		    [MarshalAs(UnmanagedType.LPUTF8Str)] string remoteAddress  
 		);
 	}
 }

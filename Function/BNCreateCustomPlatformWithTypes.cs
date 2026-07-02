@@ -22,13 +22,13 @@ namespace BinaryNinja
 		    IntPtr arch  , 
 			
 			// const char* name
-		    string name  , 
+		    [MarshalAs(UnmanagedType.LPUTF8Str)] string name  , 
 			
 			// BNCustomPlatform* impl
 		    IntPtr impl  , 
 			
 			// const char* typeFile
-		    string typeFile  , 
+		    [MarshalAs(UnmanagedType.LPUTF8Str)] string typeFile  , 
 			
 			// const char** includeDirs
 		    string[] includeDirs  , 

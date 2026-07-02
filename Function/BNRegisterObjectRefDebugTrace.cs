@@ -19,7 +19,7 @@ namespace BinaryNinja
 		internal static extern IntPtr BNRegisterObjectRefDebugTrace(
 			
 			// const char* typeName
-		    string typeName  
+		    [MarshalAs(UnmanagedType.LPUTF8Str)] string typeName  
 			
 		);
 	}

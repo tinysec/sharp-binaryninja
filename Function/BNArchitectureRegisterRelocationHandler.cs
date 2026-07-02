@@ -22,7 +22,7 @@ namespace BinaryNinja
 		    IntPtr arch  , 
 			
 			// const char* viewName
-		    string viewName  , 
+		    [MarshalAs(UnmanagedType.LPUTF8Str)] string viewName  , 
 			
 			// BNRelocationHandler* handler
 		    IntPtr handler  

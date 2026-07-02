@@ -19,7 +19,7 @@ namespace BinaryNinja
 		internal static extern IntPtr BNCreateMetadataStringData(
 			
 			// const char* data
-		    string data  
+		    [MarshalAs(UnmanagedType.LPUTF8Str)] string data  
 		);
 	}
 }

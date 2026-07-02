@@ -22,10 +22,10 @@ namespace BinaryNinja
 		    IntPtr view  , 
 			
 			// const char* archiveId
-		    string archiveId  , 
+		    [MarshalAs(UnmanagedType.LPUTF8Str)] string archiveId  , 
 			
 			// const char* archiveTypeId
-		    string archiveTypeId  , 
+		    [MarshalAs(UnmanagedType.LPUTF8Str)] string archiveTypeId  , 
 			
 			// const char** typeId
 		    string[] typeId  

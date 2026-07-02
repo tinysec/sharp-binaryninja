@@ -22,7 +22,7 @@ namespace BinaryNinja
 		    IntPtr debugInfo  , 
 			
 			// const char* typeName
-		    string typeName  , 
+		    [MarshalAs(UnmanagedType.LPUTF8Str)] string typeName  , 
 			
 			// uint64_t* count
 		    IntPtr count  

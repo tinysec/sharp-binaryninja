@@ -22,10 +22,10 @@ namespace BinaryNinja
 		    IntPtr view  , 
 			
 			// const char* id
-		    string id  , 
+		    [MarshalAs(UnmanagedType.LPUTF8Str)] string id  , 
 			
 			// const char* path
-		    string path  
+		    [MarshalAs(UnmanagedType.LPUTF8Str)] string path  
 		);
 	}
 }

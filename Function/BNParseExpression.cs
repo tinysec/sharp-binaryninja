@@ -22,7 +22,7 @@ namespace BinaryNinja
 		    IntPtr view  , 
 			
 			// const char* expression
-		    string expression  , 
+		    [MarshalAs(UnmanagedType.LPUTF8Str)] string expression  , 
 			
 			// uint64_t* offset
 		    out ulong offset  , 

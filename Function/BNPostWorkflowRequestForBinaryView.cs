@@ -22,7 +22,7 @@ namespace BinaryNinja
 		    IntPtr view  , 
 			
 			// const char* request
-		    string request  
+		    [MarshalAs(UnmanagedType.LPUTF8Str)] string request  
 			
 		);
 	}

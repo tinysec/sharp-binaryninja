@@ -25,7 +25,7 @@ namespace BinaryNinja
 			in BNTypeWithConfidence type  , 
 			
 			// const char* name
-		    string name  , 
+		    [MarshalAs(UnmanagedType.LPUTF8Str)] string name  , 
 			
 			// BNMemberAccess access
 		    MemberAccess access  , 

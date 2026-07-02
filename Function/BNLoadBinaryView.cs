@@ -25,7 +25,7 @@ namespace BinaryNinja
 		    bool updateAnalysis  , 
 			
 			// const char* options
-		    string options  , 
+		    [MarshalAs(UnmanagedType.LPUTF8Str)] string options  , 
 			
 			// void* progress
 		    IntPtr progress  , 

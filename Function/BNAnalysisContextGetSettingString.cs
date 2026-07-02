@@ -23,7 +23,7 @@ namespace BinaryNinja
 		    IntPtr analysisContext   , 
 			
 			// const char* key
-		    string key  
+		    [MarshalAs(UnmanagedType.LPUTF8Str)] string key  
 		);
 	}
 }

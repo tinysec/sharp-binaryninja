@@ -25,7 +25,7 @@ namespace BinaryNinja
 		    IntPtr settings  , 
 			
 			// const char* language
-		    string language  
+		    [MarshalAs(UnmanagedType.LPUTF8Str)] string language  
 		);
 	}
 }

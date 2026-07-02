@@ -25,7 +25,7 @@ namespace BinaryNinja
 		    TypeParserOption option  , 
 			
 			// const char* _value
-		    string _value  , 
+		    [MarshalAs(UnmanagedType.LPUTF8Str)] string _value  , 
 			
 			// const char** result
 		    string[] result  

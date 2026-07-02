@@ -19,10 +19,10 @@ namespace BinaryNinja
 		internal static extern void BNLlvmServicesAssembleFree(
 			
 			// const char* outBytes
-		    string outBytes  , 
+		    [MarshalAs(UnmanagedType.LPUTF8Str)] string outBytes  , 
 			
 			// const char* err
-		    string err  
+		    [MarshalAs(UnmanagedType.LPUTF8Str)] string err  
 			
 		);
 	}

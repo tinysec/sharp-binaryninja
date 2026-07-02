@@ -22,7 +22,7 @@ namespace BinaryNinja
 		    IntPtr file  , 
 			
 			// const char* dbPath
-		    string dbPath  , 
+		    [MarshalAs(UnmanagedType.LPUTF8Str)] string dbPath  , 
 			
 			// bool force
 		    bool force  , 

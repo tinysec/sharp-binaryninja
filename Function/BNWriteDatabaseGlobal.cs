@@ -22,10 +22,10 @@ namespace BinaryNinja
 		    IntPtr database  , 
 			
 			// const char* key
-		    string key  , 
+		    [MarshalAs(UnmanagedType.LPUTF8Str)] string key  , 
 			
 			// const char* val
-		    string val  
+		    [MarshalAs(UnmanagedType.LPUTF8Str)] string val  
 			
 		);
 	}

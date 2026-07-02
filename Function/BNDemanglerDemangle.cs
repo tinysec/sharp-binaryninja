@@ -25,7 +25,7 @@ namespace BinaryNinja
 		    IntPtr arch  , 
 			
 			// const char* name
-		    string name  , 
+		    [MarshalAs(UnmanagedType.LPUTF8Str)] string name  , 
 			
 			// BNType** outType
 		    IntPtr outType  , 

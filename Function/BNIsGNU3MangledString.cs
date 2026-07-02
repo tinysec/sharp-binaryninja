@@ -19,7 +19,7 @@ namespace BinaryNinja
 		internal static extern bool BNIsGNU3MangledString(
 			
 			// const char* mangledName
-		    string mangledName  
+		    [MarshalAs(UnmanagedType.LPUTF8Str)] string mangledName  
 			
 		);
 	}

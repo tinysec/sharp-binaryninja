@@ -25,7 +25,7 @@ namespace BinaryNinja
 		    ulong start  , 
 			
 			// const char* data
-		    string data  , 
+		    [MarshalAs(UnmanagedType.LPUTF8Str)] string data  , 
 			
 			// uint64_t* result
 		    out ulong result  , 

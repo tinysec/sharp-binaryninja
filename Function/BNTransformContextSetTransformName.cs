@@ -23,7 +23,7 @@ namespace BinaryNinja
 		    IntPtr context   , 
 			
 			// const char* transformName
-		    string transformName  
+		    [MarshalAs(UnmanagedType.LPUTF8Str)] string transformName  
 		);
 	}
 }

@@ -19,10 +19,10 @@ namespace BinaryNinja
 		internal static extern bool BNCoreEnumFromString(
 			
 			// const char* enumName
-		    string enumName  , 
+		    [MarshalAs(UnmanagedType.LPUTF8Str)] string enumName  , 
 			
 			// const char* _value
-		    string _value  , 
+		    [MarshalAs(UnmanagedType.LPUTF8Str)] string _value  , 
 			
 			// uint64_t* result
 		    IntPtr result  

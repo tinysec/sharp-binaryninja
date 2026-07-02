@@ -19,10 +19,10 @@ namespace BinaryNinja
 		internal static extern bool BNAuthenticateEnterpriseServerWithCredentials(
 			
 			// const char* username
-		    string username  , 
+		    [MarshalAs(UnmanagedType.LPUTF8Str)] string username  , 
 			
 			// const char* password
-		    string password  , 
+		    [MarshalAs(UnmanagedType.LPUTF8Str)] string password  , 
 			
 			// bool remember
 		    bool remember  

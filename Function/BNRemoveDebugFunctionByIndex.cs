@@ -22,7 +22,7 @@ namespace BinaryNinja
 		    IntPtr debugInfo  , 
 			
 			// const char* parserName
-		    string parserName  , 
+		    [MarshalAs(UnmanagedType.LPUTF8Str)] string parserName  , 
 			
 			// uint64_t index
 		    ulong index  

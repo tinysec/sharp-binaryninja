@@ -22,7 +22,7 @@ namespace BinaryNinja
 		    IntPtr database  , 
 			
 			// const char* key
-		    string key  
+		    [MarshalAs(UnmanagedType.LPUTF8Str)] string key  
 			
 		);
 	}

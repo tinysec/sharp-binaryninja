@@ -19,7 +19,7 @@ namespace BinaryNinja
 		internal static extern IntPtr BNAllocStringWithLength(
 			
 			// const char* contents
-		    string contents  , 
+		    [MarshalAs(UnmanagedType.LPUTF8Str)] string contents  , 
 			
 			// uint64_t len
 		    ulong len  

@@ -22,7 +22,7 @@ namespace BinaryNinja
 		    IntPtr instance  , 
 			
 			// const char* input
-		    string input  
+		    [MarshalAs(UnmanagedType.LPUTF8Str)] string input  
 			
 		);
 	}

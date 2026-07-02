@@ -22,7 +22,7 @@ namespace BinaryNinja
 		    IntPtr remote  , 
 			
 			// const char* username
-		    string username  
+		    [MarshalAs(UnmanagedType.LPUTF8Str)] string username  
 			
 		);
 	}

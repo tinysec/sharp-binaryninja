@@ -37,7 +37,7 @@ namespace BinaryNinja
 		    IntegerDisplayType type  , 
 			
 			// const char* typeID
-		    string typeID  
+		    [MarshalAs(UnmanagedType.LPUTF8Str)] string typeID  
 			
 		);
 	}

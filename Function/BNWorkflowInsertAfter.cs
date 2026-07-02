@@ -22,7 +22,7 @@ namespace BinaryNinja
 		    IntPtr workflow  , 
 			
 			// const char* activity
-		    string activity  , 
+		    [MarshalAs(UnmanagedType.LPUTF8Str)] string activity  , 
 			
 			// const char** activities
 		    string[] activities  , 

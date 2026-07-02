@@ -19,7 +19,7 @@ namespace BinaryNinja
 		internal static extern IntPtr BNCreateSettings(
 			
 			// const char* schemaId
-		    string schemaId  
+		    [MarshalAs(UnmanagedType.LPUTF8Str)] string schemaId  
 		);
 	}
 }

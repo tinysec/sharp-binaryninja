@@ -22,7 +22,7 @@ namespace BinaryNinja
 		    IntPtr store  , 
 			
 			// const char* name
-		    string name  , 
+		    [MarshalAs(UnmanagedType.LPUTF8Str)] string name  , 
 			
 			// BNDataBuffer* _value
 		    IntPtr _value  

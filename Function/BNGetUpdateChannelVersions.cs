@@ -19,7 +19,7 @@ namespace BinaryNinja
 		internal static extern IntPtr BNGetUpdateChannelVersions(
 			
 			// const char* channel
-		    string channel  , 
+		    [MarshalAs(UnmanagedType.LPUTF8Str)] string channel  , 
 			
 			// uint64_t* count
 		    IntPtr count  , 

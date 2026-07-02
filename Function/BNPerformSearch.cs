@@ -19,7 +19,7 @@ namespace BinaryNinja
 		internal static extern bool BNPerformSearch(
 			
 			// const char* query
-		    string query  , 
+		    [MarshalAs(UnmanagedType.LPUTF8Str)] string query  , 
 			
 			// uint8_t* buffer
 		    IntPtr buffer  , 

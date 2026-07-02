@@ -22,7 +22,7 @@ namespace BinaryNinja
 		    IntPtr container  , 
 			
 			// const char* source
-		    string source  , 
+		    [MarshalAs(UnmanagedType.LPUTF8Str)] string source  , 
 			
 			// bool importDepencencies
 		    bool importDepencencies  , 

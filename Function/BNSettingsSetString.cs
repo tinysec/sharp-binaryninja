@@ -31,10 +31,10 @@ namespace BinaryNinja
 		    SettingsScope scope  , 
 			
 			// const char* key
-		    string key  , 
+		    [MarshalAs(UnmanagedType.LPUTF8Str)] string key  , 
 			
 			// const char* _value
-		    string _value  
+		    [MarshalAs(UnmanagedType.LPUTF8Str)] string _value  
 		);
 	}
 }

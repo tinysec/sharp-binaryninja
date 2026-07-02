@@ -25,7 +25,7 @@ namespace BinaryNinja
 		    LogLevel level  , 
 			
 			// const char* msg
-		    string msg  
+		    [MarshalAs(UnmanagedType.LPUTF8Str)] string msg  
 		);
 	}
 }

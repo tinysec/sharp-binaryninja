@@ -22,7 +22,7 @@ namespace BinaryNinja
 		    IntPtr view  , 
 			
 			// const char* query
-		    string query  , 
+		    [MarshalAs(UnmanagedType.LPUTF8Str)] string query  , 
 			
 			// void* context
 		    IntPtr context  , 

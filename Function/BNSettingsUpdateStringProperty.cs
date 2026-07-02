@@ -22,13 +22,13 @@ namespace BinaryNinja
 		    IntPtr settings  , 
 			
 			// const char* key
-		    string key  , 
+		    [MarshalAs(UnmanagedType.LPUTF8Str)] string key  , 
 			
 			// const char* property
-		    string property  , 
+		    [MarshalAs(UnmanagedType.LPUTF8Str)] string property  , 
 			
 			// const char* _value
-		    string _value  
+		    [MarshalAs(UnmanagedType.LPUTF8Str)] string _value  
 			
 		);
 	}

@@ -22,7 +22,7 @@ namespace BinaryNinja
 		    IntPtr file  , 
 			
 			// const char* metadata
-		    string metadata  
+		    [MarshalAs(UnmanagedType.LPUTF8Str)] string metadata  
 			
 		);
 	}

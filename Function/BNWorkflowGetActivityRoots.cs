@@ -22,7 +22,7 @@ namespace BinaryNinja
 		    IntPtr workflow  , 
 			
 			// const char* activity
-		    string activity  , 
+		    [MarshalAs(UnmanagedType.LPUTF8Str)] string activity  , 
 			
 			// uint64_t* inoutSize
 		    ref ulong inoutSize  

@@ -22,7 +22,7 @@ namespace BinaryNinja
 		    IntPtr view  , 
 			
 			// const char* filename
-		    string filename  
+		    [MarshalAs(UnmanagedType.LPUTF8Str)] string filename  
 		);
 	}
 }

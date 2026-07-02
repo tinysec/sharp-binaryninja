@@ -19,7 +19,7 @@ namespace BinaryNinja
 		internal static extern IntPtr BNRegisterTypeParser(
 			
 			// const char* name
-		    string name  , 
+		    [MarshalAs(UnmanagedType.LPUTF8Str)] string name  , 
 			
 			// BNTypeParserCallbacks* callbacks
 		    IntPtr callbacks  

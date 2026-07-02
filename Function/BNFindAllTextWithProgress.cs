@@ -28,7 +28,7 @@ namespace BinaryNinja
 		    ulong end  , 
 			
 			// const char* data
-		    string data  , 
+		    [MarshalAs(UnmanagedType.LPUTF8Str)] string data  , 
 			
 			// BNDisassemblySettings* settings
 		    IntPtr settings  , 

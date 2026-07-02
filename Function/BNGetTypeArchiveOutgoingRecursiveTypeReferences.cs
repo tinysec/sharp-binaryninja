@@ -22,10 +22,10 @@ namespace BinaryNinja
 		    IntPtr archive  , 
 			
 			// const char* id
-		    string id  , 
+		    [MarshalAs(UnmanagedType.LPUTF8Str)] string id  , 
 			
 			// const char* snapshot
-		    string snapshot  , 
+		    [MarshalAs(UnmanagedType.LPUTF8Str)] string snapshot  , 
 			
 			// uint64_t* count
 		    IntPtr count  

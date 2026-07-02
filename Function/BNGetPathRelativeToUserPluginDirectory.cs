@@ -19,7 +19,7 @@ namespace BinaryNinja
 		internal static extern IntPtr BNGetPathRelativeToUserPluginDirectory(
 			
 			// const char* path
-		    string path  
+		    [MarshalAs(UnmanagedType.LPUTF8Str)] string path  
 			
 		);
 	}

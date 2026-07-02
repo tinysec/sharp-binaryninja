@@ -19,10 +19,10 @@ namespace BinaryNinja
 		internal static extern IntPtr BNRegisterBinaryViewType(
 			
 			// const char* name
-		    string name  , 
+		    [MarshalAs(UnmanagedType.LPUTF8Str)] string name  , 
 			
 			// const char* longName
-		    string longName  , 
+		    [MarshalAs(UnmanagedType.LPUTF8Str)] string longName  , 
 			
 			// BNCustomBinaryViewType* type
 		    IntPtr type  

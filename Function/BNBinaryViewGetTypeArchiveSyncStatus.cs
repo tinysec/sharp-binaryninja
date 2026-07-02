@@ -22,7 +22,7 @@ namespace BinaryNinja
 		    IntPtr view  , 
 			
 			// const char* typeId
-		    string typeId  
+		    [MarshalAs(UnmanagedType.LPUTF8Str)] string typeId  
 		);
 	}
 }

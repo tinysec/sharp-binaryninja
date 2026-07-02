@@ -19,7 +19,7 @@ namespace BinaryNinja
 		internal static extern IntPtr BNGetPlatformListByOS(
 			
 			// const char* os
-		    string os  , 
+		    [MarshalAs(UnmanagedType.LPUTF8Str)] string os  , 
 			
 			// uint64_t* count
 		    out ulong count  

@@ -22,13 +22,13 @@ namespace BinaryNinja
 		    TransformType type  , 
 			
 			// const char* name
-		    string name  , 
+		    [MarshalAs(UnmanagedType.LPUTF8Str)] string name  , 
 			
 			// const char* longName
-		    string longName  , 
+		    [MarshalAs(UnmanagedType.LPUTF8Str)] string longName  , 
 			
 			// const char* _group
-		    string _group  , 
+		    [MarshalAs(UnmanagedType.LPUTF8Str)] string _group  , 
 			
 			// BNCustomTransform* xform
 		    in BNCustomTransform xform  

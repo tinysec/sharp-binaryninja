@@ -20,7 +20,7 @@ namespace BinaryNinja
 		internal static extern void BNLogInfo(
 			
 			// const char* fmt
-		    string fmt   , 
+		    [MarshalAs(UnmanagedType.LPUTF8Str)] string fmt   , 
 			
 			// ...
 		    IntPtr arg1  

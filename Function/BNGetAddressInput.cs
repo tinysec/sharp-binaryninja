@@ -43,10 +43,10 @@ namespace BinaryNinja
 		    out ulong result  , 
 			
 			// const char* prompt
-		    string prompt  , 
+		    [MarshalAs(UnmanagedType.LPUTF8Str)] string prompt  , 
 			
 			// const char* title
-		    string title  , 
+		    [MarshalAs(UnmanagedType.LPUTF8Str)] string title  , 
 			
 			// BNBinaryView* view
 		    IntPtr view  , 

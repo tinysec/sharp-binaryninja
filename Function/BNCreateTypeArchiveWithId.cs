@@ -19,13 +19,13 @@ namespace BinaryNinja
 		internal static extern IntPtr BNCreateTypeArchiveWithId(
 			
 			// const char* path
-		    string path  , 
+		    [MarshalAs(UnmanagedType.LPUTF8Str)] string path  , 
 			
 			// BNPlatform* platform
 		    IntPtr platform  , 
 			
 			// const char* id
-		    string id  
+		    [MarshalAs(UnmanagedType.LPUTF8Str)] string id  
 		);
 	}
 }

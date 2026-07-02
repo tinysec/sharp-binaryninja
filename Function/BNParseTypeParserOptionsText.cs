@@ -19,7 +19,7 @@ namespace BinaryNinja
 		internal static extern IntPtr BNParseTypeParserOptionsText(
 			
 			// const char* optionsText
-		    string optionsText  , 
+		    [MarshalAs(UnmanagedType.LPUTF8Str)] string optionsText  , 
 			
 			// uint64_t* count
 		    IntPtr count  

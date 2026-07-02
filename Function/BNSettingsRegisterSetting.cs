@@ -22,10 +22,10 @@ namespace BinaryNinja
 		    IntPtr settings  , 
 			
 			// const char* key
-		    string key  , 
+		    [MarshalAs(UnmanagedType.LPUTF8Str)] string key  , 
 			
 			// const char* properties
-		    string properties  
+		    [MarshalAs(UnmanagedType.LPUTF8Str)] string properties  
 		);
 	}
 }

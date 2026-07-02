@@ -22,10 +22,10 @@ namespace BinaryNinja
 		    IntPtr instance  , 
 			
 			// const char* method
-		    string method  , 
+		    [MarshalAs(UnmanagedType.LPUTF8Str)] string method  , 
 			
 			// const char* url
-		    string url  , 
+		    [MarshalAs(UnmanagedType.LPUTF8Str)] string url  , 
 			
 			// uint64_t headerCount
 		    ulong headerCount  , 

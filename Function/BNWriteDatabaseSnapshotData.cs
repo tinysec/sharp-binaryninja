@@ -31,7 +31,7 @@ namespace BinaryNinja
 		    IntPtr file  , 
 			
 			// const char* name
-		    string name  , 
+		    [MarshalAs(UnmanagedType.LPUTF8Str)] string name  , 
 			
 			// BNKeyValueStore* data
 		    IntPtr data  , 

@@ -23,7 +23,7 @@ namespace BinaryNinja
 		    IntPtr initialView   , 
 			
 			// const char* options
-		    string options  
+		    [MarshalAs(UnmanagedType.LPUTF8Str)] string options  
 		);
 	}
 }

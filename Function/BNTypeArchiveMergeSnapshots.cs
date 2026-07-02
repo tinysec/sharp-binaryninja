@@ -22,13 +22,13 @@ namespace BinaryNinja
 		    IntPtr archive  , 
 			
 			// const char* baseSnapshot
-		    string baseSnapshot  , 
+		    [MarshalAs(UnmanagedType.LPUTF8Str)] string baseSnapshot  , 
 			
 			// const char* firstSnapshot
-		    string firstSnapshot  , 
+		    [MarshalAs(UnmanagedType.LPUTF8Str)] string firstSnapshot  , 
 			
 			// const char* secondSnapshot
-		    string secondSnapshot  , 
+		    [MarshalAs(UnmanagedType.LPUTF8Str)] string secondSnapshot  , 
 			
 			// const char** mergeConflictKeysIn
 		    string[] mergeConflictKeysIn  , 

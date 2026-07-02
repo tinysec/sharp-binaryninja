@@ -49,7 +49,7 @@ namespace BinaryNinja
 		    ulong ctxCount  , 
 			
 			// const char* language
-		    string language  
+		    [MarshalAs(UnmanagedType.LPUTF8Str)] string language  
 			
 		);
 	}

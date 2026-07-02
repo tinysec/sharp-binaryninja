@@ -27,7 +27,7 @@ namespace BinaryNinja
 		public static extern void BNSetBundledPluginDirectory(
 			
 			// const char* path
-		    string path  
+		    [MarshalAs(UnmanagedType.LPUTF8Str)] string path  
 		);
 	}
 }

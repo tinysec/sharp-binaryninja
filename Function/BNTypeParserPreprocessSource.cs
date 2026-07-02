@@ -22,10 +22,10 @@ namespace BinaryNinja
 		    IntPtr parser  , 
 			
 			// const char* source
-		    string source  , 
+		    [MarshalAs(UnmanagedType.LPUTF8Str)] string source  , 
 			
 			// const char* fileName
-		    string fileName  , 
+		    [MarshalAs(UnmanagedType.LPUTF8Str)] string fileName  , 
 			
 			// BNPlatform* platform
 		    IntPtr platform  , 

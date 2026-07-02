@@ -32,10 +32,10 @@ namespace BinaryNinja
 		internal static extern MessageBoxButtonResult BNShowMessageBox(
 			
 			// const char* title
-		    string title  , 
+		    [MarshalAs(UnmanagedType.LPUTF8Str)] string title  , 
 			
 			// const char* text
-		    string text  , 
+		    [MarshalAs(UnmanagedType.LPUTF8Str)] string text  , 
 			
 			// BNMessageBoxButtonSet buttons
 		    MessageBoxButtonSet buttons  , 

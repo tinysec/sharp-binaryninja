@@ -22,10 +22,10 @@ namespace BinaryNinja
 		    IntPtr settings  , 
 			
 			// const char* _group
-		    string _group  , 
+		    [MarshalAs(UnmanagedType.LPUTF8Str)] string _group  , 
 			
 			// const char* title
-		    string title  
+		    [MarshalAs(UnmanagedType.LPUTF8Str)] string title  
 		);
 	}
 }

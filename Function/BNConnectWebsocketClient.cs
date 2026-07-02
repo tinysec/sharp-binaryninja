@@ -22,7 +22,7 @@ namespace BinaryNinja
 		    IntPtr client  , 
 			
 			// const char* url
-		    string url  , 
+		    [MarshalAs(UnmanagedType.LPUTF8Str)] string url  , 
 			
 			// uint64_t headerCount
 		    ulong headerCount  , 

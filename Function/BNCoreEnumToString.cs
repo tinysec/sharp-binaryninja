@@ -19,7 +19,7 @@ namespace BinaryNinja
 		internal static extern bool BNCoreEnumToString(
 			
 			// const char* enumName
-		    string enumName  , 
+		    [MarshalAs(UnmanagedType.LPUTF8Str)] string enumName  , 
 			
 			// uint64_t _value
 		    ulong _value  , 

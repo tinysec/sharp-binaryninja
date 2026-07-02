@@ -22,10 +22,10 @@ namespace BinaryNinja
 		    IntPtr container  , 
 			
 			// const char* source
-		    string source  , 
+		    [MarshalAs(UnmanagedType.LPUTF8Str)] string source  , 
 			
 			// const char* fileName
-		    string fileName  , 
+		    [MarshalAs(UnmanagedType.LPUTF8Str)] string fileName  , 
 			
 			// const char** options
 		    string[] options  , 
@@ -40,7 +40,7 @@ namespace BinaryNinja
 		    ulong includeDirCount  , 
 			
 			// const char* autoTypeSource
-		    string autoTypeSource  , 
+		    [MarshalAs(UnmanagedType.LPUTF8Str)] string autoTypeSource  , 
 			
 			// bool importDepencencies
 		    bool importDepencencies  , 

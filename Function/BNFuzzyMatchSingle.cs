@@ -19,10 +19,10 @@ namespace BinaryNinja
 		internal static extern ulong BNFuzzyMatchSingle(
 			
 			// const char* target
-		    string target  , 
+		    [MarshalAs(UnmanagedType.LPUTF8Str)] string target  , 
 			
 			// const char* query
-		    string query  
+		    [MarshalAs(UnmanagedType.LPUTF8Str)] string query  
 			
 		);
 	}

@@ -44,10 +44,10 @@ namespace BinaryNinja
 		    out IntPtr result  , 
 			
 			// const char* prompt
-		    string prompt  , 
+		    [MarshalAs(UnmanagedType.LPUTF8Str)] string prompt  , 
 			
 			// const char* ext
-		    string ext  
+		    [MarshalAs(UnmanagedType.LPUTF8Str)] string ext  
 		);
 	}
 }

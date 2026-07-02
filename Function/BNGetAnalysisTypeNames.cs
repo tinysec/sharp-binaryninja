@@ -25,7 +25,7 @@ namespace BinaryNinja
 		    out ulong count  , 
 			
 			// const char* matching
-		    string matching  
+		    [MarshalAs(UnmanagedType.LPUTF8Str)] string matching  
 		);
 	}
 }

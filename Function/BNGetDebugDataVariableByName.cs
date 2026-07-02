@@ -22,10 +22,10 @@ namespace BinaryNinja
 		    IntPtr debugInfo  , 
 			
 			// const char* parserName
-		    string parserName  , 
+		    [MarshalAs(UnmanagedType.LPUTF8Str)] string parserName  , 
 			
 			// const char* variableName
-		    string variableName  , 
+		    [MarshalAs(UnmanagedType.LPUTF8Str)] string variableName  , 
 			
 			// BNDataVariableAndName* _var
 		    IntPtr _var  

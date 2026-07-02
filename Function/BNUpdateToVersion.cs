@@ -19,10 +19,10 @@ namespace BinaryNinja
 		internal static extern UpdateResult BNUpdateToVersion(
 			
 			// const char* channel
-		    string channel  , 
+		    [MarshalAs(UnmanagedType.LPUTF8Str)] string channel  , 
 			
 			// const char* version
-		    string version  , 
+		    [MarshalAs(UnmanagedType.LPUTF8Str)] string version  , 
 			
 			// const char** errors
 		    string[] errors  , 

@@ -20,7 +20,7 @@ namespace BinaryNinja
 		internal static extern BNQualifiedName BNRustSimplifyStrToFQN(
 			
 			// const char* const
-		    string @const   , 
+		    [MarshalAs(UnmanagedType.LPUTF8Str)] string @const   , 
 			
 			// bool
 		    bool arg1  

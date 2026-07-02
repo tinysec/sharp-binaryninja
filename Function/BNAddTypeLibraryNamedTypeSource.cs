@@ -25,7 +25,7 @@ namespace BinaryNinja
 		    in BNQualifiedName name  , 
 			
 			// const char* source
-		    string source  
+		    [MarshalAs(UnmanagedType.LPUTF8Str)] string source  
 		);
 	}
 }

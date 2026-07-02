@@ -22,7 +22,7 @@ namespace BinaryNinja
 		    IntPtr view  , 
 			
 			// const char* valueText
-		    string valueText  , 
+		    [MarshalAs(UnmanagedType.LPUTF8Str)] string valueText  , 
 			
 			// BNRegisterValueType state
 		    RegisterValueType state  , 

@@ -19,7 +19,7 @@ namespace BinaryNinja
 		internal static extern IntPtr BNCreateActivity(
 			
 			// const char* configuration
-		    string configuration  , 
+		    [MarshalAs(UnmanagedType.LPUTF8Str)] string configuration  , 
 			
 			// void* ctxt
 		    IntPtr ctxt  , 

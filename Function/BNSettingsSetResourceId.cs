@@ -22,7 +22,7 @@ namespace BinaryNinja
 		    IntPtr settings  , 
 			
 			// const char* resourceId
-		    string resourceId  
+		    [MarshalAs(UnmanagedType.LPUTF8Str)] string resourceId  
 		);
 	}
 }

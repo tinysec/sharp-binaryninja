@@ -20,7 +20,7 @@ namespace BinaryNinja
 		internal static extern IntPtr BNGetCustomStringTypeByName(
 			
 			// const char* name
-		    string name  
+		    [MarshalAs(UnmanagedType.LPUTF8Str)] string name  
 		);
 	}
 }

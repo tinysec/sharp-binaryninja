@@ -20,7 +20,7 @@ namespace BinaryNinja
 		internal static extern IntPtr BNRegisterStringRecognizer(
 			
 			// const char* name
-		    string name   , 
+		    [MarshalAs(UnmanagedType.LPUTF8Str)] string name   , 
 			
 			// BNCustomStringRecognizer* recognizer
 		    IntPtr recognizer  

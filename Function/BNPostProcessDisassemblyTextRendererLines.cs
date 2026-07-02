@@ -37,7 +37,7 @@ namespace BinaryNinja
 		    IntPtr outCount  , 
 			
 			// const char* indentSpaces
-		    string indentSpaces  
+		    [MarshalAs(UnmanagedType.LPUTF8Str)] string indentSpaces  
 			
 		);
 	}

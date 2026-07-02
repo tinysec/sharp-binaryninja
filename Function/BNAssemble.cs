@@ -22,7 +22,7 @@ namespace BinaryNinja
 		    IntPtr arch  , 
 			
 			// const char* code
-		    string code  , 
+		    [MarshalAs(UnmanagedType.LPUTF8Str)] string code  , 
 			
 			// uint64_t addr
 		    ulong addr  , 

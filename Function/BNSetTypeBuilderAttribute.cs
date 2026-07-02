@@ -22,10 +22,10 @@ namespace BinaryNinja
 		    IntPtr type  , 
 			
 			// const char* name
-		    string name  , 
+		    [MarshalAs(UnmanagedType.LPUTF8Str)] string name  , 
 			
 			// const char* _value
-		    string _value  
+		    [MarshalAs(UnmanagedType.LPUTF8Str)] string _value  
 			
 		);
 	}

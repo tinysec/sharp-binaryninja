@@ -22,10 +22,10 @@ namespace BinaryNinja
 		    IntPtr workflow  , 
 			
 			// const char* name
-		    string name  , 
+		    [MarshalAs(UnmanagedType.LPUTF8Str)] string name  , 
 			
 			// const char* activity
-		    string activity  
+		    [MarshalAs(UnmanagedType.LPUTF8Str)] string activity  
 		);
 	}
 }

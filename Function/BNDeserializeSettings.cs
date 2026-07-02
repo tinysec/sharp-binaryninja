@@ -22,7 +22,7 @@ namespace BinaryNinja
 		    IntPtr settings  , 
 			
 			// const char* contents
-		    string contents  , 
+		    [MarshalAs(UnmanagedType.LPUTF8Str)] string contents  , 
 			
 			// BNBinaryView* view
 		    IntPtr view  , 

@@ -27,7 +27,7 @@ namespace BinaryNinja
 		public static extern void BNSetLicense(
 			
 			// const char* licenseData
-		    string licenseData  
+		    [MarshalAs(UnmanagedType.LPUTF8Str)] string licenseData  
 		);
 	}
 }

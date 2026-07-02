@@ -22,7 +22,7 @@ namespace BinaryNinja
 		    IntPtr remote  , 
 			
 			// const char* prefix
-		    string prefix  , 
+		    [MarshalAs(UnmanagedType.LPUTF8Str)] string prefix  , 
 			
 			// uint64_t** groupIds
 		    IntPtr groupIds  , 

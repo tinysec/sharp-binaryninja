@@ -22,7 +22,7 @@ namespace BinaryNinja
 		    IntPtr view  , 
 			
 			// const char* name
-		    string name  , 
+		    [MarshalAs(UnmanagedType.LPUTF8Str)] string name  , 
 			
 			// uint64_t start
 		    ulong start  , 
@@ -34,7 +34,7 @@ namespace BinaryNinja
 		    SectionSemantics semantics  , 
 			
 			// const char* type
-		    string kind  , 
+		    [MarshalAs(UnmanagedType.LPUTF8Str)] string kind  , 
 			
 			// uint64_t align
 		    ulong align  , 
@@ -43,10 +43,10 @@ namespace BinaryNinja
 		    ulong entrySize  , 
 			
 			// const char* linkedSection
-		    string linkedSection  , 
+		    [MarshalAs(UnmanagedType.LPUTF8Str)] string linkedSection  , 
 			
 			// const char* infoSection
-		    string infoSection  , 
+		    [MarshalAs(UnmanagedType.LPUTF8Str)] string infoSection  , 
 			
 			// uint64_t infoData
 		    ulong infoData  

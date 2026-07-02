@@ -22,10 +22,10 @@ namespace BinaryNinja
 		    IntPtr provider  , 
 			
 			// const char* repository
-		    string repository  , 
+		    [MarshalAs(UnmanagedType.LPUTF8Str)] string repository  , 
 			
 			// const char* module
-		    string module  , 
+		    [MarshalAs(UnmanagedType.LPUTF8Str)] string module  , 
 			
 			// bool force
 		    bool force  
