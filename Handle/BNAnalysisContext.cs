@@ -373,5 +373,57 @@ namespace BinaryNinja
                 0
             );
         }
+
+        // ---------------------------------------------------------------------
+        // Section / segment navigation (mirror Python AnalysisContext.get_sections etc.)
+        // ---------------------------------------------------------------------
+
+        /// <summary>The sections cached in this analysis context.</summary>
+        public unsafe Section[] GetSections()
+        {
+            ulong count = 0;
+            IntPtr arrayPointer = NativeMethods.BNAnalysisContextGetSections(this.handle, (IntPtr)(&count));
+
+            return UnsafeUtils.TakeHandleArrayEx<Section>(
+                arrayPointer,
+                count,
+                Section.MustNewFromHandle,
+                NativeMethods.BNFreeSectionList
+            );
+        }
+
+        /// <summary>The section with the given name in this analysis context, or null.</summary>
+        public Section? GetSectionByName(string name)
+        {
+            return Section.TakeHandle(
+                NativeMethods.BNAnalysisContextGetSectionByName(this.handle, name ?? string.Empty)
+            );
+        }
+
+        /// <summary>The sections that contain the given address in this analysis context.</summary>
+        public unsafe Section[] GetSectionsAt(ulong address)
+        {
+            ulong count = 0;
+            IntPtr arrayPointer = NativeMethods.BNAnalysisContextGetSectionsAt(
+                this.handle,
+                address,
+                (IntPtr)(&count)
+            );
+
+            return UnsafeUtils.TakeHandleArrayEx<Section>(
+                arrayPointer,
+                count,
+                Section.MustNewFromHandle,
+                NativeMethods.BNFreeSectionList
+            );
+        }
+
+        /// <summary>The segment that contains the given address in this analysis context, or null.</summary>
+        public Segment? GetSegmentAt(ulong address)
+        {
+            return Segment.TakeHandle(
+                NativeMethods.BNAnalysisContextGetSegmentAt(this.handle, address)
+            );
+        }
     }
 }

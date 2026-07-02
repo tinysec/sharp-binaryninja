@@ -93,6 +93,31 @@ namespace BinaryNinja
         }
 
         /// <summary>
+        /// Gets the default type printer, selected by the "analysis.types.printerName" setting.
+        /// Mirrors Python TypePrinter.default (there is no dedicated core symbol; the default is
+        /// the registered printer named by that setting). Returns null if unset or not registered.
+        /// </summary>
+        public static TypePrinter? GetDefault()
+        {
+            using (Settings settings = new Settings())
+            {
+                string name = settings.GetString(
+                    "analysis.types.printerName",
+                    null,
+                    null,
+                    out SettingsScope scope
+                );
+
+                if (string.IsNullOrEmpty(name))
+                {
+                    return null;
+                }
+
+                return TypePrinter.GetByName(name);
+            }
+        }
+
+        /// <summary>
         /// Gets the full type definition lines for a type, rendered through this printer.
         /// </summary>
         /// <param name="type">The type to render.</param>
