@@ -18,7 +18,9 @@ namespace BinaryNinja
 		internal static extern IntPtr BNCreateMetadataBooleanListData(
 			
 			// bool* data
-		    bool[] data  , 
+			// Native bool is 1 byte; the default managed bool[] marshals as 4-byte Win32 BOOL,
+			// which mis-packs the array. Marshal each element as a single byte.
+		    [MarshalAs(UnmanagedType.LPArray, ArraySubType = UnmanagedType.U1)] bool[] data  ,
 			
 			// uint64_t size
 		    ulong size  
