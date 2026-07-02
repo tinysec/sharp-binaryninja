@@ -3998,7 +3998,9 @@ namespace BinaryNinja
 			    return null;
 		    }
 
-		    return Marshal.PtrToStringAnsi(resultPtr);
+		    // Core returns an owned UTF-8 char* (the C++ API frees it with BNFreeString);
+		    // TakeUtf8String decodes as UTF-8 and frees, matching that ownership.
+		    return UnsafeUtils.TakeUtf8String(resultPtr);
 	    }
 
 	    /// <summary>
