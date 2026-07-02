@@ -134,6 +134,22 @@ namespace BinaryNinja
 		    }
 	    }
 
+	    // Resolves an optional architecture argument to a native BNArchitecture* handle,
+	    // defaulting to this function's own architecture when the caller does not specify one.
+	    // Core APIs that take a BNArchitecture* dereference it, so an unspecified architecture
+	    // must resolve to a valid handle rather than a null pointer -- passing IntPtr.Zero here
+	    // crashes the core. The Architecture wrapper is non-owning, so returning its raw handle
+	    // is safe.
+	    private IntPtr ArchHandleOrDefault(Architecture? arch)
+	    {
+		    if (null != arch)
+		    {
+			    return arch.DangerousGetHandle();
+		    }
+
+		    return this.Architecture.DangerousGetHandle();
+	    }
+
 	    public Platform? Platform
 	    {
 		    get
@@ -1043,7 +1059,7 @@ namespace BinaryNinja
 	    {
 		    NativeMethods.BNAddUserCodeReference(
 			    this.handle ,
-			    null == arch ? IntPtr.Zero : arch.DangerousGetHandle() ,
+			    this.ArchHandleOrDefault(arch) ,
 			    fromAddress ,
 			    toAddress
 		    );
@@ -1057,7 +1073,7 @@ namespace BinaryNinja
 	    {
 		    NativeMethods.BNRemoveUserCodeReference(
 			    this.handle ,
-			    null == arch ? IntPtr.Zero : arch.DangerousGetHandle() ,
+			    this.ArchHandleOrDefault(arch) ,
 			    fromAddress ,
 			    toAddress
 		    );
@@ -1072,7 +1088,7 @@ namespace BinaryNinja
 		    return RegisterValue.FromNative(
 			    NativeMethods.BNGetRegisterValueAtInstruction(
 				    this.handle ,
-				    null == arch ? IntPtr.Zero : arch.DangerousGetHandle() ,
+				    this.ArchHandleOrDefault(arch) ,
 				    address ,
 				    reg
 			    )
@@ -1088,7 +1104,7 @@ namespace BinaryNinja
 		    return RegisterValue.FromNative(
 			    NativeMethods.BNGetRegisterValueAfterInstruction(
 				    this.handle ,
-				    null == arch ? IntPtr.Zero : arch.DangerousGetHandle() ,
+				    this.ArchHandleOrDefault(arch) ,
 				    address ,
 				    reg
 			    )
@@ -1106,7 +1122,7 @@ namespace BinaryNinja
 		    return RegisterValue.FromNative(
 			    NativeMethods.BNGetStackContentsAtInstruction(
 				    this.handle ,
-				    null == arch ? IntPtr.Zero : arch.DangerousGetHandle() ,
+				    this.ArchHandleOrDefault(arch) ,
 				    address ,
 				    offset,
 				    size
@@ -1124,7 +1140,7 @@ namespace BinaryNinja
 		    return RegisterValue.FromNative(
 			    NativeMethods.BNGetStackContentsAfterInstruction(
 				    this.handle ,
-				    null == arch ? IntPtr.Zero : arch.DangerousGetHandle() ,
+				    this.ArchHandleOrDefault(arch) ,
 				    address ,
 				    offset,
 				    size
@@ -1143,7 +1159,7 @@ namespace BinaryNinja
 		    return RegisterValue.FromNative(
 			    NativeMethods.BNGetParameterValueAtInstruction(
 				    this.handle ,
-				    null == arch ? IntPtr.Zero : arch.DangerousGetHandle() ,
+				    this.ArchHandleOrDefault(arch) ,
 				    address ,
 				    null == type ? IntPtr.Zero : type.DangerousGetHandle() ,
 				    index
@@ -1184,7 +1200,7 @@ namespace BinaryNinja
 		    return BasicBlock.TakeHandle(
 			    NativeMethods.BNGetFunctionBasicBlockAtAddress(
 				    this.handle, 
-				    null == arch ? IntPtr.Zero : arch.DangerousGetHandle(),
+				    this.ArchHandleOrDefault(arch),
 				    address)
 		    );
 	    }
@@ -1319,7 +1335,7 @@ namespace BinaryNinja
 	    {
 		    IntPtr arrayPointer = NativeMethods.BNGetMediumLevelILVariableReferencesFrom(
 			    this.handle,
-			    null == arch? IntPtr.Zero : arch.DangerousGetHandle(),
+			    this.ArchHandleOrDefault(arch),
 			    address,
 			    out ulong arrayLength
 		    );
@@ -1339,7 +1355,7 @@ namespace BinaryNinja
 	    {
 		    IntPtr arrayPointer = NativeMethods.BNGetHighLevelILVariableReferencesFrom(
 			    this.handle,
-			    null == arch? IntPtr.Zero : arch.DangerousGetHandle(),
+			    this.ArchHandleOrDefault(arch),
 			    address,
 			    out ulong arrayLength
 		    );
@@ -1356,7 +1372,7 @@ namespace BinaryNinja
 	    {
 		    bool ok = NativeMethods.BNGetInstructionContainingAddress(
 			    this.handle, 
-			    null == arch ? IntPtr.Zero : arch.DangerousGetHandle(),
+			    this.ArchHandleOrDefault(arch),
 			    address,
 			    out ulong start
 			);
@@ -1378,7 +1394,7 @@ namespace BinaryNinja
 	    {
 		    bool ok = NativeMethods.BNGetFunctionBlockSortHint(
 			    this.handle ,
-			    null == arch ? IntPtr.Zero : arch.DangerousGetHandle() ,
+			    this.ArchHandleOrDefault(arch) ,
 			    address ,
 			    out long result
 		    );
@@ -2877,7 +2893,7 @@ namespace BinaryNinja
 
 			    IntPtr arrayPointer = NativeMethods.BNGetRegistersReadByInstruction(
 				    this.handle ,
-				    null == arch ? IntPtr.Zero : arch.DangerousGetHandle() ,
+				    this.ArchHandleOrDefault(arch) ,
 				    addr ,
 				    countPtr
 			    );
@@ -2905,7 +2921,7 @@ namespace BinaryNinja
 
 			    IntPtr arrayPointer = NativeMethods.BNGetRegistersWrittenByInstruction(
 				    this.handle ,
-				    null == arch ? IntPtr.Zero : arch.DangerousGetHandle() ,
+				    this.ArchHandleOrDefault(arch) ,
 				    addr ,
 				    countPtr
 			    );
