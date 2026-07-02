@@ -21,12 +21,12 @@ namespace BinaryNinja
 		/// <summary>
 		/// bool indirect
 		/// </summary>
-		internal bool indirect;
+		[MarshalAs(UnmanagedType.I1)] internal bool indirect;
 
 		/// <summary>
 		/// bool returnedPointerValid
 		/// </summary>
-		internal bool returnedPointerValid;
+		[MarshalAs(UnmanagedType.I1)] internal bool returnedPointerValid;
 
 		/// <summary>
 		/// BNVariable returnedPointer

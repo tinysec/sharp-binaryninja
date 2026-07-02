@@ -21,7 +21,7 @@ namespace BinaryNinja
 		/// <summary>
 		/// bool after
 		/// </summary>
-		internal bool after;
+		[MarshalAs(UnmanagedType.I1)] internal bool after;
 		
 		/// <summary>
 		/// BNPossibleValueSet value

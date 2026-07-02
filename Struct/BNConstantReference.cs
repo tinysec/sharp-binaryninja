@@ -21,12 +21,12 @@ namespace BinaryNinja
 		/// <summary>
 		/// bool pointer
 		/// </summary>
-		public bool pointer;
+		[MarshalAs(UnmanagedType.I1)] public bool pointer;
 		
 		/// <summary>
 		/// bool intermediate
 		/// </summary>
-		public bool intermediate;
+		[MarshalAs(UnmanagedType.I1)] public bool intermediate;
 	}
 
     public sealed class ConstantReference 

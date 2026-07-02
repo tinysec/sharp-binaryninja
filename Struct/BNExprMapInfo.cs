@@ -21,22 +21,22 @@ namespace BinaryNinja
 		/// <summary>
 		/// bool mapLowerToHigher
 		/// </summary>
-		public bool mapLowerToHigher;
+		[MarshalAs(UnmanagedType.I1)] public bool mapLowerToHigher;
 		
 		/// <summary>
 		/// bool mapHigherToLower
 		/// </summary>
-		public bool mapHigherToLower;
+		[MarshalAs(UnmanagedType.I1)] public bool mapHigherToLower;
 		
 		/// <summary>
 		/// bool lowerToHigherDirect
 		/// </summary>
-		public bool lowerToHigherDirect;
+		[MarshalAs(UnmanagedType.I1)] public bool lowerToHigherDirect;
 		
 		/// <summary>
 		/// bool higherToLowerDirect
 		/// </summary>
-		public bool higherToLowerDirect;
+		[MarshalAs(UnmanagedType.I1)] public bool higherToLowerDirect;
 	}
 
     public class ExprMapInfo 

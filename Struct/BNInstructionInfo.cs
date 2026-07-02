@@ -24,7 +24,7 @@ namespace BinaryNinja
 		/// 
 		/// bool archTransitionByTargetAddr
 		/// </summary>
-		internal bool archTransitionByTargetAddr;
+		[MarshalAs(UnmanagedType.I1)] internal bool archTransitionByTargetAddr;
 		
 		/// <summary>
 		/// 

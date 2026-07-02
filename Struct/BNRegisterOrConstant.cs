@@ -11,7 +11,7 @@ namespace BinaryNinja
 		/// <summary>
 		/// bool constant
 		/// </summary>
-		internal bool constant;
+		[MarshalAs(UnmanagedType.I1)] internal bool constant;
 		
 		/// <summary>
 		/// uint32_t reg

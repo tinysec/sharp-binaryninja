@@ -11,7 +11,7 @@ namespace BinaryNinja
 		/// <summary>
 		/// bool resolved
 		/// </summary>
-		internal bool resolved;
+		[MarshalAs(UnmanagedType.I1)] internal bool resolved;
 		
 		/// <summary>
 		/// uint64_t _ref
