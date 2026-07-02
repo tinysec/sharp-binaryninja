@@ -26,7 +26,7 @@ namespace BinaryNinja
 		/// <summary>
 		/// bool fallThrough
 		/// </summary>
-		public bool fallThrough;
+		[MarshalAs(UnmanagedType.I1)] public bool fallThrough;
 	}
 
     public sealed class PendingBasicBlockEdge 

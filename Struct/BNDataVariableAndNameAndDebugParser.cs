@@ -31,7 +31,7 @@ namespace BinaryNinja
 		/// <summary>
 		/// bool autoDiscovered
 		/// </summary>
-		public bool autoDiscovered;
+		[MarshalAs(UnmanagedType.I1)] public bool autoDiscovered;
 		
 		/// <summary>
 		/// uint8_t typeConfidence

@@ -21,7 +21,7 @@ namespace BinaryNinja
 		/// <summary>
 		/// bool isDefault
 		/// </summary>
-		public bool isDefault;
+		[MarshalAs(UnmanagedType.I1)] public bool isDefault;
 	}
 
     public class EnumerationMember 

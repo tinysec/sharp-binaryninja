@@ -11,7 +11,7 @@ namespace BinaryNinja
 		/// <summary>
 		/// bool value
 		/// </summary>
-		public bool value;
+		[MarshalAs(UnmanagedType.I1)] public bool value;
 		
 		/// <summary>
 		/// uint8_t confidence

@@ -71,7 +71,7 @@ namespace BinaryNinja
 		/// <summary>
 		/// bool hasDefault
 		/// </summary>
-		internal bool hasDefault;
+		[MarshalAs(UnmanagedType.I1)] internal bool hasDefault;
 		
 		/// <summary>
 		/// int64_t intDefault

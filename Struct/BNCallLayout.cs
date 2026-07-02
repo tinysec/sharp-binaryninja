@@ -21,7 +21,7 @@ namespace BinaryNinja
 		/// <summary>
 		/// bool returnValueValid
 		/// </summary>
-		internal bool returnValueValid;
+		[MarshalAs(UnmanagedType.I1)] internal bool returnValueValid;
 
 		/// <summary>
 		/// BNValueLocation returnValue

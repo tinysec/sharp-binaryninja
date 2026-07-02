@@ -21,7 +21,7 @@ namespace BinaryNinja
 		/// <summary>
 		/// bool defaultLocation
 		/// </summary>
-		internal bool defaultLocation;
+		[MarshalAs(UnmanagedType.I1)] internal bool defaultLocation;
 
 		/// <summary>
 		/// BNValueLocation location

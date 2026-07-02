@@ -11,7 +11,7 @@ namespace BinaryNinja
 		/// <summary>
 		/// bool hasTypeInfo
 		/// </summary>
-		internal bool hasTypeInfo;
+		[MarshalAs(UnmanagedType.I1)] internal bool hasTypeInfo;
 		
 		/// <summary>
 		/// BNType* parentType

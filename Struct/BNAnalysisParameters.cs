@@ -36,7 +36,7 @@ namespace BinaryNinja
 		/// <summary>
 		/// bool suppressNewAutoFunctionAnalysis
 		/// </summary>
-		internal bool suppressNewAutoFunctionAnalysis;
+		[MarshalAs(UnmanagedType.I1)] internal bool suppressNewAutoFunctionAnalysis;
 		
 		/// <summary>
 		/// BNAnalysisMode mode
@@ -46,7 +46,7 @@ namespace BinaryNinja
 		/// <summary>
 		/// bool alwaysAnalyzeIndirectBranches
 		/// </summary>
-		internal bool alwaysAnalyzeIndirectBranches;
+		[MarshalAs(UnmanagedType.I1)] internal bool alwaysAnalyzeIndirectBranches;
 		
 		/// <summary>
 		/// uint64_t advancedAnalysisCacheSize

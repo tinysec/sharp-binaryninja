@@ -21,22 +21,22 @@ namespace BinaryNinja
 		/// <summary>
 		/// bool guidedAnalysisMode
 		/// </summary>
-		public bool guidedAnalysisMode;
+		[MarshalAs(UnmanagedType.I1)] public bool guidedAnalysisMode;
 		
 		/// <summary>
 		/// bool triggerGuidedOnInvalidInstruction
 		/// </summary>
-		public bool triggerGuidedOnInvalidInstruction;
+		[MarshalAs(UnmanagedType.I1)] public bool triggerGuidedOnInvalidInstruction;
 		
 		/// <summary>
 		/// bool translateTailCalls
 		/// </summary>
-		public bool translateTailCalls;
+		[MarshalAs(UnmanagedType.I1)] public bool translateTailCalls;
 		
 		/// <summary>
 		/// bool disallowBranchToString
 		/// </summary>
-		public bool disallowBranchToString;
+		[MarshalAs(UnmanagedType.I1)] public bool disallowBranchToString;
 		
 		/// <summary>
 		/// uint64_t maxFunctionSize
@@ -66,7 +66,7 @@ namespace BinaryNinja
 		/// <summary>
 		/// bool maxSizeReached
 		/// </summary>
-		public bool maxSizeReached;
+		[MarshalAs(UnmanagedType.I1)] public bool maxSizeReached;
 		
 		/// <summary>
 		/// uint64_t contextualFunctionReturnCount

@@ -21,7 +21,7 @@ namespace BinaryNinja
 		/// <summary>
 		/// bool isUser
 		/// </summary>
-		internal bool isUser;
+		[MarshalAs(UnmanagedType.I1)] internal bool isUser;
 	}
 
     public sealed class ParsedType : INativeWrapperEx<BNParsedType>

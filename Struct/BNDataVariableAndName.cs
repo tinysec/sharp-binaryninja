@@ -26,7 +26,7 @@ namespace BinaryNinja
 		/// <summary>
 		/// bool autoDiscovered
 		/// </summary>
-		internal bool autoDiscovered;
+		[MarshalAs(UnmanagedType.I1)] internal bool autoDiscovered;
 		
 		/// <summary>
 		/// uint8_t typeConfidence

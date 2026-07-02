@@ -31,7 +31,7 @@ namespace BinaryNinja
 		/// <summary>
 		/// bool autoDefined
 		/// </summary>
-		public bool autoDefined;
+		[MarshalAs(UnmanagedType.I1)] public bool autoDefined;
 	}
 
     public sealed class IndirectBranchInfo 

@@ -16,12 +16,12 @@ namespace BinaryNinja
 		/// <summary>
 		/// bool pcRelative
 		/// </summary>
-		public bool pcRelative;
+		[MarshalAs(UnmanagedType.I1)] public bool pcRelative;
 		
 		/// <summary>
 		/// bool baseRelative
 		/// </summary>
-		public bool baseRelative;
+		[MarshalAs(UnmanagedType.I1)] public bool baseRelative;
 		
 		/// <summary>
 		/// uint64_t _base
@@ -51,17 +51,17 @@ namespace BinaryNinja
 		/// <summary>
 		/// bool hasSign
 		/// </summary>
-		public bool hasSign;
+		[MarshalAs(UnmanagedType.I1)] public bool hasSign;
 		
 		/// <summary>
 		/// bool implicitAddend
 		/// </summary>
-		public bool implicitAddend;
+		[MarshalAs(UnmanagedType.I1)] public bool implicitAddend;
 		
 		/// <summary>
 		/// bool external
 		/// </summary>
-		public bool external;
+		[MarshalAs(UnmanagedType.I1)] public bool external;
 		
 		/// <summary>
 		/// uint64_t symbolIndex
@@ -86,7 +86,7 @@ namespace BinaryNinja
 		/// <summary>
 		/// bool dataRelocation
 		/// </summary>
-		public bool dataRelocation;
+		[MarshalAs(UnmanagedType.I1)] public bool dataRelocation;
 		
 		/// <summary>
 		/// uint8_t[8] relocationDataCache

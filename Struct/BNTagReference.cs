@@ -16,7 +16,7 @@ namespace BinaryNinja
 		/// <summary>
 		/// bool autoDefined
 		/// </summary>
-		internal bool autoDefined;
+		[MarshalAs(UnmanagedType.I1)] internal bool autoDefined;
 		
 		/// <summary>
 		/// BNTag* tag

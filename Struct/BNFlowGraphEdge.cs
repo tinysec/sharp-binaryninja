@@ -31,7 +31,7 @@ namespace BinaryNinja
 		/// <summary>
 		/// bool backEdge
 		/// </summary>
-		internal bool backEdge;
+		[MarshalAs(UnmanagedType.I1)] internal bool backEdge;
 		
 		/// <summary>
 		/// BNEdgeStyle style
