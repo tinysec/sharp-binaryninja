@@ -259,6 +259,26 @@ namespace BinaryNinja
 			}
 		}
 
+		/// <summary>
+		/// The project that owns this file, navigating file -> ProjectFile -> Project, or null
+		/// when the file is not part of a project. Mirrors Python FileMetadata.project.
+		/// </summary>
+		public Project? Project
+		{
+			get
+			{
+				using (ProjectFile? file = this.ProjectFile)
+				{
+					if (null == file)
+					{
+						return null;
+					}
+
+					return file.Project;
+				}
+			}
+		}
+
 		public void CloseFile()
 		{
 			NativeMethods.BNCloseFile(this.handle);

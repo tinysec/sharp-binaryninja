@@ -86,8 +86,76 @@ namespace BinaryNinja
 	            NativeMethods.BNFreeProjectFile(this.handle);
 	            this.SetHandleAsInvalid();
 	        }
-	        
+
 	        return true;
+	    }
+
+	    // --- Identity --------------------------------------------------------
+
+	    /// <summary>The file's unique identifier.</summary>
+	    public string Id
+	    {
+		    get { return UnsafeUtils.TakeAnsiString(NativeMethods.BNProjectFileGetId(this.handle)); }
+	    }
+
+	    /// <summary>The file's display name within the project.</summary>
+	    public string Name
+	    {
+		    get { return UnsafeUtils.TakeAnsiString(NativeMethods.BNProjectFileGetName(this.handle)); }
+	    }
+
+	    /// <summary>The file's description.</summary>
+	    public string Description
+	    {
+		    get { return UnsafeUtils.TakeAnsiString(NativeMethods.BNProjectFileGetDescription(this.handle)); }
+	    }
+
+	    /// <summary>The absolute path of the file's backing content on disk.</summary>
+	    public string PathOnDisk
+	    {
+		    get { return UnsafeUtils.TakeAnsiString(NativeMethods.BNProjectFileGetPathOnDisk(this.handle)); }
+	    }
+
+	    // --- Navigation ------------------------------------------------------
+
+	    /// <summary>The project that owns this file. Mirrors Python ProjectFile.project.</summary>
+	    public Project? Project
+	    {
+		    get { return Project.TakeHandle(NativeMethods.BNProjectFileGetProject(this.handle)); }
+	    }
+
+	    /// <summary>The folder containing this file, or null when it lives at the project root.</summary>
+	    public ProjectFolder? Folder
+	    {
+		    get { return ProjectFolder.TakeHandle(NativeMethods.BNProjectFileGetFolder(this.handle)); }
+	    }
+
+	    /// <summary>The project files this file depends on. Mirrors Python ProjectFile.dependencies.</summary>
+	    public unsafe ProjectFile[] GetDependencies()
+	    {
+		    ulong count = 0;
+		    IntPtr arrayPointer = NativeMethods.BNProjectFileGetDependencies(this.handle, (IntPtr)(&count));
+
+		    return UnsafeUtils.TakeHandleArrayEx<ProjectFile>(
+			    arrayPointer,
+			    count,
+			    ProjectFile.MustNewFromHandle,
+			    NativeMethods.BNFreeProjectFileList
+		    );
+	    }
+
+	    /// <summary>The project files that depend on this file. Mirrors Python ProjectFile.required_by.</summary>
+	    public unsafe ProjectFile[] GetRequiredBy()
+	    {
+		    ulong count = 0;
+		    IntPtr arrayPointer = NativeMethods.BNProjectFileGetRequiredBy(this.handle, (IntPtr)(&count));
+
+		    return UnsafeUtils.TakeHandleArrayEx<ProjectFile>(
+			    arrayPointer,
+			    count,
+			    ProjectFile.MustNewFromHandle,
+			    NativeMethods.BNFreeProjectFileList
+		    );
 	    }
 	}
 }
