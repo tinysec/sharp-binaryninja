@@ -28,7 +28,7 @@ namespace BinaryNinja
 			BNQualifiedName[] libTypeNames  , 
 			
 			// const char** libNames
-		    string[] libNames  , 
+		    IntPtr libNames  , 
 			
 			// uint64_t count
 		    ulong count  
