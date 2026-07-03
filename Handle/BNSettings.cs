@@ -505,15 +505,23 @@ namespace BinaryNinja
 		    SettingsScope scope = SettingsScope.SettingsAutoScope
 	    )
 	    {
-		    return NativeMethods.BNSettingsSetStringList(
-			    this.handle, 
-			    null == view ? IntPtr.Zero : view.DangerousGetHandle() ,
-			    null == function ? IntPtr.Zero : function.DangerousGetHandle(),
-			    scope ,
-			    key,
-			    value,
-			    (ulong)value.Length
-		    );
+		    // BN expects the value list as a UTF-8 char** block. .NET cannot marshal a
+		    // string[] element as UTF-8 via [MarshalAs], so build the block by hand; the
+		    // core copies it, so freeing after the call (allocator dispose) is safe.
+		    using (ScopedAllocator allocator = new ScopedAllocator())
+		    {
+			    IntPtr valueBlock = allocator.AllocUtf8StringArray(value);
+
+			    return NativeMethods.BNSettingsSetStringList(
+				    this.handle,
+				    null == view ? IntPtr.Zero : view.DangerousGetHandle() ,
+				    null == function ? IntPtr.Zero : function.DangerousGetHandle(),
+				    scope ,
+				    key,
+				    valueBlock,
+				    (ulong)value.Length
+			    );
+		    }
 	    }
 	    
 	    public bool SetJson(
@@ -619,9 +627,16 @@ namespace BinaryNinja
 	    /// </summary>
 	    public bool UpdateStringListProperty(string key , string property , string[] value)
 	    {
-		    return NativeMethods.BNSettingsUpdateStringListProperty(
-			    this.handle , key , property , value , (ulong)value.Length
-		    );
+		    // Build the value list as a UTF-8 char** block (string[] cannot be UTF-8
+		    // marshaled by attribute); the core copies it, so free after the call.
+		    using (ScopedAllocator allocator = new ScopedAllocator())
+		    {
+			    IntPtr valueBlock = allocator.AllocUtf8StringArray(value);
+
+			    return NativeMethods.BNSettingsUpdateStringListProperty(
+				    this.handle , key , property , valueBlock , (ulong)value.Length
+			    );
+		    }
 	    }
 
 	    /// <summary>
