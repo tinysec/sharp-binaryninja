@@ -28,10 +28,10 @@ namespace BinaryNinja
 		    IntPtr input  , 
 			
 			// const char** output
-		    string[] output  , 
+		    out IntPtr output  , 
 			
 			// const char** error
-		    string[] error  , 
+		    out IntPtr error  , 
 			
 			// bool stdoutIsText
 		    bool stdoutIsText  , 

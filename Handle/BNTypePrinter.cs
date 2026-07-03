@@ -207,28 +207,26 @@ namespace BinaryNinja
                 throw new ArgumentNullException(nameof(platform));
             }
 
-            // 2. Prepare the output array for the result string pointer.
-            string[] result = new string[1];
-
             using (ScopedAllocator allocator = new ScopedAllocator())
             {
-                // 3. Call the native function.
+                // 2. Call the native function; result is a char* the core allocates.
+                IntPtr resultPointer;
                 bool ok = NativeMethods.BNGetTypePrinterTypeString(
                     this.handle ,
                     type.DangerousGetHandle() ,
                     platform.DangerousGetHandle() ,
                     allocator.AllocStruct<BNQualifiedName>(name.ToNativeEx(allocator)) ,
                     escaping ,
-                    result
+                    out resultPointer
                 );
 
-                // 4. Return the result string or null on failure.
+                // 3. Decode + free the result, or null on failure.
                 if (!ok)
                 {
                     return null;
                 }
 
-                return result[0];
+                return UnsafeUtils.TakeUtf8String(resultPointer);
             }
         }
 
@@ -256,25 +254,23 @@ namespace BinaryNinja
                 throw new ArgumentNullException(nameof(platform));
             }
 
-            // 2. Prepare the output array for the result string pointer.
-            string[] result = new string[1];
-
-            // 3. Call the native function.
+            // 2. Call the native function; result is a char* the core allocates.
+            IntPtr resultPointer;
             bool ok = NativeMethods.BNGetTypePrinterTypeStringAfterName(
                 this.handle ,
                 type.DangerousGetHandle() ,
                 platform.DangerousGetHandle() ,
                 escaping ,
-                result
+                out resultPointer
             );
 
-            // 4. Return the result string or null on failure.
+            // 3. Decode + free the result, or null on failure.
             if (!ok)
             {
                 return null;
             }
 
-            return result[0];
+            return UnsafeUtils.TakeUtf8String(resultPointer);
         }
 
         /// <summary>
@@ -301,25 +297,23 @@ namespace BinaryNinja
                 throw new ArgumentNullException(nameof(platform));
             }
 
-            // 2. Prepare the output array for the result string pointer.
-            string[] result = new string[1];
-
-            // 3. Call the native function.
+            // 2. Call the native function; result is a char* the core allocates.
+            IntPtr resultPointer;
             bool ok = NativeMethods.BNGetTypePrinterTypeStringBeforeName(
                 this.handle ,
                 type.DangerousGetHandle() ,
                 platform.DangerousGetHandle() ,
                 escaping ,
-                result
+                out resultPointer
             );
 
-            // 4. Return the result string or null on failure.
+            // 3. Decode + free the result, or null on failure.
             if (!ok)
             {
                 return null;
             }
 
-            return result[0];
+            return UnsafeUtils.TakeUtf8String(resultPointer);
         }
 
         /// <summary>
@@ -553,10 +547,8 @@ namespace BinaryNinja
                 }
                 IntPtr typesArray = allocator.AllocStructArray<IntPtr>(typeHandles);
 
-                // 3. Prepare the output array for the result string pointer.
-                string[] result = new string[1];
-
-                // 4. Call the native function.
+                // 3. Call the native function; result is a char* the core allocates.
+                IntPtr resultPointer;
                 bool ok = NativeMethods.BNTypePrinterDefaultPrintAllTypes(
                     printer.handle ,
                     namesArray ,
@@ -565,16 +557,16 @@ namespace BinaryNinja
                     data.DangerousGetHandle() ,
                     paddingCols ,
                     escaping ,
-                    result
+                    out resultPointer
                 );
 
-                // 5. Return the result or null on failure.
+                // 4. Decode + free the result, or null on failure.
                 if (!ok)
                 {
                     return null;
                 }
 
-                return result[0];
+                return UnsafeUtils.TakeUtf8String(resultPointer);
             }
         }
 
@@ -625,10 +617,8 @@ namespace BinaryNinja
                 }
                 IntPtr typesArray = allocator.AllocStructArray<IntPtr>(typeHandles);
 
-                // 3. Prepare the output array for the result string pointer.
-                string[] result = new string[1];
-
-                // 4. Call the native function.
+                // 3. Call the native function; result is a char* the core allocates.
+                IntPtr resultPointer;
                 bool ok = NativeMethods.BNTypePrinterPrintAllTypes(
                     this.handle ,
                     namesArray ,
@@ -637,16 +627,16 @@ namespace BinaryNinja
                     data.DangerousGetHandle() ,
                     paddingCols ,
                     escaping ,
-                    result
+                    out resultPointer
                 );
 
-                // 5. Return the result or null on failure.
+                // 4. Decode + free the result, or null on failure.
                 if (!ok)
                 {
                     return null;
                 }
 
-                return result[0];
+                return UnsafeUtils.TakeUtf8String(resultPointer);
             }
         }
 

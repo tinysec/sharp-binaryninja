@@ -28,7 +28,7 @@ namespace BinaryNinja
 		    [MarshalAs(UnmanagedType.LPUTF8Str)] string archiveTypeId  , 
 			
 			// const char** typeId
-		    string[] typeId  
+		    out IntPtr typeId  
 		);
 	}
 }

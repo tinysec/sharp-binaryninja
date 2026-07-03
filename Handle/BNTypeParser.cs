@@ -113,24 +113,22 @@ namespace BinaryNinja
         /// <returns>The display text for the option, or null on failure.</returns>
         public string? GetOptionText(TypeParserOption option , string value)
         {
-            // 1. Prepare the output array for the result string pointer.
-            string[] result = new string[1];
-
-            // 2. Call the native function.
+            // 1. Call the native function; result is a char* the core allocates.
+            IntPtr resultPointer;
             bool ok = NativeMethods.BNGetTypeParserOptionText(
                 this.handle ,
                 option ,
                 value ?? string.Empty ,
-                result
+                out resultPointer
             );
 
-            // 3. Return the result or null on failure.
+            // 2. Decode + free the result, or null on failure.
             if (!ok)
             {
                 return null;
             }
 
-            return result[0];
+            return UnsafeUtils.TakeUtf8String(resultPointer);
         }
 
         /// <summary>
@@ -309,49 +307,55 @@ namespace BinaryNinja
                 throw new ArgumentNullException(nameof(existingTypes));
             }
 
-            // 2. Prepare output variables.
-            string[] output = new string[1];
+            // 2. Prepare error output variables.
             IntPtr errorsPointer = IntPtr.Zero;
             ulong errorCount = 0;
 
-            // 3. Prepare safe arrays for options and include dirs.
             string[] safeOptions = options ?? Array.Empty<string>();
             string[] safeIncludeDirs = includeDirs ?? Array.Empty<string>();
 
-            // 4. Call the native function.
-            bool ok = NativeMethods.BNTypeParserPreprocessSource(
-                this.handle ,
-                source ?? string.Empty ,
-                fileName ?? string.Empty ,
-                platform.DangerousGetHandle() ,
-                existingTypes.DangerousGetHandle() ,
-                safeOptions ,
-                (ulong)safeOptions.Length ,
-                safeIncludeDirs ,
-                (ulong)safeIncludeDirs.Length ,
-                output ,
-                (IntPtr)(&errorsPointer) ,
-                (IntPtr)(&errorCount)
-            );
-
-            // 5. On success, return the preprocessed output.
-            if (ok)
+            using (ScopedAllocator allocator = new ScopedAllocator())
             {
-                errors = Array.Empty<TypeParserError>();
+                // 3. Build the const char** option / include-dir blocks as UTF-8.
+                IntPtr optionsBlock = allocator.AllocUtf8StringArray(safeOptions);
+                IntPtr includeDirsBlock = allocator.AllocUtf8StringArray(safeIncludeDirs);
 
-                return output[0];
-            }
-            else
-            {
-                // 6. On failure, convert the native error array to managed objects.
-                errors = UnsafeUtils.TakeStructArrayEx<BNTypeParserError , TypeParserError>(
-                    errorsPointer ,
-                    errorCount ,
-                    TypeParserError.FromNative ,
-                    NativeMethods.BNFreeTypeParserErrors
+                // 4. Call the native function; output is an out char* the core allocates.
+                IntPtr outputPointer;
+                bool ok = NativeMethods.BNTypeParserPreprocessSource(
+                    this.handle ,
+                    source ?? string.Empty ,
+                    fileName ?? string.Empty ,
+                    platform.DangerousGetHandle() ,
+                    existingTypes.DangerousGetHandle() ,
+                    optionsBlock ,
+                    (ulong)safeOptions.Length ,
+                    includeDirsBlock ,
+                    (ulong)safeIncludeDirs.Length ,
+                    out outputPointer ,
+                    (IntPtr)(&errorsPointer) ,
+                    (IntPtr)(&errorCount)
                 );
 
-                return null;
+                // 5. On success, decode + free the preprocessed output.
+                if (ok)
+                {
+                    errors = Array.Empty<TypeParserError>();
+
+                    return UnsafeUtils.TakeUtf8String(outputPointer);
+                }
+                else
+                {
+                    // 6. On failure, convert the native error array to managed objects.
+                    errors = UnsafeUtils.TakeStructArrayEx<BNTypeParserError , TypeParserError>(
+                        errorsPointer ,
+                        errorCount ,
+                        TypeParserError.FromNative ,
+                        NativeMethods.BNFreeTypeParserErrors
+                    );
+
+                    return null;
+                }
             }
         }
 

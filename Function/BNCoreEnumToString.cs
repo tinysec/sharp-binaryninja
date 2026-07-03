@@ -25,7 +25,7 @@ namespace BinaryNinja
 		    ulong _value  , 
 			
 			// const char** result
-		    string[] result  
+		    out IntPtr result  
 		);
 	}
 }
