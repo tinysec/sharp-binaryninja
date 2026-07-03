@@ -27,12 +27,13 @@ namespace BinaryNinja
 			// const char* property
 		    [MarshalAs(UnmanagedType.LPUTF8Str)] string property  , 
 			
-			// const char** _value
-		    string[] _value  , 
-			
+			// const char** _value (UTF-8 block built by the caller; string[] cannot be
+			// marshaled as UTF-8 by attribute, so it is passed as a raw pointer)
+		    IntPtr _value  ,
+
 			// uint64_t size
-		    ulong size  
-			
+		    ulong size
+
 		);
 	}
 }
