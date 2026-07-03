@@ -34,7 +34,7 @@ namespace BinaryNinja
 		    TokenEscapingType escaping  , 
 			
 			// const char** result
-		    string[] result  
+		    out IntPtr result  
 			
 		);
 	}

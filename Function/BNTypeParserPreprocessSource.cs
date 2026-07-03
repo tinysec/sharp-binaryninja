@@ -34,19 +34,19 @@ namespace BinaryNinja
 		    IntPtr existingTypes  , 
 			
 			// const char** options
-		    string[] options  , 
+		    IntPtr options  , 
 			
 			// uint64_t optionCount
 		    ulong optionCount  , 
 			
 			// const char** includeDirs
-		    string[] includeDirs  , 
+		    IntPtr includeDirs  , 
 			
 			// uint64_t includeDirCount
 		    ulong includeDirCount  , 
 			
 			// const char** output
-		    string[] output  , 
+		    out IntPtr output  , 
 			
 			// BNTypeParserError** errors
 		    IntPtr errors  , 

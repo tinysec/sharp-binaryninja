@@ -28,7 +28,7 @@ namespace BinaryNinja
 		    [MarshalAs(UnmanagedType.LPUTF8Str)] string _value  , 
 			
 			// const char** result
-		    string[] result  
+		    out IntPtr result  
 			
 		);
 	}

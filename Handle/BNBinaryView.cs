@@ -6023,19 +6023,17 @@ namespace BinaryNinja
 		    out string typeId
 	    )
 	    {
-		    // 1. Prepare a single-element array to receive the out string from the native layer.
-		    string[] typeIdArray = new string[1];
-
-		    // 2. Call the native function with the array-based out parameter.
+		    // 1. Call the native function; typeId is an out char* the core allocates.
+		    IntPtr typeIdPointer;
 		    bool ok = NativeMethods.BNBinaryViewGetAssociatedTypeArchiveTypeSource(
 			    this.handle ,
 			    archiveId ,
 			    archiveTypeId ,
-			    typeIdArray
+			    out typeIdPointer
 		    );
 
-		    // 3. On success, extract the result; on failure, return empty.
-		    typeId = ok ? typeIdArray[0] : string.Empty;
+		    // 2. Decode + free the result (no-op on null); empty on failure.
+		    typeId = ok ? UnsafeUtils.TakeUtf8String(typeIdPointer) : string.Empty;
 
 		    return ok;
 	    }
@@ -6054,21 +6052,20 @@ namespace BinaryNinja
 		    out string archiveTypeId
 	    )
 	    {
-		    // 1. Prepare single-element arrays for both out parameters.
-		    string[] archiveIdArray = new string[1];
-		    string[] archiveTypeIdArray = new string[1];
-
-		    // 2. Call the native function with the array-based out parameters.
+		    // 1. Call the native function; archiveId/archiveTypeId are out char* the
+		    //    core allocates.
+		    IntPtr archiveIdPointer;
+		    IntPtr archiveTypeIdPointer;
 		    bool ok = NativeMethods.BNBinaryViewGetAssociatedTypeArchiveTypeTarget(
 			    this.handle ,
 			    typeId ,
-			    archiveIdArray ,
-			    archiveTypeIdArray
+			    out archiveIdPointer ,
+			    out archiveTypeIdPointer
 		    );
 
-		    // 3. On success, extract the results; on failure, return empty strings.
-		    archiveId = ok ? archiveIdArray[0] : string.Empty;
-		    archiveTypeId = ok ? archiveTypeIdArray[0] : string.Empty;
+		    // 2. Decode + free the results (no-op on null); empty on failure.
+		    archiveId = ok ? UnsafeUtils.TakeUtf8String(archiveIdPointer) : string.Empty;
+		    archiveTypeId = ok ? UnsafeUtils.TakeUtf8String(archiveTypeIdPointer) : string.Empty;
 
 		    return ok;
 	    }

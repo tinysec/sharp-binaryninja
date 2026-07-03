@@ -758,17 +758,14 @@ namespace BinaryNinja
 		/// <param name="value">The enum integer value.</param>
 		/// <param name="result">Receives the string representation on success.</param>
 		/// <returns>True if the enum value was recognized and converted.</returns>
-		public static unsafe bool CoreEnumToString(string enumName , ulong value , out string result)
+		public static bool CoreEnumToString(string enumName , ulong value , out string result)
 		{
-			// 1. Prepare a single-element string array as the output parameter.
-			//    The native function writes a const char* into result[0].
-			string[] resultArray = new string[1];
+			// 1. Call the native function; result is a char* the core allocates.
+			IntPtr resultPointer;
+			bool success = NativeMethods.BNCoreEnumToString(enumName , value , out resultPointer);
 
-			// 2. Call the native function.
-			bool success = NativeMethods.BNCoreEnumToString(enumName , value , resultArray);
-
-			// 3. Extract the result string.
-			result = (success && resultArray[0] != null) ? resultArray[0] : string.Empty;
+			// 2. Decode + free the core-allocated string (no-op on null).
+			result = UnsafeUtils.TakeUtf8String(resultPointer);
 
 			return success;
 		}
@@ -993,27 +990,27 @@ namespace BinaryNinja
 			out string stderr
 		)
 		{
-			// 1. Prepare output arrays for P/Invoke.
-			string[] outArray = new string[1];
-			string[] errArray = new string[1];
-
-			// 2. Get the input handle.
+			// 1. Get the input handle.
 			IntPtr inputHandle = (null != input) ? input.DangerousGetHandle() : IntPtr.Zero;
 
-			// 3. Call the native API.
+			// 2. Call the native API. output/error are each an out char* the core
+			//    allocates; args is left as the existing null-terminated string[]
+			//    marshaling (the core takes no arg count, so widening it is out of scope).
+			IntPtr outputPointer;
+			IntPtr errorPointer;
 			bool ok = NativeMethods.BNExecuteWorkerProcess(
 				path ,
-				args ,
+				args ?? Array.Empty<string>() ,
 				inputHandle ,
-				outArray ,
-				errArray ,
+				out outputPointer ,
+				out errorPointer ,
 				stdoutIsText ,
 				stderrIsText
 			);
 
-			// 4. Extract the output strings.
-			stdout = outArray[0] ?? string.Empty;
-			stderr = errArray[0] ?? string.Empty;
+			// 3. Decode + free the core-allocated output strings (no-op on null).
+			stdout = UnsafeUtils.TakeUtf8String(outputPointer);
+			stderr = UnsafeUtils.TakeUtf8String(errorPointer);
 
 			return ok;
 		}
