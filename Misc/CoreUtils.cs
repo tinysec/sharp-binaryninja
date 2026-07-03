@@ -1091,28 +1091,33 @@ namespace BinaryNinja
 			out string error
 		)
 		{
-			// 1. Prepare output arrays for P/Invoke string output parameters.
-			string[] outputArr = new string[1];
-			string[] errorArr = new string[1];
-
-			// 2. Prepare safe arrays.
+			// 1. Normalize the include-dir input.
 			string[] safeDirs = includeDirs ?? Array.Empty<string>();
 
-			// 3. Call the native preprocessor.
-			bool ok = NativeMethods.BNPreprocessSource(
-				source ,
-				fileName ,
-				outputArr ,
-				errorArr ,
-				safeDirs ,
-				(ulong)safeDirs.Length
-			);
+			using (ScopedAllocator allocator = new ScopedAllocator())
+			{
+				// 2. Build the const char** include-dir block as UTF-8.
+				IntPtr includeDirsBlock = allocator.AllocUtf8StringArray(safeDirs);
 
-			// 4. Extract the output strings.
-			output = outputArr[0] ?? string.Empty;
-			error = errorArr[0] ?? string.Empty;
+				// 3. Call the native preprocessor. `output` and `errors` are each an
+				//    out char*: the core allocates a single string into each.
+				IntPtr outputPointer;
+				IntPtr errorsPointer;
+				bool ok = NativeMethods.BNPreprocessSource(
+					source ,
+					fileName ,
+					out outputPointer ,
+					out errorsPointer ,
+					includeDirsBlock ,
+					(ulong)safeDirs.Length
+				);
 
-			return ok;
+				// 4. Decode + free the core-allocated strings (no-op on null).
+				output = UnsafeUtils.TakeUtf8String(outputPointer);
+				error = UnsafeUtils.TakeUtf8String(errorsPointer);
+
+				return ok;
+			}
 		}
 
 		// ────────────────────────────────────────────────────────────────────

@@ -24,17 +24,17 @@ namespace BinaryNinja
 			// const char* text
 		    [MarshalAs(UnmanagedType.LPUTF8Str)] string text  , 
 			
-			// const char** options
-		    string[] options  , 
-			
+			// const char** options: caller-built UTF-8 char** block.
+		    IntPtr options  ,
+
 			// uint64_t optionCount
-		    ulong optionCount  , 
-			
-			// const char** includeDirs
-		    string[] includeDirs  , 
-			
+		    ulong optionCount  ,
+
+			// const char** includeDirs: caller-built UTF-8 char** block.
+		    IntPtr includeDirs  ,
+
 			// uint64_t includeDirCount
-		    ulong includeDirCount  , 
+		    ulong includeDirCount  ,
 			
 			// BNTypeParserResult* result
 		    out BNTypeParserResult result  , 

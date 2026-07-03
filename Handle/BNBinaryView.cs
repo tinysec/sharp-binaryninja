@@ -3957,13 +3957,21 @@ namespace BinaryNinja
 		{
 			using (ScopedAllocator allocator = new ScopedAllocator())
 			{
+				// options and includeDirs are const char** UTF-8 input blocks; build them
+				// by hand because .NET cannot apply LPUTF8Str to string[] array elements.
+				string[] safeOptions = options ?? Array.Empty<string>();
+				string[] safeDirs = includeDirs ?? Array.Empty<string>();
+
+				IntPtr optionsBlock = allocator.AllocUtf8StringArray(safeOptions);
+				IntPtr includeDirsBlock = allocator.AllocUtf8StringArray(safeDirs);
+
 				bool ok = NativeMethods.BNParseTypesString(
-					this.handle , 
+					this.handle ,
 					text,
-					options,
-					(ulong)options.Length,
-					includeDirs,
-					(ulong)includeDirs.Length,
+					optionsBlock,
+					(ulong)safeOptions.Length,
+					includeDirsBlock,
+					(ulong)safeDirs.Length,
 					out BNTypeParserResult result,
 					out IntPtr errorPointer,
 					new QualifiedNameList(typesAllowRedefinition).ToNativeEx(allocator),
