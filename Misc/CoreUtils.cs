@@ -1039,32 +1039,48 @@ namespace BinaryNinja
 			string triplet ,
 			int codeModel ,
 			int relocMode ,
-			out string assembledBytes ,
+			out byte[] assembledBytes ,
 			out string errorMessage
 		)
 		{
-			// 1. Prepare output arrays for P/Invoke string output parameters.
-			string[] outBytes = new string[1];
-			string[] err = new string[1];
+			// 1. Initialize the LLVM assembler backend (idempotent in the core).
+			NativeMethods.BNLlvmServicesInit();
+
+			// 2. Call the native assembler. outBytes is a length-delimited machine-code
+			//    buffer (NOT a null-terminated string); err is an error string. Both are
+			//    core-allocated and freed together by BNLlvmServicesAssembleFree.
 			int outLen = 0;
 			int errLen = 0;
-
-			// 2. Call the native LLVM assembler service.
+			IntPtr outBytesPointer;
+			IntPtr errPointer;
 			int result = NativeMethods.BNLlvmServicesAssemble(
 				source ,
 				dialect ,
 				triplet ,
 				codeModel ,
 				relocMode ,
-				outBytes ,
+				out outBytesPointer ,
 				(IntPtr)(&outLen) ,
-				err ,
+				out errPointer ,
 				(IntPtr)(&errLen)
 			);
 
-			// 3. Extract the output strings.
-			assembledBytes = outBytes[0] ?? string.Empty;
-			errorMessage = err[0] ?? string.Empty;
+			// 3. Copy the assembled bytes out as raw binary before freeing.
+			if (IntPtr.Zero != outBytesPointer && outLen > 0)
+			{
+				assembledBytes = new byte[outLen];
+				Marshal.Copy(outBytesPointer , assembledBytes , 0 , outLen);
+			}
+			else
+			{
+				assembledBytes = Array.Empty<byte>();
+			}
+
+			// 4. Decode the error string (UTF-8, null-terminated).
+			errorMessage = UnsafeUtils.ReadUtf8String(errPointer);
+
+			// 5. Free both core buffers in a single call, matching the C++ SDK.
+			NativeMethods.BNLlvmServicesAssembleFree(outBytesPointer , errPointer);
 
 			return result;
 		}

@@ -18,11 +18,12 @@ namespace BinaryNinja
         )]
 		internal static extern void BNLlvmServicesAssembleFree(
 			
-			// const char* outBytes
-		    [MarshalAs(UnmanagedType.LPUTF8Str)] string outBytes  , 
-			
-			// const char* err
-		    [MarshalAs(UnmanagedType.LPUTF8Str)] string err  
+			// char* outBytes: the raw pointer returned by BNLlvmServicesAssemble (pass
+			// it back verbatim to free it; must NOT be re-marshaled from a managed string).
+		    IntPtr outBytes  ,
+
+			// char* err: the raw pointer returned by BNLlvmServicesAssemble.
+		    IntPtr err
 			
 		);
 	}

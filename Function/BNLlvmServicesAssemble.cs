@@ -33,17 +33,18 @@ namespace BinaryNinja
 			// int32_t relocMode
 		    int relocMode  , 
 			
-			// const char** outBytes
-		    string[] outBytes  , 
-			
+			// char** outBytes: core-allocated length-delimited byte buffer (NOT a
+			// null-terminated string); freed by BNLlvmServicesAssembleFree.
+		    out IntPtr outBytes  ,
+
 			// int32_t* outBytesLen
-		    IntPtr outBytesLen  , 
-			
-			// const char** err
-		    string[] err  , 
-			
+		    IntPtr outBytesLen  ,
+
+			// char** err: core-allocated error string; freed by BNLlvmServicesAssembleFree.
+		    out IntPtr err  ,
+
 			// int32_t* errLen
-		    IntPtr errLen  
+		    IntPtr errLen
 			
 		);
 	}
