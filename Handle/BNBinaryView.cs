@@ -4391,12 +4391,17 @@ namespace BinaryNinja
 		{
 			using (ScopedAllocator allocator = new ScopedAllocator())
 			{
+				// libNames is a const char** UTF-8 input block (count-based); build it by
+				// hand because .NET cannot apply LPUTF8Str to string[] array elements.
+				string[] safeLibNames = libNames ?? Array.Empty<string>();
+				IntPtr libNamesBlock = allocator.AllocUtf8StringArray(safeLibNames);
+
 				NativeMethods.BNBinaryViewSetManualDependencies(
 					this.handle,
 					allocator.ConvertToNativeArrayEx<BNQualifiedName,QualifiedName>(viewTypeNames),
 					allocator.ConvertToNativeArrayEx<BNQualifiedName,QualifiedName>(libTypeNames),
-					libNames,
-					( ulong )libNames.Length
+					libNamesBlock,
+					( ulong )safeLibNames.Length
 				);
 			}
 		}
