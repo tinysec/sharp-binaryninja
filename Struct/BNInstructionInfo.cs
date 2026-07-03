@@ -33,10 +33,15 @@ namespace BinaryNinja
 		internal byte delaySlots;
 		
 		/// <summary>
-		/// 
+		///
 		/// BNBranchType[3] branchType
 		/// </summary>
-		internal fixed uint branchType[3];
+		// BNBranchType is a 1-byte enum (BN_ENUM(uint8_t, ...)); the fixed buffer element
+		// MUST be 1 byte. A 4-byte element would size branchType at 12 bytes instead of 3
+		// and shift branchTarget/branchArch, so the core's out-param fields are read at the
+		// wrong offsets (garbage branch targets). BranchType is `enum : byte`, so the wrapper
+		// cast of each byte to BranchType is exact.
+		internal fixed byte branchType[3];
 		
 		/// <summary>
 		/// 
