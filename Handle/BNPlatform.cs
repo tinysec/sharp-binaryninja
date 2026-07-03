@@ -705,35 +705,42 @@ namespace BinaryNinja
 		    out string error
 	    )
 	    {
-		    // 1. Prepare output arrays for P/Invoke string output parameters.
-		    string[] errorArr = new string[1];
+		    // 1. Normalize the include-dir input.
 		    string[] safeDirs = includeDirs ?? Array.Empty<string>();
 
 		    // 2. Stack-allocate the result struct.
 		    BNTypeParserResult rawResult = new BNTypeParserResult();
 
-		    // 3. Call the native API.
-		    bool ok = NativeMethods.BNParseTypesFromSource(
-			    this.handle ,
-			    source ,
-			    fileName ,
-			    (IntPtr)(&rawResult) ,
-			    errorArr ,
-			    safeDirs ,
-			    (ulong)safeDirs.Length ,
-			    autoTypeSource ?? string.Empty
-		    );
-
-		    // 4. Extract the error string.
-		    error = errorArr[0] ?? string.Empty;
-
-		    // 5. On success, convert the result and free the native struct.
-		    if (ok)
+		    using (ScopedAllocator allocator = new ScopedAllocator())
 		    {
-			    return TypeParserResult.TakeNative(rawResult);
-		    }
+			    // 3. Build the const char** include-dir block as UTF-8.
+			    IntPtr includeDirsBlock = allocator.AllocUtf8StringArray(safeDirs);
 
-		    return null;
+			    // 4. Call the native API. `errors` is an out char*: the core allocates
+			    //    a single error string on failure and leaves it null on success.
+			    IntPtr errorsPointer;
+			    bool ok = NativeMethods.BNParseTypesFromSource(
+				    this.handle ,
+				    source ,
+				    fileName ,
+				    (IntPtr)(&rawResult) ,
+				    out errorsPointer ,
+				    includeDirsBlock ,
+				    (ulong)safeDirs.Length ,
+				    autoTypeSource ?? string.Empty
+			    );
+
+			    // 5. Decode + free the core-allocated error string (no-op on null).
+			    error = UnsafeUtils.TakeUtf8String(errorsPointer);
+
+			    // 6. On success, convert the result and free the native struct.
+			    if (ok)
+			    {
+				    return TypeParserResult.TakeNative(rawResult);
+			    }
+
+			    return null;
+		    }
 	    }
 
 	    /// <summary>
@@ -753,34 +760,41 @@ namespace BinaryNinja
 		    out string error
 	    )
 	    {
-		    // 1. Prepare output arrays for P/Invoke string output parameters.
-		    string[] errorArr = new string[1];
+		    // 1. Normalize the include-dir input.
 		    string[] safeDirs = includeDirs ?? Array.Empty<string>();
 
 		    // 2. Stack-allocate the result struct.
 		    BNTypeParserResult rawResult = new BNTypeParserResult();
 
-		    // 3. Call the native API.
-		    bool ok = NativeMethods.BNParseTypesFromSourceFile(
-			    this.handle ,
-			    fileName ,
-			    (IntPtr)(&rawResult) ,
-			    errorArr ,
-			    safeDirs ,
-			    (ulong)safeDirs.Length ,
-			    autoTypeSource ?? string.Empty
-		    );
-
-		    // 4. Extract the error string.
-		    error = errorArr[0] ?? string.Empty;
-
-		    // 5. On success, convert the result and free the native struct.
-		    if (ok)
+		    using (ScopedAllocator allocator = new ScopedAllocator())
 		    {
-			    return TypeParserResult.TakeNative(rawResult);
-		    }
+			    // 3. Build the const char** include-dir block as UTF-8.
+			    IntPtr includeDirsBlock = allocator.AllocUtf8StringArray(safeDirs);
 
-		    return null;
+			    // 4. Call the native API. `errors` is an out char*: the core allocates
+			    //    a single error string on failure and leaves it null on success.
+			    IntPtr errorsPointer;
+			    bool ok = NativeMethods.BNParseTypesFromSourceFile(
+				    this.handle ,
+				    fileName ,
+				    (IntPtr)(&rawResult) ,
+				    out errorsPointer ,
+				    includeDirsBlock ,
+				    (ulong)safeDirs.Length ,
+				    autoTypeSource ?? string.Empty
+			    );
+
+			    // 5. Decode + free the core-allocated error string (no-op on null).
+			    error = UnsafeUtils.TakeUtf8String(errorsPointer);
+
+			    // 6. On success, convert the result and free the native struct.
+			    if (ok)
+			    {
+				    return TypeParserResult.TakeNative(rawResult);
+			    }
+
+			    return null;
+		    }
 	    }
 
 	    public static Platform? CreateWithTypes(

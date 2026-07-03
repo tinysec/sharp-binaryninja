@@ -25,16 +25,17 @@ namespace BinaryNinja
 		    [MarshalAs(UnmanagedType.LPUTF8Str)] string fileName  , 
 			
 			// BNTypeParserResult* result
-		    IntPtr result  , 
-			
-			// const char** errors
-		    string[] errors  , 
-			
-			// const char** includeDirs
-		    string[] includeDirs  , 
-			
+		    IntPtr result  ,
+
+			// char** errors: a SINGLE error string the core allocates on failure;
+			// marshaled as an out pointer so the wrapper can decode + free it.
+		    out IntPtr errors  ,
+
+			// const char** includeDirs: caller-built UTF-8 char** block.
+		    IntPtr includeDirs  ,
+
 			// uint64_t includeDirCount
-		    ulong includeDirCount  , 
+		    ulong includeDirCount  ,
 			
 			// const char* autoTypeSource
 		    [MarshalAs(UnmanagedType.LPUTF8Str)] string autoTypeSource  
