@@ -16,6 +16,7 @@ namespace BinaryNinja
             CharSet = CharSet.Ansi,
             EntryPoint = "BNIsBinaryViewTypeForceLoadable"
         )]
+		[return: MarshalAs(UnmanagedType.I1)]
 		internal static extern bool BNIsBinaryViewTypeForceLoadable(
 			
 			// BNBinaryViewType* type

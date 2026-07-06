@@ -16,6 +16,7 @@ namespace BinaryNinja
             CharSet = CharSet.Ansi,
             EntryPoint = "BNFunctionUsesIncomingGlobalPointer"
         )]
+		[return: MarshalAs(UnmanagedType.I1)]
 		internal static extern bool BNFunctionUsesIncomingGlobalPointer(
 			
 			// BNFunction* func

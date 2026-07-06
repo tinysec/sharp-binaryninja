@@ -15,6 +15,7 @@ namespace BinaryNinja
             CallingConvention = System.Runtime.InteropServices.CallingConvention.Cdecl,
             EntryPoint = "BNHighLevelILTokenEmitterHasCollapsableRegions"
         )]
+		[return: MarshalAs(UnmanagedType.I1)]
 		internal static extern bool BNHighLevelILTokenEmitterHasCollapsableRegions(
 			
 			// BNHighLevelILTokenEmitter* emitter

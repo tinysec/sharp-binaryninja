@@ -16,6 +16,7 @@ namespace BinaryNinja
             CallingConvention = System.Runtime.InteropServices.CallingConvention.Cdecl,
             EntryPoint = "BNIsOffsetReadOnlySemantics"
         )]
+		[return: MarshalAs(UnmanagedType.I1)]
 		internal static extern bool BNIsOffsetReadOnlySemantics(
 			
 			// BNBinaryView* view

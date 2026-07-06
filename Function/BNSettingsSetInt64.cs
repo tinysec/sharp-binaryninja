@@ -16,6 +16,7 @@ namespace BinaryNinja
             CharSet = CharSet.Ansi,
             EntryPoint = "BNSettingsSetInt64"
         )]
+		[return: MarshalAs(UnmanagedType.I1)]
 		internal static extern bool BNSettingsSetInt64(
 			
 			// BNSettings* settings

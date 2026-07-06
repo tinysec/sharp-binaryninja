@@ -15,6 +15,7 @@ namespace BinaryNinja
             CallingConvention = System.Runtime.InteropServices.CallingConvention.Cdecl,
             EntryPoint = "BNWorkflowIsRegistered"
         )]
+		[return: MarshalAs(UnmanagedType.I1)]
 		internal static extern bool BNWorkflowIsRegistered(
 			
 			// BNWorkflow* workflow

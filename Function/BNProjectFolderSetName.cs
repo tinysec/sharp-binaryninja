@@ -16,6 +16,7 @@ namespace BinaryNinja
             CharSet = CharSet.Ansi,
             EntryPoint = "BNProjectFolderSetName"
         )]
+		[return: MarshalAs(UnmanagedType.I1)]
 		internal static extern bool BNProjectFolderSetName(
 			
 			// BNProjectFolder* folder

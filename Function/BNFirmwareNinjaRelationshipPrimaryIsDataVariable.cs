@@ -16,6 +16,7 @@ namespace BinaryNinja
             CharSet = CharSet.Ansi,
             EntryPoint = "BNFirmwareNinjaRelationshipPrimaryIsDataVariable"
         )]
+		[return: MarshalAs(UnmanagedType.I1)]
 		internal static extern bool BNFirmwareNinjaRelationshipPrimaryIsDataVariable(
 			
 			// BNFirmwareNinjaRelationship* rel

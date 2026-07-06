@@ -16,6 +16,7 @@ namespace BinaryNinja
             CharSet = CharSet.Ansi,
             EntryPoint = "BNRemotePullProjects"
         )]
+		[return: MarshalAs(UnmanagedType.I1)]
 		internal static extern bool BNRemotePullProjects(
 			
 			// BNRemote* remote

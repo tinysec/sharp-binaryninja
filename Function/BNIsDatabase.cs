@@ -24,6 +24,7 @@ namespace BinaryNinja
             CharSet = CharSet.Ansi,
             EntryPoint = "BNIsDatabase"
         )]
+		[return: MarshalAs(UnmanagedType.I1)]
 		public static extern bool BNIsDatabase(
 			
 			// const char* filename

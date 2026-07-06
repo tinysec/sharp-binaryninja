@@ -17,6 +17,7 @@ namespace BinaryNinja
             CharSet = CharSet.Ansi,
             EntryPoint = "BNGetMemoryRegionInfo"
         )]
+		[return: MarshalAs(UnmanagedType.I1)]
 		internal static extern bool BNGetMemoryRegionInfo(
 			
 			// BNBinaryView* view

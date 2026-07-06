@@ -16,6 +16,7 @@ namespace BinaryNinja
             CharSet = CharSet.Ansi,
             EntryPoint = "BNRemoteIsAdmin"
         )]
+		[return: MarshalAs(UnmanagedType.I1)]
 		internal static extern bool BNRemoteIsAdmin(
 			
 			// BNRemote* remote

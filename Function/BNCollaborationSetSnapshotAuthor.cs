@@ -16,6 +16,7 @@ namespace BinaryNinja
             CharSet = CharSet.Ansi,
             EntryPoint = "BNCollaborationSetSnapshotAuthor"
         )]
+		[return: MarshalAs(UnmanagedType.I1)]
 		internal static extern bool BNCollaborationSetSnapshotAuthor(
 			
 			// BNDatabase* database

@@ -16,6 +16,7 @@ namespace BinaryNinja
             CharSet = CharSet.Ansi,
             EntryPoint = "BNRemoteFileHasPulledSnapshots"
         )]
+		[return: MarshalAs(UnmanagedType.I1)]
 		internal static extern bool BNRemoteFileHasPulledSnapshots(
 			
 			// BNRemoteFile* file

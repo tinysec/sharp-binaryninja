@@ -16,6 +16,7 @@ namespace BinaryNinja
             CharSet = CharSet.Ansi,
             EntryPoint = "BNTransformSessionProcess"
         )]
+		[return: MarshalAs(UnmanagedType.I1)]
 		internal static extern bool BNTransformSessionProcess(
 			
 			// BNTransformSession* session

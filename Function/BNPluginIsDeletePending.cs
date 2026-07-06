@@ -16,6 +16,7 @@ namespace BinaryNinja
             CharSet = CharSet.Ansi,
             EntryPoint = "BNPluginIsDeletePending"
         )]
+		[return: MarshalAs(UnmanagedType.I1)]
 		internal static extern bool BNPluginIsDeletePending(
 			
 			// BNRepoPlugin* p

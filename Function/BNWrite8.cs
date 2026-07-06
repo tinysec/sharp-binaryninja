@@ -15,6 +15,7 @@ namespace BinaryNinja
             CallingConvention = System.Runtime.InteropServices.CallingConvention.Cdecl,
             EntryPoint = "BNWrite8"
         )]
+		[return: MarshalAs(UnmanagedType.I1)]
 		internal static extern bool BNWrite8(
 			
 			// BNBinaryWriter* stream

@@ -15,6 +15,7 @@ namespace BinaryNinja
             CallingConvention = System.Runtime.InteropServices.CallingConvention.Cdecl,
             EntryPoint = "BNSkipAndReturnValue"
         )]
+		[return: MarshalAs(UnmanagedType.I1)]
 		internal static extern bool BNSkipAndReturnValue(
 			
 			// BNBinaryView* view

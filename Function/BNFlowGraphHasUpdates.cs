@@ -16,6 +16,7 @@ namespace BinaryNinja
             CharSet = CharSet.Ansi,
             EntryPoint = "BNFlowGraphHasUpdates"
         )]
+		[return: MarshalAs(UnmanagedType.I1)]
 		internal static extern bool BNFlowGraphHasUpdates(
 			
 			// BNFlowGraph* graph

@@ -16,6 +16,7 @@ namespace BinaryNinja
             CharSet = CharSet.Ansi,
             EntryPoint = "BNWriteLE32"
         )]
+		[return: MarshalAs(UnmanagedType.I1)]
 		internal static extern bool BNWriteLE32(
 			
 			// BNBinaryWriter* stream

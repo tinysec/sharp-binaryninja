@@ -16,6 +16,7 @@ namespace BinaryNinja
             CharSet = CharSet.Ansi,
             EntryPoint = "BNIsEligibleForHeuristics"
         )]
+		[return: MarshalAs(UnmanagedType.I1)]
 		internal static extern bool BNIsEligibleForHeuristics(
 			
 			// BNCallingConvention* cc

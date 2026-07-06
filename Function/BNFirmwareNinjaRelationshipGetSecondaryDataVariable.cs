@@ -16,6 +16,7 @@ namespace BinaryNinja
             CharSet = CharSet.Ansi,
             EntryPoint = "BNFirmwareNinjaRelationshipGetSecondaryDataVariable"
         )]
+		[return: MarshalAs(UnmanagedType.I1)]
 		internal static extern bool BNFirmwareNinjaRelationshipGetSecondaryDataVariable(
 			
 			// BNFirmwareNinjaRelationship* rel

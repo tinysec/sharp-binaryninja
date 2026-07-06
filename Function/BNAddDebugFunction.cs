@@ -15,6 +15,7 @@ namespace BinaryNinja
             CallingConvention = System.Runtime.InteropServices.CallingConvention.Cdecl,
             EntryPoint = "BNAddDebugFunction"
         )]
+		[return: MarshalAs(UnmanagedType.I1)]
 		internal static extern bool BNAddDebugFunction(
 			
 			// BNDebugInfo* debugInfo

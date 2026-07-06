@@ -16,6 +16,7 @@ namespace BinaryNinja
             CharSet = CharSet.Ansi,
             EntryPoint = "BNDemangleGNU3WithOptions"
         )]
+		[return: MarshalAs(UnmanagedType.I1)]
 		internal static extern bool BNDemangleGNU3WithOptions(
 			
 			// BNArchitecture* arch

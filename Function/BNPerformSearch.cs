@@ -16,6 +16,7 @@ namespace BinaryNinja
             CharSet = CharSet.Ansi,
             EntryPoint = "BNPerformSearch"
         )]
+		[return: MarshalAs(UnmanagedType.I1)]
 		internal static extern bool BNPerformSearch(
 			
 			// const char* query

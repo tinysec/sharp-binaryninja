@@ -16,6 +16,7 @@ namespace BinaryNinja
             CharSet = CharSet.Ansi,
             EntryPoint = "BNPluginIsUpdateAvailable"
         )]
+		[return: MarshalAs(UnmanagedType.I1)]
 		internal static extern bool BNPluginIsUpdateAvailable(
 			
 			// BNRepoPlugin* p

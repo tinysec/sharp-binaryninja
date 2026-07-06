@@ -16,6 +16,7 @@ namespace BinaryNinja
             CharSet = CharSet.Ansi,
             EntryPoint = "BNPluginAreDependenciesBeingInstalled"
         )]
+		[return: MarshalAs(UnmanagedType.I1)]
 		internal static extern bool BNPluginAreDependenciesBeingInstalled(
 			
 			// BNRepoPlugin* p

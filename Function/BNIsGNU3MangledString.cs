@@ -16,6 +16,7 @@ namespace BinaryNinja
             CharSet = CharSet.Ansi,
             EntryPoint = "BNIsGNU3MangledString"
         )]
+		[return: MarshalAs(UnmanagedType.I1)]
 		internal static extern bool BNIsGNU3MangledString(
 			
 			// const char* mangledName

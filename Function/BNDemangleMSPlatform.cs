@@ -16,6 +16,7 @@ namespace BinaryNinja
             CharSet = CharSet.Ansi,
             EntryPoint = "BNDemangleMSPlatform"
         )]
+		[return: MarshalAs(UnmanagedType.I1)]
 		internal static extern bool BNDemangleMSPlatform(
 			
 			// BNPlatform* platform

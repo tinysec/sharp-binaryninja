@@ -16,6 +16,7 @@ namespace BinaryNinja
             CallingConvention = System.Runtime.InteropServices.CallingConvention.Cdecl,
             EntryPoint = "BNGetReturnedIndirectReturnValuePointer"
         )]
+		[return: MarshalAs(UnmanagedType.I1)]
 		internal static extern bool BNGetReturnedIndirectReturnValuePointer(
 			
 			// BNCallingConvention* cc

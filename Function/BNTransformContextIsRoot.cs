@@ -16,6 +16,7 @@ namespace BinaryNinja
             CharSet = CharSet.Ansi,
             EntryPoint = "BNTransformContextIsRoot"
         )]
+		[return: MarshalAs(UnmanagedType.I1)]
 		internal static extern bool BNTransformContextIsRoot(
 			
 			// BNTransformContext* context

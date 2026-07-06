@@ -16,6 +16,7 @@ namespace BinaryNinja
             CallingConvention = System.Runtime.InteropServices.CallingConvention.Cdecl,
             EntryPoint = "BNDefaultIsArgumentTypeRegisterCompatible"
         )]
+		[return: MarshalAs(UnmanagedType.I1)]
 		internal static extern bool BNDefaultIsArgumentTypeRegisterCompatible(
 			
 			// BNCallingConvention* cc

@@ -16,6 +16,7 @@ namespace BinaryNinja
             CallingConvention = System.Runtime.InteropServices.CallingConvention.Cdecl,
             EntryPoint = "BNGetHighLevelILDerivedStringReferenceForExpr"
         )]
+		[return: MarshalAs(UnmanagedType.I1)]
 		internal static extern bool BNGetHighLevelILDerivedStringReferenceForExpr(
 			
 			// BNHighLevelILFunction* func

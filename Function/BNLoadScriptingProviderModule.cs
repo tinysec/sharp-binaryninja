@@ -16,6 +16,7 @@ namespace BinaryNinja
             CharSet = CharSet.Ansi,
             EntryPoint = "BNLoadScriptingProviderModule"
         )]
+		[return: MarshalAs(UnmanagedType.I1)]
 		internal static extern bool BNLoadScriptingProviderModule(
 			
 			// BNScriptingProvider* provider

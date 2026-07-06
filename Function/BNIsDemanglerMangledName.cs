@@ -16,6 +16,7 @@ namespace BinaryNinja
             CharSet = CharSet.Ansi,
             EntryPoint = "BNIsDemanglerMangledName"
         )]
+		[return: MarshalAs(UnmanagedType.I1)]
 		internal static extern bool BNIsDemanglerMangledName(
 			
 			// BNDemangler* demangler

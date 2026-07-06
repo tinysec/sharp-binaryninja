@@ -16,6 +16,7 @@ namespace BinaryNinja
             CharSet = CharSet.Ansi,
             EntryPoint = "BNTypeLibraryDecompressToFile"
         )]
+		[return: MarshalAs(UnmanagedType.I1)]
 		public static extern bool BNTypeLibraryDecompressToFile(
 			
 			// const char* file

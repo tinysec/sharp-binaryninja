@@ -16,6 +16,7 @@ namespace BinaryNinja
             CharSet = CharSet.Ansi,
             EntryPoint = "BNExternalLocationSetTargetSymbol"
         )]
+		[return: MarshalAs(UnmanagedType.I1)]
 		internal static extern bool BNExternalLocationSetTargetSymbol(
 			
 			// BNExternalLocation* loc

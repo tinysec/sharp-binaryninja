@@ -16,6 +16,7 @@ namespace BinaryNinja
             CharSet = CharSet.Ansi,
             EntryPoint = "BNDeleteSecretsProviderData"
         )]
+		[return: MarshalAs(UnmanagedType.I1)]
 		internal static extern bool BNDeleteSecretsProviderData(
 			
 			// BNSecretsProvider* provider

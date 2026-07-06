@@ -16,6 +16,7 @@ namespace BinaryNinja
             CharSet = CharSet.Ansi,
             EntryPoint = "BNSetKeyValueStoreBuffer"
         )]
+		[return: MarshalAs(UnmanagedType.I1)]
 		internal static extern bool BNSetKeyValueStoreBuffer(
 			
 			// BNKeyValueStore* store

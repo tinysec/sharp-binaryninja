@@ -16,6 +16,7 @@ namespace BinaryNinja
             CharSet = CharSet.Ansi,
             EntryPoint = "BNTypesEqual"
         )]
+		[return: MarshalAs(UnmanagedType.I1)]
 		internal static extern bool BNTypesEqual(
 			
 			// BNType* a

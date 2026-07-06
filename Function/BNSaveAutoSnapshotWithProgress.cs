@@ -15,6 +15,7 @@ namespace BinaryNinja
             CallingConvention = System.Runtime.InteropServices.CallingConvention.Cdecl,
             EntryPoint = "BNSaveAutoSnapshotWithProgress"
         )]
+		[return: MarshalAs(UnmanagedType.I1)]
 		internal static extern bool BNSaveAutoSnapshotWithProgress(
 			
 			// BNBinaryView* data

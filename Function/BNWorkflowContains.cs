@@ -16,6 +16,7 @@ namespace BinaryNinja
             CharSet = CharSet.Ansi,
             EntryPoint = "BNWorkflowContains"
         )]
+		[return: MarshalAs(UnmanagedType.I1)]
 		internal static extern bool BNWorkflowContains(
 			
 			// BNWorkflow* workflow

@@ -15,6 +15,7 @@ namespace BinaryNinja
             CallingConvention = System.Runtime.InteropServices.CallingConvention.Cdecl,
             EntryPoint = "BNIsMediumLevelILSSAVarLiveAt"
         )]
+		[return: MarshalAs(UnmanagedType.I1)]
 		internal static extern bool BNIsMediumLevelILSSAVarLiveAt(
 			
 			// BNMediumLevelILFunction* func

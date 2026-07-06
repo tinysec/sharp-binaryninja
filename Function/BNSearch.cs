@@ -16,6 +16,7 @@ namespace BinaryNinja
             CharSet = CharSet.Ansi,
             EntryPoint = "BNSearch"
         )]
+		[return: MarshalAs(UnmanagedType.I1)]
 		internal static extern bool BNSearch(
 			
 			// BNBinaryView* view

@@ -16,6 +16,7 @@ namespace BinaryNinja
             CharSet = CharSet.Ansi,
             EntryPoint = "BNExecuteWorkerProcess"
         )]
+		[return: MarshalAs(UnmanagedType.I1)]
 		internal static extern bool BNExecuteWorkerProcess(
 			
 			// const char* path

@@ -16,6 +16,7 @@ namespace BinaryNinja
             CharSet = CharSet.Ansi,
             EntryPoint = "BNTypeContainerParseTypeString"
         )]
+		[return: MarshalAs(UnmanagedType.I1)]
 		internal static extern bool BNTypeContainerParseTypeString(
 			
 			// BNTypeContainer* container

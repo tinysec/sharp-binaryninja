@@ -16,6 +16,7 @@ namespace BinaryNinja
             CharSet = CharSet.Ansi,
             EntryPoint = "BNProjectOpen"
         )]
+		[return: MarshalAs(UnmanagedType.I1)]
 		internal static extern bool BNProjectOpen(
 			
 			// BNProject* project

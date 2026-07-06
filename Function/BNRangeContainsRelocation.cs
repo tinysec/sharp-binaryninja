@@ -15,6 +15,7 @@ namespace BinaryNinja
             CallingConvention = System.Runtime.InteropServices.CallingConvention.Cdecl,
             EntryPoint = "BNRangeContainsRelocation"
         )]
+		[return: MarshalAs(UnmanagedType.I1)]
 		internal static extern bool BNRangeContainsRelocation(
 			
 			// BNBinaryView* view

@@ -16,6 +16,7 @@ namespace BinaryNinja
             CharSet = CharSet.Ansi,
             EntryPoint = "BNRenameTypeArchiveType"
         )]
+		[return: MarshalAs(UnmanagedType.I1)]
 		internal static extern bool BNRenameTypeArchiveType(
 			
 			// BNTypeArchive* archive

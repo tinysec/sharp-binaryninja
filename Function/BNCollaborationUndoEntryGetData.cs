@@ -16,6 +16,7 @@ namespace BinaryNinja
             CharSet = CharSet.Ansi,
             EntryPoint = "BNCollaborationUndoEntryGetData"
         )]
+		[return: MarshalAs(UnmanagedType.I1)]
 		internal static extern bool BNCollaborationUndoEntryGetData(
 			
 			// BNCollaborationUndoEntry* undoEntry

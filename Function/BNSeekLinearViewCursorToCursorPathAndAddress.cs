@@ -16,6 +16,7 @@ namespace BinaryNinja
             CharSet = CharSet.Ansi,
             EntryPoint = "BNSeekLinearViewCursorToCursorPathAndAddress"
         )]
+		[return: MarshalAs(UnmanagedType.I1)]
 		internal static extern bool BNSeekLinearViewCursorToCursorPathAndAddress(
 			
 			// BNLinearViewCursor* cursor

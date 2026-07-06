@@ -16,6 +16,7 @@ namespace BinaryNinja
             CharSet = CharSet.Ansi,
             EntryPoint = "BNCreateSnapshotedView"
         )]
+		[return: MarshalAs(UnmanagedType.I1)]
 		internal static extern bool BNCreateSnapshotedView(
 			
 			// BNBinaryView* data

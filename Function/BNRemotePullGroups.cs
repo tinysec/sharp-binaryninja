@@ -16,6 +16,7 @@ namespace BinaryNinja
             CharSet = CharSet.Ansi,
             EntryPoint = "BNRemotePullGroups"
         )]
+		[return: MarshalAs(UnmanagedType.I1)]
 		internal static extern bool BNRemotePullGroups(
 			
 			// BNRemote* remote

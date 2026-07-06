@@ -16,6 +16,7 @@ namespace BinaryNinja
             CharSet = CharSet.Ansi,
             EntryPoint = "BNBinaryViewPushTypeArchiveTypes"
         )]
+		[return: MarshalAs(UnmanagedType.I1)]
 		internal static extern bool BNBinaryViewPushTypeArchiveTypes(
 			
 			// BNBinaryView* view

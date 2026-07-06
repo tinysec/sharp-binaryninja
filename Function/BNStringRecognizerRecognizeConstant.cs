@@ -16,6 +16,7 @@ namespace BinaryNinja
             CallingConvention = System.Runtime.InteropServices.CallingConvention.Cdecl,
             EntryPoint = "BNStringRecognizerRecognizeConstant"
         )]
+		[return: MarshalAs(UnmanagedType.I1)]
 		internal static extern bool BNStringRecognizerRecognizeConstant(
 			
 			// BNStringRecognizer* recognizer

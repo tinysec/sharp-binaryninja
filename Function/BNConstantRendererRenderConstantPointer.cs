@@ -16,6 +16,7 @@ namespace BinaryNinja
             CallingConvention = System.Runtime.InteropServices.CallingConvention.Cdecl,
             EntryPoint = "BNConstantRendererRenderConstantPointer"
         )]
+		[return: MarshalAs(UnmanagedType.I1)]
 		internal static extern bool BNConstantRendererRenderConstantPointer(
 			
 			// BNConstantRenderer* renderer

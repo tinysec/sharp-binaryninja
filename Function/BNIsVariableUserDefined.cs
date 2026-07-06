@@ -16,6 +16,7 @@ namespace BinaryNinja
             CharSet = CharSet.Ansi,
             EntryPoint = "BNIsVariableUserDefined"
         )]
+		[return: MarshalAs(UnmanagedType.I1)]
 		internal static extern bool BNIsVariableUserDefined(
 			
 			// BNFunction* func

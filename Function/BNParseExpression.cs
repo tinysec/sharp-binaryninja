@@ -16,6 +16,7 @@ namespace BinaryNinja
             CharSet = CharSet.Ansi,
             EntryPoint = "BNParseExpression"
         )]
+		[return: MarshalAs(UnmanagedType.I1)]
 		internal static extern bool BNParseExpression(
 			
 			// BNBinaryView* view

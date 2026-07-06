@@ -15,6 +15,7 @@ namespace BinaryNinja
             CallingConvention = System.Runtime.InteropServices.CallingConvention.Cdecl,
             EntryPoint = "BNMetadataIsBooleanList"
         )]
+		[return: MarshalAs(UnmanagedType.I1)]
 		internal static extern bool BNMetadataIsBooleanList(
 			
 			// BNMetadata* data

@@ -16,6 +16,7 @@ namespace BinaryNinja
             CharSet = CharSet.Ansi,
             EntryPoint = "BNPluginIsBeingUpdated"
         )]
+		[return: MarshalAs(UnmanagedType.I1)]
 		internal static extern bool BNPluginIsBeingUpdated(
 			
 			// BNRepoPlugin* p

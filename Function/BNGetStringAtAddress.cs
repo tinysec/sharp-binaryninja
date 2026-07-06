@@ -16,6 +16,7 @@ namespace BinaryNinja
             CharSet = CharSet.Ansi,
             EntryPoint = "BNGetStringAtAddress"
         )]
+		[return: MarshalAs(UnmanagedType.I1)]
 		internal static extern bool BNGetStringAtAddress(
 			
 			// BNBinaryView* view

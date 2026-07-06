@@ -16,6 +16,7 @@ namespace BinaryNinja
             CharSet = CharSet.Ansi,
             EntryPoint = "BNSnapshotHasAncestor"
         )]
+		[return: MarshalAs(UnmanagedType.I1)]
 		internal static extern bool BNSnapshotHasAncestor(
 			
 			// BNSnapshot* snapshot

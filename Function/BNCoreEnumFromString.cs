@@ -16,6 +16,7 @@ namespace BinaryNinja
             CharSet = CharSet.Ansi,
             EntryPoint = "BNCoreEnumFromString"
         )]
+		[return: MarshalAs(UnmanagedType.I1)]
 		internal static extern bool BNCoreEnumFromString(
 			
 			// const char* enumName

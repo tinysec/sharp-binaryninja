@@ -16,6 +16,7 @@ namespace BinaryNinja
             CharSet = CharSet.Ansi,
             EntryPoint = "BNAnalysisContextInform"
         )]
+		[return: MarshalAs(UnmanagedType.I1)]
 		internal static extern bool BNAnalysisContextInform(
 			
 			// BNAnalysisContext* analysisContext

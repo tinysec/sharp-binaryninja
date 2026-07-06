@@ -16,6 +16,7 @@ namespace BinaryNinja
             CharSet = CharSet.Ansi,
             EntryPoint = "BNTransformContextHasTransformParameter"
         )]
+		[return: MarshalAs(UnmanagedType.I1)]
 		internal static extern bool BNTransformContextHasTransformParameter(
 			
 			// BNTransformContext* context

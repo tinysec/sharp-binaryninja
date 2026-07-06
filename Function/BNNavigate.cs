@@ -16,6 +16,7 @@ namespace BinaryNinja
             CharSet = CharSet.Ansi,
             EntryPoint = "BNNavigate"
         )]
+		[return: MarshalAs(UnmanagedType.I1)]
 		internal static extern bool BNNavigate(
 			
 			// BNFileMetadata* file

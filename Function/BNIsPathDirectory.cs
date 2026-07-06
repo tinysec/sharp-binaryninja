@@ -16,6 +16,7 @@ namespace BinaryNinja
             CharSet = CharSet.Ansi,
             EntryPoint = "BNIsPathDirectory"
         )]
+		[return: MarshalAs(UnmanagedType.I1)]
 		internal static extern bool BNIsPathDirectory(
 			
 			// const char* path

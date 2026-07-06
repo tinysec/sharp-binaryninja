@@ -15,6 +15,7 @@ namespace BinaryNinja
             CallingConvention = System.Runtime.InteropServices.CallingConvention.Cdecl,
             EntryPoint = "BNIsFunctionTooLarge"
         )]
+		[return: MarshalAs(UnmanagedType.I1)]
 		internal static extern bool BNIsFunctionTooLarge(
 			
 			// BNFunction* func

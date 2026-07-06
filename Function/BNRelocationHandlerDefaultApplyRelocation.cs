@@ -16,6 +16,7 @@ namespace BinaryNinja
             CharSet = CharSet.Ansi,
             EntryPoint = "BNRelocationHandlerDefaultApplyRelocation"
         )]
+		[return: MarshalAs(UnmanagedType.I1)]
 		internal static extern bool BNRelocationHandlerDefaultApplyRelocation(
 			
 			// BNRelocationHandler* handler

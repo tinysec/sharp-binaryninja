@@ -15,6 +15,7 @@ namespace BinaryNinja
             CallingConvention = System.Runtime.InteropServices.CallingConvention.Cdecl,
             EntryPoint = "BNCollaborationLoadRemotes"
         )]
+		[return: MarshalAs(UnmanagedType.I1)]
 		public static extern bool BNCollaborationLoadRemotes();
 	}
 }

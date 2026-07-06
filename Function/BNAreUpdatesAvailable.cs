@@ -16,6 +16,7 @@ namespace BinaryNinja
             CharSet = CharSet.Ansi,
             EntryPoint = "BNAreUpdatesAvailable"
         )]
+		[return: MarshalAs(UnmanagedType.I1)]
 		internal static extern bool BNAreUpdatesAvailable(
 			
 			// const char* channel

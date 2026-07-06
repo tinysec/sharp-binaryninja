@@ -16,6 +16,7 @@ namespace BinaryNinja
             CharSet = CharSet.Ansi,
             EntryPoint = "BNTypeBuilderHasTemplateArguments"
         )]
+		[return: MarshalAs(UnmanagedType.I1)]
 		internal static extern bool BNTypeBuilderHasTemplateArguments(
 			
 			// BNTypeBuilder* type

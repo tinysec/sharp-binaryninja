@@ -16,6 +16,7 @@ namespace BinaryNinja
             CharSet = CharSet.Ansi,
             EntryPoint = "BNSnapshotHasData"
         )]
+		[return: MarshalAs(UnmanagedType.I1)]
 		internal static extern bool BNSnapshotHasData(
 			
 			// BNDatabase* db

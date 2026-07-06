@@ -16,6 +16,7 @@ namespace BinaryNinja
             CharSet = CharSet.Ansi,
             EntryPoint = "BNIsApplyingDebugInfo"
         )]
+		[return: MarshalAs(UnmanagedType.I1)]
 		internal static extern bool BNIsApplyingDebugInfo(
 			
 			// BNBinaryView* view

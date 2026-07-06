@@ -17,6 +17,7 @@ namespace BinaryNinja
             CharSet = CharSet.Ansi,
             EntryPoint = "BNAnalysisContextGetSettingBool"
         )]
+		[return: MarshalAs(UnmanagedType.I1)]
 		internal static extern bool BNAnalysisContextGetSettingBool(
 			
 			// BNAnalysisContext* analysisContext

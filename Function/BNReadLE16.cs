@@ -15,6 +15,7 @@ namespace BinaryNinja
             CallingConvention = System.Runtime.InteropServices.CallingConvention.Cdecl,
             EntryPoint = "BNReadLE16"
         )]
+		[return: MarshalAs(UnmanagedType.I1)]
 		internal static extern bool BNReadLE16(
 			
 			// BNBinaryReader* stream

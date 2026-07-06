@@ -17,6 +17,7 @@ namespace BinaryNinja
             CharSet = CharSet.Ansi,
             EntryPoint = "BNRepositoryManagerAddRepository"
         )]
+		[return: MarshalAs(UnmanagedType.I1)]
 		internal static extern bool BNRepositoryManagerAddRepository(
 			
 			// const char* url

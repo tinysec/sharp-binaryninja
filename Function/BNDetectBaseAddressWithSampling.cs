@@ -16,6 +16,7 @@ namespace BinaryNinja
             CallingConvention = System.Runtime.InteropServices.CallingConvention.Cdecl,
             EntryPoint = "BNDetectBaseAddressWithSampling"
         )]
+		[return: MarshalAs(UnmanagedType.I1)]
 		internal static extern bool BNDetectBaseAddressWithSampling(
 			
 			// BNBaseAddressDetection* bad

@@ -23,6 +23,7 @@ namespace BinaryNinja
             CallingConvention = System.Runtime.InteropServices.CallingConvention.Cdecl,
             EntryPoint = "BNInitPlugins"
         )]
+		[return: MarshalAs(UnmanagedType.I1)]
 		public static extern bool BNInitPlugins(
 			
 			// bool allowUserPlugins

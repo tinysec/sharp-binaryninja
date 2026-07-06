@@ -16,6 +16,7 @@ namespace BinaryNinja
             CharSet = CharSet.Ansi,
             EntryPoint = "BNGetMediumLevelILInstructionText"
         )]
+		[return: MarshalAs(UnmanagedType.I1)]
 		internal static extern bool BNGetMediumLevelILInstructionText(
 			
 			// BNMediumLevelILFunction* il
