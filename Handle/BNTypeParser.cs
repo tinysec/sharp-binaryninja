@@ -237,22 +237,32 @@ namespace BinaryNinja
             string[] safeOptions = options ?? Array.Empty<string>();
             string[] safeIncludeDirs = includeDirs ?? Array.Empty<string>();
 
-            // 4. Call the native function.
-            bool ok = NativeMethods.BNTypeParserParseTypesFromSource(
-                this.handle ,
-                source ?? string.Empty ,
-                fileName ?? string.Empty ,
-                platform.DangerousGetHandle() ,
-                existingTypes.DangerousGetHandle() ,
-                safeOptions ,
-                (ulong)safeOptions.Length ,
-                safeIncludeDirs ,
-                (ulong)safeIncludeDirs.Length ,
-                autoTypeSource ?? string.Empty ,
-                (IntPtr)(&rawResult) ,
-                (IntPtr)(&errorsPointer) ,
-                (IntPtr)(&errorCount)
-            );
+            // 4. Call the native function. options/includeDirs are const char**
+            // UTF-8 input blocks; build them by hand because .NET cannot apply
+            // LPUTF8Str to string[] array elements (non-ASCII would otherwise
+            // corrupt through the system ANSI code page).
+            bool ok;
+            using (ScopedAllocator allocator = new ScopedAllocator())
+            {
+                IntPtr optionsBlock = allocator.AllocUtf8StringArray(safeOptions);
+                IntPtr includeDirsBlock = allocator.AllocUtf8StringArray(safeIncludeDirs);
+
+                ok = NativeMethods.BNTypeParserParseTypesFromSource(
+                    this.handle ,
+                    source ?? string.Empty ,
+                    fileName ?? string.Empty ,
+                    platform.DangerousGetHandle() ,
+                    existingTypes.DangerousGetHandle() ,
+                    optionsBlock ,
+                    (ulong)safeOptions.Length ,
+                    includeDirsBlock ,
+                    (ulong)safeIncludeDirs.Length ,
+                    autoTypeSource ?? string.Empty ,
+                    (IntPtr)(&rawResult) ,
+                    (IntPtr)(&errorsPointer) ,
+                    (IntPtr)(&errorCount)
+                );
+            }
 
             // 5. On success, return the parsed result.
             if (ok)

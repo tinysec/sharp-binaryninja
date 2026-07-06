@@ -24,8 +24,9 @@ namespace BinaryNinja
 			// BNActivity* activity
 		    IntPtr activity  , 
 			
-			// const char** subactivities
-		    string[] subactivities  , 
+			// const char** subactivities: caller-built UTF-8 char** block (string[]
+			// elements cannot carry LPUTF8Str, so the wrapper builds the block).
+		    IntPtr subactivities  ,
 			
 			// uint64_t size
 		    ulong size  

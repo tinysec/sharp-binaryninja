@@ -25,8 +25,9 @@ namespace BinaryNinja
 			// const char* archiveId
 		    [MarshalAs(UnmanagedType.LPUTF8Str)] string archiveId  , 
 			
-			// const char** typeIds
-		    string[] typeIds  , 
+			// const char** typeIds: caller-built UTF-8 char** block (string[]
+			// elements cannot carry LPUTF8Str, so the wrapper builds the block).
+		    IntPtr typeIds  ,
 			
 			// uint64_t typeIdCount
 		    ulong typeIdCount  , 

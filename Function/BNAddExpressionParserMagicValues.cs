@@ -21,8 +21,9 @@ namespace BinaryNinja
 			// BNBinaryView* view
 		    IntPtr view  , 
 			
-			// const char** names
-		    string[] names  , 
+			// const char** names: caller-built UTF-8 char** block (string[]
+			// elements cannot carry LPUTF8Str, so the wrapper builds the block).
+		    IntPtr names  ,
 			
 			// uint64_t* values
 		    ulong[] values  , 

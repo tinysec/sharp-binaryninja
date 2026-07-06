@@ -2708,21 +2708,42 @@ namespace BinaryNinja
 		
 		public void AddExpressionParserMagicValues(IDictionary<string,ulong> items)
 		{
-			NativeMethods.BNAddExpressionParserMagicValues(
-				this.handle ,
-				items.Keys.ToArray() , 
-				items.Values.ToArray(),
-				(ulong)items.Count
-			);
+			// Build the names const char** as a UTF-8 block (.NET cannot apply
+			// LPUTF8Str to string[] elements, so non-ASCII would otherwise
+			// corrupt through the system ANSI code page).
+			string[] safeNames = items.Keys.ToArray();
+			ulong[] safeValues = items.Values.ToArray();
+
+			using (ScopedAllocator allocator = new ScopedAllocator())
+			{
+				IntPtr namesBlock = allocator.AllocUtf8StringArray(safeNames);
+
+				NativeMethods.BNAddExpressionParserMagicValues(
+					this.handle ,
+					namesBlock ,
+					safeValues ,
+					(ulong)safeNames.Length
+				);
+			}
 		}
 		
 		public void RemoveExpressionParserMagicValues(string[] names)
 		{
-			NativeMethods.BNRemoveExpressionParserMagicValues(
-				this.handle ,
-				names,
-				(ulong)names.Length
-			);
+			// Build the names const char** as a UTF-8 block (.NET cannot apply
+			// LPUTF8Str to string[] elements, so non-ASCII would otherwise
+			// corrupt through the system ANSI code page).
+			string[] safeNames = names ?? Array.Empty<string>();
+
+			using (ScopedAllocator allocator = new ScopedAllocator())
+			{
+				IntPtr namesBlock = allocator.AllocUtf8StringArray(safeNames);
+
+				NativeMethods.BNRemoveExpressionParserMagicValues(
+					this.handle ,
+					namesBlock ,
+					(ulong)safeNames.Length
+				);
+			}
 		}
 
 		public bool GetExpressionParserMagicValue(string name , out ulong value)
@@ -6099,16 +6120,26 @@ namespace BinaryNinja
 		    IntPtr updatedArchiveTypeIdsPtr = IntPtr.Zero;
 		    IntPtr updatedAnalysisTypeIdsPtr = IntPtr.Zero;
 
-		    // 2. Call the native pull function with pointers to the locals.
-		    bool ok = NativeMethods.BNBinaryViewPullTypeArchiveTypes(
-			    this.handle ,
-			    archiveId ,
-			    archiveTypeIds ,
-			    (ulong)archiveTypeIds.Length ,
-			    (IntPtr)(&updatedArchiveTypeIdsPtr) ,
-			    (IntPtr)(&updatedAnalysisTypeIdsPtr) ,
-			    (IntPtr)(&count)
-		    );
+		    // 2. Build archiveTypeIds as a UTF-8 const char** block, then call the
+		    // native pull function (.NET cannot apply LPUTF8Str to string[] elements,
+		    // so non-ASCII would otherwise corrupt through the system ANSI code page).
+		    string[] safeArchiveTypeIds = archiveTypeIds ?? Array.Empty<string>();
+
+		    bool ok;
+		    using (ScopedAllocator allocator = new ScopedAllocator())
+		    {
+			    IntPtr archiveTypeIdsBlock = allocator.AllocUtf8StringArray(safeArchiveTypeIds);
+
+			    ok = NativeMethods.BNBinaryViewPullTypeArchiveTypes(
+				    this.handle ,
+				    archiveId ,
+				    archiveTypeIdsBlock ,
+				    (ulong)safeArchiveTypeIds.Length ,
+				    (IntPtr)(&updatedArchiveTypeIdsPtr) ,
+				    (IntPtr)(&updatedAnalysisTypeIdsPtr) ,
+				    (IntPtr)(&count)
+			    );
+		    }
 
 		    // 3. On success, convert the native string arrays to managed arrays.
 		    if (ok)
@@ -6157,16 +6188,26 @@ namespace BinaryNinja
 		    IntPtr updatedAnalysisTypeIdsPtr = IntPtr.Zero;
 		    IntPtr updatedArchiveTypeIdsPtr = IntPtr.Zero;
 
-		    // 2. Call the native push function with pointers to the locals.
-		    bool ok = NativeMethods.BNBinaryViewPushTypeArchiveTypes(
-			    this.handle ,
-			    archiveId ,
-			    typeIds ,
-			    (ulong)typeIds.Length ,
-			    (IntPtr)(&updatedAnalysisTypeIdsPtr) ,
-			    (IntPtr)(&updatedArchiveTypeIdsPtr) ,
-			    (IntPtr)(&count)
-		    );
+		    // 2. Build typeIds as a UTF-8 const char** block, then call the native
+		    // push function (.NET cannot apply LPUTF8Str to string[] elements, so
+		    // non-ASCII would otherwise corrupt through the system ANSI code page).
+		    string[] safeTypeIds = typeIds ?? Array.Empty<string>();
+
+		    bool ok;
+		    using (ScopedAllocator allocator = new ScopedAllocator())
+		    {
+			    IntPtr typeIdsBlock = allocator.AllocUtf8StringArray(safeTypeIds);
+
+			    ok = NativeMethods.BNBinaryViewPushTypeArchiveTypes(
+				    this.handle ,
+				    archiveId ,
+				    typeIdsBlock ,
+				    (ulong)safeTypeIds.Length ,
+				    (IntPtr)(&updatedAnalysisTypeIdsPtr) ,
+				    (IntPtr)(&updatedArchiveTypeIdsPtr) ,
+				    (IntPtr)(&count)
+			    );
+		    }
 
 		    // 3. On success, convert the native string arrays to managed arrays.
 		    if (ok)
@@ -6835,17 +6876,27 @@ namespace BinaryNinja
 	    /// <returns>An array of unique section names with conflicts resolved.</returns>
 	    public string[] GetUniqueSectionNames(string[] names)
 	    {
-		    // 1. Call native to get uniquified names.
-		    IntPtr arrayPointer = NativeMethods.BNGetUniqueSectionNames(
-			    this.handle ,
-			    names ,
-			    (ulong)names.Length
-		    );
+		    // 1. Build the names const char** as a UTF-8 block, then call native
+		    // (.NET cannot apply LPUTF8Str to string[] elements, so non-ASCII would
+		    // otherwise corrupt through the system ANSI code page).
+		    string[] safeNames = names ?? Array.Empty<string>();
+
+		    IntPtr arrayPointer;
+		    using (ScopedAllocator allocator = new ScopedAllocator())
+		    {
+			    IntPtr namesBlock = allocator.AllocUtf8StringArray(safeNames);
+
+			    arrayPointer = NativeMethods.BNGetUniqueSectionNames(
+				    this.handle ,
+				    namesBlock ,
+				    (ulong)safeNames.Length
+			    );
+		    }
 
 		    // 2. Convert the result array and free.
 		    return UnsafeUtils.TakeAnsiStringArray(
 			    arrayPointer ,
-			    (ulong)names.Length ,
+			    (ulong)safeNames.Length ,
 			    NativeMethods.BNFreeStringList
 		    );
 	    }
@@ -6971,7 +7022,9 @@ namespace BinaryNinja
 	    /// <returns>The Tag with the given ID, or null if not found.</returns>
 	    public Tag? GetTag(string tagId)
 	    {
-		    return Tag.NewFromHandle(
+		    // BNGetTag returns an OWNED handle (the C++ wrapper adopts it with no addref), so
+		    // take it directly instead of bumping the reference count.
+		    return Tag.TakeHandle(
 			    NativeMethods.BNGetTag(this.handle , tagId)
 		    );
 	    }
@@ -6988,7 +7041,9 @@ namespace BinaryNinja
 	    /// <returns>The matching TagType, or null if not found.</returns>
 	    public TagType? GetTagTypeWithType(string name , TagTypeType type)
 	    {
-		    return TagType.NewFromHandle(
+		    // BNGetTagTypeWithType returns an OWNED handle (the C++ wrapper adopts it with no
+		    // addref), matching the untyped GetTagType overload; take it directly.
+		    return TagType.TakeHandle(
 			    NativeMethods.BNGetTagTypeWithType(this.handle , name , type)
 		    );
 	    }
@@ -7001,7 +7056,9 @@ namespace BinaryNinja
 	    /// <returns>The matching TagType, or null if not found.</returns>
 	    public TagType? GetTagTypeByIdWithType(string id , TagTypeType type)
 	    {
-		    return TagType.NewFromHandle(
+		    // BNGetTagTypeByIdWithType returns an OWNED handle (the C++ wrapper adopts it with
+		    // no addref), matching the untyped GetTagTypeById overload; take it directly.
+		    return TagType.TakeHandle(
 			    NativeMethods.BNGetTagTypeByIdWithType(this.handle , id , type)
 		    );
 	    }

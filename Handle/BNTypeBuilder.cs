@@ -316,7 +316,7 @@ namespace BinaryNinja
 		{
 			get
 			{
-				return QualifiedName.FromNative(NativeMethods.BNTypeBuilderGetStructureName(this.handle));
+				return QualifiedName.TakeNative(NativeMethods.BNTypeBuilderGetStructureName(this.handle));
 			}
 		}
 
@@ -327,7 +327,7 @@ namespace BinaryNinja
 		{
 			get
 			{
-				return QualifiedName.FromNative(NativeMethods.BNTypeBuilderGetTypeName(this.handle));
+				return QualifiedName.TakeNative(NativeMethods.BNTypeBuilderGetTypeName(this.handle));
 			}
 
 			set

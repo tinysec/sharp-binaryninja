@@ -455,8 +455,9 @@ namespace BinaryNinja
 	    /// <returns>An owned UndoEntry instance, or null if the redo stack is empty.</returns>
 	    public UndoEntry? GetLastRedoEntry()
 	    {
-		    // Retrieve a borrowed handle from the native API; wrap with NewFromHandle to addref.
-		    return UndoEntry.NewFromHandle(
+		    // BNGetLastRedoEntry returns an OWNED handle (the C++ wrapper adopts it with no
+		    // addref), so take it directly instead of bumping the reference count.
+		    return UndoEntry.TakeHandle(
 			    NativeMethods.BNGetLastRedoEntry(this.handle)
 		    );
 	    }
@@ -468,8 +469,9 @@ namespace BinaryNinja
 	    /// <returns>An owned UndoEntry instance, or null if the undo stack is empty.</returns>
 	    public UndoEntry? GetLastUndoEntry()
 	    {
-		    // Retrieve a borrowed handle from the native API; wrap with NewFromHandle to addref.
-		    return UndoEntry.NewFromHandle(
+		    // BNGetLastUndoEntry returns an OWNED handle (the C++ wrapper adopts it with no
+		    // addref), so take it directly instead of bumping the reference count.
+		    return UndoEntry.TakeHandle(
 			    NativeMethods.BNGetLastUndoEntry(this.handle)
 		    );
 	    }

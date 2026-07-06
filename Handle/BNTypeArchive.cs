@@ -412,7 +412,9 @@ namespace BinaryNinja
         public BinaryNinja.Type? GetTypeById(string id, string snapshot)
         {
             // Forward the type ID and snapshot to the native lookup API.
-            return BinaryNinja.Type.NewFromHandle(
+            // BNGetTypeArchiveTypeById returns an OWNED handle (the C++ wrapper adopts it with
+            // no addref), matching GetTypeByName; take it directly.
+            return BinaryNinja.Type.TakeHandle(
                 NativeMethods.BNGetTypeArchiveTypeById(
                     this.handle,
                     id ?? string.Empty,
@@ -588,7 +590,9 @@ namespace BinaryNinja
         public Metadata? QueryMetadata(string key)
         {
             // Query and return the metadata for the given key; null if not found.
-            return Metadata.NewFromHandle(
+            // BNTypeArchiveQueryMetadata returns an OWNED handle (the C++ wrapper adopts it with
+            // no addref), matching BinaryView/Function.QueryMetadata; take it directly.
+            return Metadata.TakeHandle(
                 NativeMethods.BNTypeArchiveQueryMetadata(
                     this.handle,
                     key ?? string.Empty

@@ -225,22 +225,48 @@ namespace BinaryNinja
 	    
 	    public bool Insert(string activity , string[] activities)
 	    {
-		    return NativeMethods.BNWorkflowInsert(
-			    this.handle,
-			    activity ,
-			    activities ,
-			    (ulong)activities.Length
-			);
+		    string[] safeActivities = activities ?? Array.Empty<string>();
+
+		    // activities is a const char** UTF-8 input block; build it by hand
+		    // because .NET cannot apply LPUTF8Str to string[] array elements
+		    // (non-ASCII would otherwise corrupt through the system ANSI code page).
+		    bool ok;
+		    using (ScopedAllocator allocator = new ScopedAllocator())
+		    {
+			    IntPtr activitiesBlock = allocator.AllocUtf8StringArray(safeActivities);
+
+			    ok = NativeMethods.BNWorkflowInsert(
+				    this.handle,
+				    activity ,
+				    activitiesBlock ,
+				    (ulong)safeActivities.Length
+			    );
+		    }
+
+		    return ok;
 	    }
 	    
 	    public bool InsertAfter(string activity , string[] activities)
 	    {
-		    return NativeMethods.BNWorkflowInsertAfter(
-			    this.handle,
-			    activity ,
-			    activities ,
-			    (ulong)activities.Length
-		    );
+		    string[] safeActivities = activities ?? Array.Empty<string>();
+
+		    // activities is a const char** UTF-8 input block; build it by hand
+		    // because .NET cannot apply LPUTF8Str to string[] array elements
+		    // (non-ASCII would otherwise corrupt through the system ANSI code page).
+		    bool ok;
+		    using (ScopedAllocator allocator = new ScopedAllocator())
+		    {
+			    IntPtr activitiesBlock = allocator.AllocUtf8StringArray(safeActivities);
+
+			    ok = NativeMethods.BNWorkflowInsertAfter(
+				    this.handle,
+				    activity ,
+				    activitiesBlock ,
+				    (ulong)safeActivities.Length
+			    );
+		    }
+
+		    return ok;
 	    }
 	    
 	    public bool Remove(string activity)
@@ -262,12 +288,25 @@ namespace BinaryNinja
 
 	    public bool AssignSubactivities(string activity , string[] activities)
 	    {
-		    return NativeMethods.BNWorkflowAssignSubactivities(
-			    this.handle,
-			    activity ,
-			    activities ,
-			    (ulong)activities.Length
-		    );
+		    string[] safeActivities = activities ?? Array.Empty<string>();
+
+		    // activities is a const char** UTF-8 input block; build it by hand
+		    // because .NET cannot apply LPUTF8Str to string[] array elements
+		    // (non-ASCII would otherwise corrupt through the system ANSI code page).
+		    bool ok;
+		    using (ScopedAllocator allocator = new ScopedAllocator())
+		    {
+			    IntPtr activitiesBlock = allocator.AllocUtf8StringArray(safeActivities);
+
+			    ok = NativeMethods.BNWorkflowAssignSubactivities(
+				    this.handle,
+				    activity ,
+				    activitiesBlock ,
+				    (ulong)safeActivities.Length
+			    );
+		    }
+
+		    return ok;
 	    }
 
 	    public FlowGraph? GetGraph(string activity = "" , bool sequential = false)
@@ -283,14 +322,25 @@ namespace BinaryNinja
 
 	    public Activity? RegisterActivity(Activity activity , string[] subactivities)
 	    {
-		    return Activity.TakeHandle(
-			    NativeMethods.BNWorkflowRegisterActivity(
+		    string[] safeSubactivities = subactivities ?? Array.Empty<string>();
+
+		    // subactivities is a const char** UTF-8 input block; build it by hand
+		    // because .NET cannot apply LPUTF8Str to string[] array elements
+		    // (non-ASCII would otherwise corrupt through the system ANSI code page).
+		    IntPtr activityHandle;
+		    using (ScopedAllocator allocator = new ScopedAllocator())
+		    {
+			    IntPtr subactivitiesBlock = allocator.AllocUtf8StringArray(safeSubactivities);
+
+			    activityHandle = NativeMethods.BNWorkflowRegisterActivity(
 				    this.handle ,
 				    activity.DangerousGetHandle() ,
-				    subactivities ,
-				    (ulong)subactivities.Length
-			    )
-		    );
+				    subactivitiesBlock ,
+				    (ulong)safeSubactivities.Length
+			    );
+		    }
+
+		    return Activity.TakeHandle(activityHandle);
 	    }
 
 	    public void ShowReport(string name)
