@@ -16,6 +16,7 @@ namespace BinaryNinja
             CharSet = CharSet.Ansi,
             EntryPoint = "BNPathExists"
         )]
+		[return: MarshalAs(UnmanagedType.I1)]
 		internal static extern bool BNPathExists(
 			
 			// const char* path

@@ -16,6 +16,7 @@ namespace BinaryNinja
             CharSet = CharSet.Ansi,
             EntryPoint = "BNIsExecutableView"
         )]
+		[return: MarshalAs(UnmanagedType.I1)]
 		internal static extern bool BNIsExecutableView(
 			
 			// BNBinaryView* view

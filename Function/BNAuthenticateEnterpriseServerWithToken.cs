@@ -17,6 +17,7 @@ namespace BinaryNinja
             CharSet = CharSet.Ansi,
             EntryPoint = "BNAuthenticateEnterpriseServerWithToken"
         )]
+		[return: MarshalAs(UnmanagedType.I1)]
 		internal static extern bool BNAuthenticateEnterpriseServerWithToken(
 			
 			// const char* token

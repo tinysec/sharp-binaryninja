@@ -16,6 +16,7 @@ namespace BinaryNinja
             CharSet = CharSet.Ansi,
             EntryPoint = "BNNotifyProgressForDownloadInstance"
         )]
+		[return: MarshalAs(UnmanagedType.I1)]
 		internal static extern bool BNNotifyProgressForDownloadInstance(
 			
 			// BNDownloadInstance* instance

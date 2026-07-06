@@ -16,6 +16,7 @@ namespace BinaryNinja
             CharSet = CharSet.Ansi,
             EntryPoint = "BNDeleteFile"
         )]
+		[return: MarshalAs(UnmanagedType.I1)]
 		internal static extern bool BNDeleteFile(
 			
 			// const char* path

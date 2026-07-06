@@ -38,6 +38,7 @@ namespace BinaryNinja
             CharSet = CharSet.Ansi,
             EntryPoint = "BNGetDirectoryNameInput"
         )]
+		[return: MarshalAs(UnmanagedType.I1)]
 		internal static extern bool BNGetDirectoryNameInput(
 			
 			// char** result

@@ -42,6 +42,7 @@ namespace BinaryNinja
             CharSet = CharSet.Ansi,
             EntryPoint = "BNGetCheckboxInput"
         )]
+		[return: MarshalAs(UnmanagedType.I1)]
 		internal static extern bool BNGetCheckboxInput(
 			
 			// int64_t* result

@@ -16,6 +16,7 @@ namespace BinaryNinja
             CharSet = CharSet.Ansi,
             EntryPoint = "BNFileSize"
         )]
+		[return: MarshalAs(UnmanagedType.I1)]
 		internal static extern bool BNFileSize(
 			
 			// const char* path

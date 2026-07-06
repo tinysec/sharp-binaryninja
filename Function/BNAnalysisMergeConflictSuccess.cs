@@ -16,6 +16,7 @@ namespace BinaryNinja
             CharSet = CharSet.Ansi,
             EntryPoint = "BNAnalysisMergeConflictSuccess"
         )]
+		[return: MarshalAs(UnmanagedType.I1)]
 		internal static extern bool BNAnalysisMergeConflictSuccess(
 			
 			// BNAnalysisMergeConflict* conflict

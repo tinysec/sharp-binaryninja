@@ -16,6 +16,7 @@ namespace BinaryNinja
             CharSet = CharSet.Ansi,
             EntryPoint = "BNIsBaseAddressDetectionAborted"
         )]
+		[return: MarshalAs(UnmanagedType.I1)]
 		internal static extern bool BNIsBaseAddressDetectionAborted(
 			
 			// BNBaseAddressDetection* bad

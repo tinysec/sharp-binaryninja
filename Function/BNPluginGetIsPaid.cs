@@ -16,6 +16,7 @@ namespace BinaryNinja
             CallingConvention = System.Runtime.InteropServices.CallingConvention.Cdecl,
             EntryPoint = "BNPluginGetIsPaid"
         )]
+		[return: MarshalAs(UnmanagedType.I1)]
 		internal static extern bool BNPluginGetIsPaid(
 			
 			// BNPlugin* p

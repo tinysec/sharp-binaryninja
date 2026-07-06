@@ -15,6 +15,7 @@ namespace BinaryNinja
             CallingConvention = System.Runtime.InteropServices.CallingConvention.Cdecl,
             EntryPoint = "BNMetadataIsSignedIntegerList"
         )]
+		[return: MarshalAs(UnmanagedType.I1)]
 		internal static extern bool BNMetadataIsSignedIntegerList(
 			
 			// BNMetadata* data

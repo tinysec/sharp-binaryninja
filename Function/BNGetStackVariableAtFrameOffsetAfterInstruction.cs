@@ -16,6 +16,7 @@ namespace BinaryNinja
             CharSet = CharSet.Ansi,
             EntryPoint = "BNGetStackVariableAtFrameOffsetAfterInstruction"
         )]
+		[return: MarshalAs(UnmanagedType.I1)]
 		internal static extern bool BNGetStackVariableAtFrameOffsetAfterInstruction(
 			
 			// BNFunction* func

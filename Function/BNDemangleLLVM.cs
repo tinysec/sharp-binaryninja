@@ -16,6 +16,7 @@ namespace BinaryNinja
             CharSet = CharSet.Ansi,
             EntryPoint = "BNDemangleLLVM"
         )]
+		[return: MarshalAs(UnmanagedType.I1)]
 		internal static extern bool BNDemangleLLVM(
 			
 			// const char* mangledName

@@ -16,6 +16,7 @@ namespace BinaryNinja
             CharSet = CharSet.Ansi,
             EntryPoint = "BNUpdateEnterpriseServerLicense"
         )]
+		[return: MarshalAs(UnmanagedType.I1)]
 		internal static extern bool BNUpdateEnterpriseServerLicense(
 			
 			// uint64_t timeout

@@ -16,6 +16,7 @@ namespace BinaryNinja
             CharSet = CharSet.Ansi,
             EntryPoint = "BNIsStackAdjustedOnReturn"
         )]
+		[return: MarshalAs(UnmanagedType.I1)]
 		internal static extern bool BNIsStackAdjustedOnReturn(
 			
 			// BNCallingConvention* cc

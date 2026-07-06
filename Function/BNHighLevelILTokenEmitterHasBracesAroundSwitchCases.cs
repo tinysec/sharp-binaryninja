@@ -16,6 +16,7 @@ namespace BinaryNinja
             CharSet = CharSet.Ansi,
             EntryPoint = "BNHighLevelILTokenEmitterHasBracesAroundSwitchCases"
         )]
+		[return: MarshalAs(UnmanagedType.I1)]
 		internal static extern bool BNHighLevelILTokenEmitterHasBracesAroundSwitchCases(
 			
 			// BNHighLevelILTokenEmitter* emitter

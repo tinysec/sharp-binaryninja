@@ -16,6 +16,7 @@ namespace BinaryNinja
             CharSet = CharSet.Ansi,
             EntryPoint = "BNCreateDatabase"
         )]
+		[return: MarshalAs(UnmanagedType.I1)]
 		internal static extern bool BNCreateDatabase(
 			
 			// BNBinaryView* data

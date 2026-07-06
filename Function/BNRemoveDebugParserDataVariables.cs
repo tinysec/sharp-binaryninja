@@ -16,6 +16,7 @@ namespace BinaryNinja
             CharSet = CharSet.Ansi,
             EntryPoint = "BNRemoveDebugParserDataVariables"
         )]
+		[return: MarshalAs(UnmanagedType.I1)]
 		internal static extern bool BNRemoveDebugParserDataVariables(
 			
 			// BNDebugInfo* debugInfo

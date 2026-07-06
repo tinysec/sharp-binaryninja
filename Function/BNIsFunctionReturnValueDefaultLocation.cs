@@ -16,6 +16,7 @@ namespace BinaryNinja
             CallingConvention = System.Runtime.InteropServices.CallingConvention.Cdecl,
             EntryPoint = "BNIsFunctionReturnValueDefaultLocation"
         )]
+		[return: MarshalAs(UnmanagedType.I1)]
 		internal static extern bool BNIsFunctionReturnValueDefaultLocation(
 			
 			// BNFunction* func

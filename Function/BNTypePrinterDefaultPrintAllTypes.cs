@@ -16,6 +16,7 @@ namespace BinaryNinja
             CharSet = CharSet.Ansi,
             EntryPoint = "BNTypePrinterDefaultPrintAllTypes"
         )]
+		[return: MarshalAs(UnmanagedType.I1)]
 		internal static extern bool BNTypePrinterDefaultPrintAllTypes(
 			
 			// BNTypePrinter* printer

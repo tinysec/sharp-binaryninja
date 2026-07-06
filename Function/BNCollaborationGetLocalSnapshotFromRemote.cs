@@ -16,6 +16,7 @@ namespace BinaryNinja
      
             EntryPoint = "BNCollaborationGetLocalSnapshotFromRemote"
         )]
+		[return: MarshalAs(UnmanagedType.I1)]
 		internal static extern bool BNCollaborationGetLocalSnapshotFromRemote(
 			
 			// BNCollaborationSnapshot* snapshot

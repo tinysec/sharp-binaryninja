@@ -15,6 +15,7 @@ namespace BinaryNinja
             CallingConvention = System.Runtime.InteropServices.CallingConvention.Cdecl,
             EntryPoint = "BNIsFlowGraphOptionSet"
         )]
+		[return: MarshalAs(UnmanagedType.I1)]
 		internal static extern bool BNIsFlowGraphOptionSet(
 			
 			// BNFlowGraph* graph

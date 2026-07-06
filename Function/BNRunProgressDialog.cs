@@ -16,6 +16,7 @@ namespace BinaryNinja
             CharSet = CharSet.Ansi,
             EntryPoint = "BNRunProgressDialog"
         )]
+		[return: MarshalAs(UnmanagedType.I1)]
 		internal static extern bool BNRunProgressDialog(
 			
 			// const char* title

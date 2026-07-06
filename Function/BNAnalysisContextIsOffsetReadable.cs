@@ -16,6 +16,7 @@ namespace BinaryNinja
             CallingConvention = System.Runtime.InteropServices.CallingConvention.Cdecl,
             EntryPoint = "BNAnalysisContextIsOffsetReadable"
         )]
+		[return: MarshalAs(UnmanagedType.I1)]
 		internal static extern bool BNAnalysisContextIsOffsetReadable(
 			
 			// BNAnalysisContext* analysisContext

@@ -16,6 +16,7 @@ namespace BinaryNinja
             CharSet = CharSet.Ansi,
             EntryPoint = "BNIsFunctionUpdateNeeded"
         )]
+		[return: MarshalAs(UnmanagedType.I1)]
 		internal static extern bool BNIsFunctionUpdateNeeded(
 			
 			// BNFunction* func

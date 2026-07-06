@@ -16,6 +16,7 @@ namespace BinaryNinja
             CharSet = CharSet.Ansi,
             EntryPoint = "BNAddDebugDataVariable"
         )]
+		[return: MarshalAs(UnmanagedType.I1)]
 		internal static extern bool BNAddDebugDataVariable(
 			
 			// BNDebugInfo* debugInfo

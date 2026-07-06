@@ -16,6 +16,7 @@ namespace BinaryNinja
             CharSet = CharSet.Ansi,
             EntryPoint = "BNNotifyWebsocketClientReadData"
         )]
+		[return: MarshalAs(UnmanagedType.I1)]
 		internal static extern bool BNNotifyWebsocketClientReadData(
 			
 			// BNWebsocketClient* client

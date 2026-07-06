@@ -16,6 +16,7 @@ namespace BinaryNinja
             CharSet = CharSet.Ansi,
             EntryPoint = "BNFirmwareNinjaReferenceNodeIsFunction"
         )]
+		[return: MarshalAs(UnmanagedType.I1)]
 		internal static extern bool BNFirmwareNinjaReferenceNodeIsFunction(
 			
 			// BNFirmwareNinjaReferenceNode* node

@@ -16,6 +16,7 @@ namespace BinaryNinja
             CharSet = CharSet.Ansi,
             EntryPoint = "BNIsArchitectureAlwaysBranchPatchAvailable"
         )]
+		[return: MarshalAs(UnmanagedType.I1)]
 		internal static extern bool BNIsArchitectureAlwaysBranchPatchAvailable(
 			
 			// BNArchitecture* arch

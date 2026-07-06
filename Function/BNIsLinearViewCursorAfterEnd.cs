@@ -15,6 +15,7 @@ namespace BinaryNinja
             CallingConvention = System.Runtime.InteropServices.CallingConvention.Cdecl,
             EntryPoint = "BNIsLinearViewCursorAfterEnd"
         )]
+		[return: MarshalAs(UnmanagedType.I1)]
 		internal static extern bool BNIsLinearViewCursorAfterEnd(
 			
 			// BNLinearViewCursor* cursor

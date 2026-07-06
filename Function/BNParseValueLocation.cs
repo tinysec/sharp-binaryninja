@@ -17,6 +17,7 @@ namespace BinaryNinja
             CharSet = CharSet.Ansi,
             EntryPoint = "BNParseValueLocation"
         )]
+		[return: MarshalAs(UnmanagedType.I1)]
 		internal static extern bool BNParseValueLocation(
 			
 			// const char* str

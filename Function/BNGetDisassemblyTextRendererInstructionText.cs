@@ -16,6 +16,7 @@ namespace BinaryNinja
             CharSet = CharSet.Ansi,
             EntryPoint = "BNGetDisassemblyTextRendererInstructionText"
         )]
+		[return: MarshalAs(UnmanagedType.I1)]
 		internal static extern bool BNGetDisassemblyTextRendererInstructionText(
 			
 			// BNDisassemblyTextRenderer* renderer

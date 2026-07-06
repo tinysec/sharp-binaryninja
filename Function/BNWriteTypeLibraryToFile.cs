@@ -16,6 +16,7 @@ namespace BinaryNinja
             CharSet = CharSet.Ansi,
             EntryPoint = "BNWriteTypeLibraryToFile"
         )]
+		[return: MarshalAs(UnmanagedType.I1)]
 		internal static extern bool BNWriteTypeLibraryToFile(
 			
 			// BNTypeLibrary* lib

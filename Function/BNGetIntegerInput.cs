@@ -35,6 +35,7 @@ namespace BinaryNinja
             CharSet = CharSet.Ansi,
             EntryPoint = "BNGetIntegerInput"
         )]
+		[return: MarshalAs(UnmanagedType.I1)]
 		internal static extern bool BNGetIntegerInput(
 			
 			// int64_t* result

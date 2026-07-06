@@ -16,6 +16,7 @@ namespace BinaryNinja
             CharSet = CharSet.Ansi,
             EntryPoint = "BNPreprocessSource"
         )]
+		[return: MarshalAs(UnmanagedType.I1)]
 		internal static extern bool BNPreprocessSource(
 			
 			// const char* source

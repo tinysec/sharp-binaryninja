@@ -16,6 +16,7 @@ namespace BinaryNinja
             CharSet = CharSet.Ansi,
             EntryPoint = "BNSegmentIsAutoDefined"
         )]
+		[return: MarshalAs(UnmanagedType.I1)]
 		internal static extern bool BNSegmentIsAutoDefined(
 			
 			// BNSegment* segment

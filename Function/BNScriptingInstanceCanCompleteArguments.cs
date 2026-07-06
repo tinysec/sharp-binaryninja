@@ -17,6 +17,7 @@ namespace BinaryNinja
             CharSet = CharSet.Ansi,
             EntryPoint = "BNScriptingInstanceCanCompleteArguments"
         )]
+		[return: MarshalAs(UnmanagedType.I1)]
 		internal static extern bool BNScriptingInstanceCanCompleteArguments(
 			
 			// BNScriptingInstance* instance

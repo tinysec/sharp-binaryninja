@@ -15,6 +15,7 @@ namespace BinaryNinja
             CallingConvention = System.Runtime.InteropServices.CallingConvention.Cdecl,
             EntryPoint = "BNGetInstructionLowLevelIL"
         )]
+		[return: MarshalAs(UnmanagedType.I1)]
 		internal static extern bool BNGetInstructionLowLevelIL(
 			
 			// BNArchitecture* arch

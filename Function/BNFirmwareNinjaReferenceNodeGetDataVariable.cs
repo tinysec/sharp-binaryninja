@@ -16,6 +16,7 @@ namespace BinaryNinja
             CharSet = CharSet.Ansi,
             EntryPoint = "BNFirmwareNinjaReferenceNodeGetDataVariable"
         )]
+		[return: MarshalAs(UnmanagedType.I1)]
 		internal static extern bool BNFirmwareNinjaReferenceNodeGetDataVariable(
 			
 			// BNFirmwareNinjaReferenceNode* node

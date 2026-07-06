@@ -16,6 +16,7 @@ namespace BinaryNinja
             CharSet = CharSet.Ansi,
             EntryPoint = "BNSnapshotHasUndo"
         )]
+		[return: MarshalAs(UnmanagedType.I1)]
 		internal static extern bool BNSnapshotHasUndo(
 			
 			// BNSnapshot* snapshot

@@ -16,6 +16,7 @@ namespace BinaryNinja
             CharSet = CharSet.Ansi,
             EntryPoint = "BNIsTypeFloatingPoint"
         )]
+		[return: MarshalAs(UnmanagedType.I1)]
 		internal static extern bool BNIsTypeFloatingPoint(
 			
 			// BNType* type

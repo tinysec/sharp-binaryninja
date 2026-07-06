@@ -16,6 +16,7 @@ namespace BinaryNinja
             CharSet = CharSet.Ansi,
             EntryPoint = "BNFindNextDataWithProgress"
         )]
+		[return: MarshalAs(UnmanagedType.I1)]
 		internal static extern bool BNFindNextDataWithProgress(
 			
 			// BNBinaryView* view

@@ -16,6 +16,7 @@ namespace BinaryNinja
             CharSet = CharSet.Ansi,
             EntryPoint = "BNFunctionCheckForDebugReport"
         )]
+		[return: MarshalAs(UnmanagedType.I1)]
 		internal static extern bool BNFunctionCheckForDebugReport(
 			
 			// BNFunction* func

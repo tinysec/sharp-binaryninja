@@ -15,6 +15,7 @@ namespace BinaryNinja
             CallingConvention = System.Runtime.InteropServices.CallingConvention.Cdecl,
             EntryPoint = "BNIsFunctionAnalysisSkipped"
         )]
+		[return: MarshalAs(UnmanagedType.I1)]
 		internal static extern bool BNIsFunctionAnalysisSkipped(
 			
 			// BNFunction* func

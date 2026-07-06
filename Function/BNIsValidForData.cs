@@ -16,6 +16,7 @@ namespace BinaryNinja
             CharSet = CharSet.Ansi,
             EntryPoint = "BNIsValidForData"
         )]
+		[return: MarshalAs(UnmanagedType.I1)]
 		internal static extern bool BNIsValidForData(
 			
 			// void* ctxt

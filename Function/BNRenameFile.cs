@@ -16,6 +16,7 @@ namespace BinaryNinja
             CharSet = CharSet.Ansi,
             EntryPoint = "BNRenameFile"
         )]
+		[return: MarshalAs(UnmanagedType.I1)]
 		internal static extern bool BNRenameFile(
 			
 			// const char* source

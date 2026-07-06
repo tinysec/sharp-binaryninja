@@ -16,6 +16,7 @@ namespace BinaryNinja
             CharSet = CharSet.Ansi,
             EntryPoint = "BNEnumerateTypesForAccess"
         )]
+		[return: MarshalAs(UnmanagedType.I1)]
 		internal static extern bool BNEnumerateTypesForAccess(
 			
 			// BNType* type

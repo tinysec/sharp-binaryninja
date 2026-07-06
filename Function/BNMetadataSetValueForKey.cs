@@ -16,6 +16,7 @@ namespace BinaryNinja
             CharSet = CharSet.Ansi,
             EntryPoint = "BNMetadataSetValueForKey"
         )]
+		[return: MarshalAs(UnmanagedType.I1)]
 		internal static extern bool BNMetadataSetValueForKey(
 			
 			// BNMetadata* data

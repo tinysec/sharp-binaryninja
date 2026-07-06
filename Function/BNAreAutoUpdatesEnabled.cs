@@ -15,6 +15,7 @@ namespace BinaryNinja
             CallingConvention = System.Runtime.InteropServices.CallingConvention.Cdecl,
             EntryPoint = "BNAreAutoUpdatesEnabled"
         )]
+		[return: MarshalAs(UnmanagedType.I1)]
 		public static extern bool BNAreAutoUpdatesEnabled();
 	}
 }

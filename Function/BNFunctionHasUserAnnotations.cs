@@ -15,6 +15,7 @@ namespace BinaryNinja
             CallingConvention = System.Runtime.InteropServices.CallingConvention.Cdecl,
             EntryPoint = "BNFunctionHasUserAnnotations"
         )]
+		[return: MarshalAs(UnmanagedType.I1)]
 		internal static extern bool BNFunctionHasUserAnnotations(
 			
 			// BNFunction* func
