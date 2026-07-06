@@ -664,21 +664,30 @@ namespace BinaryNinja
 		    IntPtr valuesOutPtr = IntPtr.Zero;
 		    ulong filesOutLen = 0;
 
-		    // 3. Call the native API.
-		    NativeMethods.BNPlatformAdjustTypeParserInput(
-			    this.handle ,
-			    parser.DangerousGetHandle() ,
-			    safeArgs ,
-			    (ulong)safeArgs.Length ,
-			    safeNames ,
-			    safeValues ,
-			    (ulong)safeNames.Length ,
-			    (IntPtr)(&argsOutPtr) ,
-			    (IntPtr)(&argsOutLen) ,
-			    (IntPtr)(&namesOutPtr) ,
-			    (IntPtr)(&valuesOutPtr) ,
-			    (IntPtr)(&filesOutLen)
-		    );
+		    // 3. Build the const char** input blocks as UTF-8 and call native.
+		    //    argumentsIn has its own count; sourceFileNamesIn/sourceFileValuesIn
+		    //    are parallel arrays sharing one sourceFilesLenIn count.
+		    using (ScopedAllocator allocator = new ScopedAllocator())
+		    {
+			    IntPtr argsBlock = allocator.AllocUtf8StringArray(safeArgs);
+			    IntPtr namesBlock = allocator.AllocUtf8StringArray(safeNames);
+			    IntPtr valuesBlock = allocator.AllocUtf8StringArray(safeValues);
+
+			    NativeMethods.BNPlatformAdjustTypeParserInput(
+				    this.handle ,
+				    parser.DangerousGetHandle() ,
+				    argsBlock ,
+				    (ulong)safeArgs.Length ,
+				    namesBlock ,
+				    valuesBlock ,
+				    (ulong)safeNames.Length ,
+				    (IntPtr)(&argsOutPtr) ,
+				    (IntPtr)(&argsOutLen) ,
+				    (IntPtr)(&namesOutPtr) ,
+				    (IntPtr)(&valuesOutPtr) ,
+				    (IntPtr)(&filesOutLen)
+			    );
+		    }
 
 		    // 4. Marshal the output arrays.
 		    argumentsOut = UnsafeUtils.TakeStringArrayEx(argsOutPtr , argsOutLen);
@@ -807,14 +816,20 @@ namespace BinaryNinja
 		    // 1. Prepare the include directories array.
 		    string[] safeIncludeDirs = includeDirs ?? Array.Empty<string>();
 
-		    // 2. Call the native API.
-		    IntPtr result = NativeMethods.BNCreatePlatformWithTypes(
-			    arch.DangerousGetHandle() ,
-			    name ,
-			    typeFile ,
-			    safeIncludeDirs ,
-			    (ulong)safeIncludeDirs.Length
-		    );
+		    // 2. Build the const char** include-dir block as UTF-8 and call native.
+		    IntPtr result;
+		    using (ScopedAllocator allocator = new ScopedAllocator())
+		    {
+			    IntPtr includeDirsBlock = allocator.AllocUtf8StringArray(safeIncludeDirs);
+
+			    result = NativeMethods.BNCreatePlatformWithTypes(
+				    arch.DangerousGetHandle() ,
+				    name ,
+				    typeFile ,
+				    includeDirsBlock ,
+				    (ulong)safeIncludeDirs.Length
+			    );
+		    }
 
 		    // 3. Return the wrapped handle, or null on failure.
 		    return Platform.TakeHandle(result);

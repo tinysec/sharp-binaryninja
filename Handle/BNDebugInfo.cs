@@ -251,11 +251,12 @@ namespace BinaryNinja
         /// given debug info parser.
         /// </summary>
         /// <param name="parserName">The name of the contributing parser.</param>
-        /// <returns>A borrowed TypeContainer for the specified parser, or null.</returns>
+        /// <returns>An owned TypeContainer for the specified parser, or null.</returns>
         public TypeContainer? GetTypeContainer(string parserName)
         {
-            // Retrieve the native type container handle (borrowed, not owned by this call).
-            return TypeContainer.BorrowHandle(
+            // BNGetDebugInfoTypeContainer returns an OWNED handle (the C++ wrapper adopts it
+            // with no addref, matching TypeArchive.GetTypeContainer); take it directly.
+            return TypeContainer.TakeHandle(
                 NativeMethods.BNGetDebugInfoTypeContainer(
                     this.handle,
                     parserName ?? string.Empty
@@ -293,18 +294,28 @@ namespace BinaryNinja
         /// <returns>True if the type was added successfully.</returns>
         public bool AddType(string name, BinaryNinja.Type type, string[] components)
         {
-            // Retrieve the raw handles and delegate to the native API.
+            // Retrieve the raw type handle.
             IntPtr typeHandle = (type != null) ? type.DangerousGetHandle() : IntPtr.Zero;
 
             string[] safeComponents = components ?? Array.Empty<string>();
 
-            return NativeMethods.BNAddDebugType(
-                this.handle,
-                name ?? string.Empty,
-                typeHandle,
-                safeComponents,
-                (ulong)safeComponents.Length
-            );
+            // components is a const char** UTF-8 input block; build it by hand
+            // because .NET cannot apply LPUTF8Str to string[] array elements.
+            bool ok;
+            using (ScopedAllocator allocator = new ScopedAllocator())
+            {
+                IntPtr componentsBlock = allocator.AllocUtf8StringArray(safeComponents);
+
+                ok = NativeMethods.BNAddDebugType(
+                    this.handle,
+                    name ?? string.Empty,
+                    typeHandle,
+                    componentsBlock,
+                    (ulong)safeComponents.Length
+                );
+            }
+
+            return ok;
         }
 
         /// <summary>
@@ -321,19 +332,29 @@ namespace BinaryNinja
             string name,
             string[] components)
         {
-            // Retrieve the raw type handle and delegate to the native API.
+            // Retrieve the raw type handle.
             IntPtr typeHandle = (type != null) ? type.DangerousGetHandle() : IntPtr.Zero;
 
             string[] safeComponents = components ?? Array.Empty<string>();
 
-            return NativeMethods.BNAddDebugDataVariable(
-                this.handle,
-                address,
-                typeHandle,
-                name ?? string.Empty,
-                safeComponents,
-                (ulong)safeComponents.Length
-            );
+            // components is a const char** UTF-8 input block; build it by hand
+            // because .NET cannot apply LPUTF8Str to string[] array elements.
+            bool ok;
+            using (ScopedAllocator allocator = new ScopedAllocator())
+            {
+                IntPtr componentsBlock = allocator.AllocUtf8StringArray(safeComponents);
+
+                ok = NativeMethods.BNAddDebugDataVariable(
+                    this.handle,
+                    address,
+                    typeHandle,
+                    name ?? string.Empty,
+                    componentsBlock,
+                    (ulong)safeComponents.Length
+                );
+            }
+
+            return ok;
         }
 
         /// <summary>

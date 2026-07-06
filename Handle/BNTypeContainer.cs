@@ -495,21 +495,31 @@ namespace BinaryNinja
 		    IntPtr errorsPtr = IntPtr.Zero;
 		    ulong errorCount = 0;
 
-		    // 3. Call the native API.
-		    bool ok = NativeMethods.BNTypeContainerParseTypesFromSource(
-			    this.handle ,
-			    source ,
-			    fileName ,
-			    safeOptions ,
-			    (ulong)safeOptions.Length ,
-			    safeDirs ,
-			    (ulong)safeDirs.Length ,
-			    autoTypeSource ?? string.Empty ,
-			    importDependencies ,
-			    (IntPtr)(&rawResult) ,
-			    (IntPtr)(&errorsPtr) ,
-			    (IntPtr)(&errorCount)
-		    );
+		    // 3. Call the native API. options/includeDirs are const char** UTF-8
+		    // input blocks; build them by hand because .NET cannot apply LPUTF8Str
+		    // to string[] array elements (non-ASCII would otherwise corrupt
+		    // through the system ANSI code page).
+		    bool ok;
+		    using (ScopedAllocator allocator = new ScopedAllocator())
+		    {
+			    IntPtr optionsBlock = allocator.AllocUtf8StringArray(safeOptions);
+			    IntPtr dirsBlock = allocator.AllocUtf8StringArray(safeDirs);
+
+			    ok = NativeMethods.BNTypeContainerParseTypesFromSource(
+				    this.handle ,
+				    source ,
+				    fileName ,
+				    optionsBlock ,
+				    (ulong)safeOptions.Length ,
+				    dirsBlock ,
+				    (ulong)safeDirs.Length ,
+				    autoTypeSource ?? string.Empty ,
+				    importDependencies ,
+				    (IntPtr)(&rawResult) ,
+				    (IntPtr)(&errorsPtr) ,
+				    (IntPtr)(&errorCount)
+			    );
+		    }
 
 		    // 4. On success, convert the result and free the native struct.
 		    if (ok)

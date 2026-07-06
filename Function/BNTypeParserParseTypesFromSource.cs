@@ -34,17 +34,19 @@ namespace BinaryNinja
 			// BNTypeContainer* existingTypes
 		    IntPtr existingTypes  , 
 			
-			// const char** options
-		    string[] options  , 
-			
+			// const char** options: caller-built UTF-8 char** block (string[]
+			// elements cannot carry LPUTF8Str, so the wrapper builds the block).
+		    IntPtr options  ,
+
 			// uint64_t optionCount
-		    ulong optionCount  , 
-			
-			// const char** includeDirs
-		    string[] includeDirs  , 
-			
+		    ulong optionCount  ,
+
+			// const char** includeDirs: caller-built UTF-8 char** block (string[]
+			// elements cannot carry LPUTF8Str, so the wrapper builds the block).
+		    IntPtr includeDirs  ,
+
 			// uint64_t includeDirCount
-		    ulong includeDirCount  , 
+		    ulong includeDirCount  ,
 			
 			// const char* autoTypeSource
 		    [MarshalAs(UnmanagedType.LPUTF8Str)] string autoTypeSource  , 

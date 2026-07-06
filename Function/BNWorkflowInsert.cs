@@ -25,8 +25,9 @@ namespace BinaryNinja
 			// const char* activity
 		    [MarshalAs(UnmanagedType.LPUTF8Str)] string activity  , 
 			
-			// const char** activities
-		    string[] activities  , 
+			// const char** activities: caller-built UTF-8 char** block (string[]
+			// elements cannot carry LPUTF8Str, so the wrapper builds the block).
+		    IntPtr activities  ,
 			
 			// uint64_t size
 		    ulong size  

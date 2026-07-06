@@ -24,17 +24,20 @@ namespace BinaryNinja
 			// BNTypeParser* parser
 		    IntPtr parser  , 
 			
-			// const char** argumentsIn
-		    string[] argumentsIn  , 
+			// const char** argumentsIn: caller-built UTF-8 char** block (string[]
+			// elements cannot carry LPUTF8Str, so the wrapper builds the block).
+		    IntPtr argumentsIn  , 
 			
 			// uint64_t argumentsLenIn
 		    ulong argumentsLenIn  , 
 			
-			// const char** sourceFileNamesIn
-		    string[] sourceFileNamesIn  , 
-			
-			// const char** sourceFileValuesIn
-		    string[] sourceFileValuesIn  , 
+			// const char** sourceFileNamesIn: caller-built UTF-8 char** block (string[]
+			// elements cannot carry LPUTF8Str, so the wrapper builds the block).
+		    IntPtr sourceFileNamesIn  ,
+
+			// const char** sourceFileValuesIn: caller-built UTF-8 char** block (string[]
+			// elements cannot carry LPUTF8Str, so the wrapper builds the block).
+		    IntPtr sourceFileValuesIn  , 
 			
 			// uint64_t sourceFilesLenIn
 		    ulong sourceFilesLenIn  , 

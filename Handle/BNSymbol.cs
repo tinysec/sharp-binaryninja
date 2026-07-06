@@ -286,41 +286,68 @@ namespace BinaryNinja
 	    }
 
 	    /// <summary>
-	    /// Gets the full name as a borrowed reference (not freed by caller).
+	    /// Gets the full name via an owned string reference (read, then freed by the caller).
 	    /// </summary>
 	    public string FullNameRef
 	    {
 		    get
 		    {
-			    return UnsafeUtils.ReadAnsiString(
-				    NativeMethods.BNGetSymbolFullNameRef(this.handle)
+			    // BNGetSymbolFullNameRef returns an OWNED BNStringRef* freed via BNFreeStringRef.
+			    // Its contents are a borrowed const char* (read only, do not free), then free the ref.
+			    IntPtr refHandle = NativeMethods.BNGetSymbolFullNameRef(this.handle);
+			    if (IntPtr.Zero == refHandle)
+			    {
+				    return string.Empty;
+			    }
+			    string result = UnsafeUtils.ReadAnsiString(
+				    NativeMethods.BNGetStringRefContents(refHandle)
 			    );
+			    NativeMethods.BNFreeStringRef(refHandle);
+			    return result;
 		    }
 	    }
 
 	    /// <summary>
-	    /// Gets the raw name as a borrowed reference (not freed by caller).
+	    /// Gets the raw name via an owned string reference (read, then freed by the caller).
 	    /// </summary>
 	    public string RawNameRef
 	    {
 		    get
 		    {
-			    return UnsafeUtils.ReadAnsiString(
-				    NativeMethods.BNGetSymbolRawNameRef(this.handle)
+			    // BNGetSymbolRawNameRef returns an OWNED BNStringRef* freed via BNFreeStringRef.
+			    // Its contents are a borrowed const char* (read only, do not free), then free the ref.
+			    IntPtr refHandle = NativeMethods.BNGetSymbolRawNameRef(this.handle);
+			    if (IntPtr.Zero == refHandle)
+			    {
+				    return string.Empty;
+			    }
+			    string result = UnsafeUtils.ReadAnsiString(
+				    NativeMethods.BNGetStringRefContents(refHandle)
 			    );
+			    NativeMethods.BNFreeStringRef(refHandle);
+			    return result;
 		    }
 	    }
 
 	    /// <summary>
-	    /// Gets the short name as a borrowed reference (not freed by caller).
+	    /// Gets the short name via an owned string reference (read, then freed by the caller).
 	    /// </summary>
 	    public string ShortNameRef
 	    {
 		    get
 		    {
-			    return UnsafeUtils.ReadAnsiString(
-				    NativeMethods.BNGetSymbolShortNameRef(this.handle)
+			    // BNGetSymbolShortNameRef returns an OWNED BNStringRef* freed via BNFreeStringRef.
+			    // Its contents are a borrowed const char* (read only, do not free), then free the ref.
+			    IntPtr refHandle = NativeMethods.BNGetSymbolShortNameRef(this.handle);
+			    if (IntPtr.Zero == refHandle)
+			    {
+				    return string.Empty;
+			    }
+			    string result = UnsafeUtils.ReadAnsiString(
+				    NativeMethods.BNGetStringRefContents(refHandle)
 			    );
+			    NativeMethods.BNFreeStringRef(refHandle);
+			    return result;
 		    }
 	    }
 
