@@ -341,6 +341,98 @@ namespace BinaryNinja
             return llil.GetExitsForInstruction(instruction.InstructionIndex);
         }
 
+        /// <summary>
+        /// Whether any basic block of <paramref name="function"/> spans
+        /// <paramref name="address"/> (<c>block.Start &lt;= address &lt; block.End</c>). Mirrors
+        /// the <c>int</c> branch of Python <c>Function.__contains__</c> (function.py:497).
+        /// </summary>
+        public static bool Contains(this Function function, ulong address)
+        {
+            foreach (BasicBlock block in function.BasicBlocks)
+            {
+                if (block.Start <= address && address < block.End)
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        /// <summary>
+        /// Whether <paramref name="block"/> belongs to <paramref name="function"/>, by handle
+        /// identity of its owning function. Mirrors the <c>BasicBlock</c> branch of Python
+        /// <c>Function.__contains__</c> (function.py:497).
+        /// </summary>
+        public static bool Contains(this Function function, BasicBlock block)
+        {
+            if (null == block)
+            {
+                return false;
+            }
+
+            return block.Function == function;
+        }
+
+        /// <summary>
+        /// Every disassembly instruction line across all of the function's basic blocks, in
+        /// block-then-instruction order. Mirrors Python <c>Function.instructions</c>
+        /// (function.py:1580); yields the per-instruction token lines (the lightweight
+        /// disassembly-only iterator, distinct from the heavier linear-disassembly walk).
+        /// Lazily evaluated.
+        /// </summary>
+        public static System.Collections.Generic.IEnumerable<InstructionTextLine> GetInstructions(
+            this Function function)
+        {
+            foreach (BasicBlock block in function.BasicBlocks)
+            {
+                foreach (InstructionTextLine line in block.InstructionTextLines)
+                {
+                    yield return line;
+                }
+            }
+        }
+
+        // ---- BasicBlock --------------------------------------------------------------------
+
+        /// <summary>
+        /// Whether <paramref name="address"/> falls inside this block's half-open span
+        /// <c>[Start, End)</c>. Mirrors Python <c>BasicBlock.__contains__</c>
+        /// (basicblock.py:224).
+        /// </summary>
+        public static bool Contains(this BasicBlock block, ulong address)
+        {
+            return block.Start <= address && address < block.End;
+        }
+
+        /// <summary>
+        /// The <paramref name="index"/>-th disassembly instruction line of this block, or
+        /// <c>null</c> when <paramref name="index"/> is out of range. Mirrors Python
+        /// <c>BasicBlock.__getitem__</c> (basicblock.py:210), returning <c>null</c> on a miss
+        /// rather than raising, matching the navigation-style lookups elsewhere in this layer.
+        /// </summary>
+        public static InstructionTextLine? GetInstructionByIndex(this BasicBlock block, int index)
+        {
+            if (index < 0)
+            {
+                return null;
+            }
+
+            int current = 0;
+
+            foreach (InstructionTextLine line in block.InstructionTextLines)
+            {
+                if (current == index)
+                {
+                    return line;
+                }
+
+                current++;
+            }
+
+            return null;
+        }
+
         // ---- BinaryView --------------------------------------------------------------------
 
         /// <summary>
@@ -413,6 +505,170 @@ namespace BinaryNinja
             }
 
             s_derivedStringLayoutSize = outerSize;
+        }
+
+        /// <summary>
+        /// The function starting at <paramref name="address"/> whose platform matches
+        /// <paramref name="platform"/> (defaulting to the view's
+        /// <see cref="BinaryView.DefaultPlatform"/>), falling back to the first function at
+        /// that address when no platform match exists, or <c>null</c> when none starts there.
+        /// Mirrors Python <c>BinaryView.get_function_at(addr, plat=None)</c>
+        /// (binaryview.py:5832) — the single most-used lookup in the Python surface, which the
+        /// generated <see cref="BinaryView.GetFunctionByAddress"/> does not cover because it
+        /// requires an explicit platform.
+        /// </summary>
+        public static Function? GetFunctionAt(
+            this BinaryView view,
+            ulong address,
+            Platform? platform = null)
+        {
+            Function[] candidates = view.GetFunctionsForAddress(address);
+
+            if (0 == candidates.Length)
+            {
+                return null;
+            }
+
+            // Match the requested platform (or the view default) first, then fall back to the
+            // first candidate, exactly as Python does.
+            Platform? resolved = platform;
+            if (null == resolved)
+            {
+                resolved = view.DefaultPlatform;
+            }
+
+            foreach (Function function in candidates)
+            {
+                if (function.Platform == resolved)
+                {
+                    return function;
+                }
+            }
+
+            return candidates[0];
+        }
+
+        /// <summary>
+        /// Whether <paramref name="address"/> lies inside any segment of the view. Mirrors
+        /// Python <c>BinaryView.__contains__</c> (binaryview.py:3316).
+        /// </summary>
+        public static bool Contains(this BinaryView view, ulong address)
+        {
+            return null != view.GetSegmentAt(address);
+        }
+
+        /// <summary>
+        /// The contiguous ASCII string that begins at <paramref name="address"/>, regardless of
+        /// whether analysis flagged it as a string, or <c>null</c> when the byte run there is
+        /// shorter than <paramref name="minLength"/>. Scans raw bytes via
+        /// <see cref="BinaryView.ReadData"/>, mirroring Python
+        /// <c>BinaryView.get_ascii_string_at</c> (binaryview.py:8023); complements the
+        /// analysis-backed <see cref="BinaryView.GetStringAtAddress"/>. The returned reference
+        /// carries the address and length; read its bytes with
+        /// <see cref="BinaryView.ReadData"/>(<see cref="StringReference.Start"/>,
+        /// <see cref="StringReference.Length"/>).
+        /// </summary>
+        public static StringReference? GetAsciiStringAt(
+            this BinaryView view,
+            ulong address,
+            ulong minLength = 4)
+        {
+            // Scan a bounded window so a long run cannot allocate unboundedly. 4096 covers any
+            // realistic C string in one read; Python caps at max_length similarly.
+            byte[] window = view.ReadData(address, 4096);
+
+            int length = 0;
+            while (length < window.Length)
+            {
+                byte value = window[length];
+
+                // Printable ASCII (0x20..0x7e) extends the run; anything else terminates it.
+                bool printable = value >= 0x20 && value <= 0x7e;
+
+                if (!printable)
+                {
+                    break;
+                }
+
+                length++;
+            }
+
+            if ((ulong)length < minLength)
+            {
+                return null;
+            }
+
+            return new StringReference
+            {
+                Type = StringType.AsciiString,
+                Start = address,
+                Length = (ulong)length
+            };
+        }
+
+        /// <summary>
+        /// Every disassembly instruction line across the whole view, in
+        /// view-block-then-instruction order. Mirrors Python <c>BinaryView.instructions</c>
+        /// (binaryview.py:3600); lazily evaluated.
+        /// </summary>
+        public static System.Collections.Generic.IEnumerable<InstructionTextLine> GetInstructions(
+            this BinaryView view)
+        {
+            foreach (BasicBlock block in view.BasicBlocks)
+            {
+                foreach (InstructionTextLine line in block.InstructionTextLines)
+                {
+                    yield return line;
+                }
+            }
+        }
+
+        /// <summary>
+        /// Every Low Level IL instruction across the whole view. Mirrors Python
+        /// <c>BinaryView.llil_instructions</c> (binaryview.py:3609); lazily evaluated.
+        /// </summary>
+        public static System.Collections.Generic.IEnumerable<LowLevelILInstruction>
+            GetLowLevelILInstructions(this BinaryView view)
+        {
+            foreach (LowLevelILFunction function in view.LowLevelILFunctions)
+            {
+                foreach (LowLevelILInstruction instruction in function.Instructions)
+                {
+                    yield return instruction;
+                }
+            }
+        }
+
+        /// <summary>
+        /// Every Medium Level IL instruction across the whole view. Mirrors Python
+        /// <c>BinaryView.mlil_instructions</c> (binaryview.py:3615); lazily evaluated.
+        /// </summary>
+        public static System.Collections.Generic.IEnumerable<MediumLevelILInstruction>
+            GetMediumLevelILInstructions(this BinaryView view)
+        {
+            foreach (MediumLevelILFunction function in view.MediumLevelILFunctions)
+            {
+                foreach (MediumLevelILInstruction instruction in function.Instructions)
+                {
+                    yield return instruction;
+                }
+            }
+        }
+
+        /// <summary>
+        /// Every High Level IL instruction across the whole view. Mirrors Python
+        /// <c>BinaryView.hlil_instructions</c> (binaryview.py:3621); lazily evaluated.
+        /// </summary>
+        public static System.Collections.Generic.IEnumerable<HighLevelILInstruction>
+            GetHighLevelILInstructions(this BinaryView view)
+        {
+            foreach (HighLevelILFunction function in view.HighLevelILFunctions)
+            {
+                foreach (HighLevelILInstruction instruction in function.Instructions)
+                {
+                    yield return instruction;
+                }
+            }
         }
     }
 }
