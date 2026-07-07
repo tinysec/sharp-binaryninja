@@ -5657,6 +5657,22 @@ namespace BinaryNinja
 		    SaveSettings? settings = null,
 		    ProgressDelegate? progress = null)
 	    {
+		    // A derived view (for example the ELF view layered on raw bytes) cannot be saved
+		    // directly: BNCreateDatabase must run against the root (raw) parent view. Walk up
+		    // the parent chain first, exactly as C++ BinaryView::CreateDatabase does
+		    // (binaryview.cpp:1673) and as Python FileMetadata.create_database does by passing
+		    // self.raw.handle (filemetadata.py). Without this, saving a freshly loaded binary
+		    // returns false and writes a truncated 90112-byte database.
+		    BinaryView? parent = this.Parent;
+
+		    if (null != parent)
+		    {
+			    using (parent)
+			    {
+				    return parent.CreateDatabase(filename, settings, progress);
+			    }
+		    }
+
 		    if (null == progress)
 		    {
 			    return NativeMethods.BNCreateDatabase(
