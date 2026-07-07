@@ -148,17 +148,20 @@ namespace BinaryNinja
 		
 			if (IntPtr.Zero != native.close)
 			{
+				// Read the close callback from native.close, not native.log (a copy-paste
+				// error would otherwise bind the log function as the close callback).
 				listener.m_logClose = Marshal.GetDelegateForFunctionPointer<BNLogListener.LogCloseDelegate>(
-					native.log
+					native.close
 				);
 
 				listener.LogClose = listener.BridgeLogClose;
 			}
-			
+
 			if (IntPtr.Zero != native.getLogLevel)
 			{
+				// Read the log-level callback from native.getLogLevel, not native.log.
 				listener.m_getLogLevel = Marshal.GetDelegateForFunctionPointer<BNLogListener.GetLogLevelDelegate>(
-					native.log
+					native.getLogLevel
 				);
 
 				listener.GetLogLevel = listener.BridgeGetLogLevel;
@@ -248,6 +251,19 @@ namespace BinaryNinja
 
 	    private IntPtr m_pointer = IntPtr.Zero;
 
+	    // Cached thunk delegates for the ToNative() direction. A function pointer returned by
+	    // GetFunctionPointerForDelegate stays valid only while its source delegate is alive; the
+	    // inline method-group delegates (this.LogThunk) would otherwise be collectible the moment
+	    // ToNative() returns, and the next native callback into this registered listener would
+	    // dereference freed memory (AccessViolation).
+	    private BNLogListener.LogDelegate? m_logThunk = null;
+
+	    private BNLogListener.LogWithStackTraceDelegate? m_logWithStackTraceThunk = null;
+
+	    private BNLogListener.LogCloseDelegate? m_logCloseThunk = null;
+
+	    private BNLogListener.GetLogLevelDelegate? m_getLogLevelThunk = null;
+
 		public CustomLogListener()
 		{
 			this.m_pointer = Marshal.AllocHGlobal(
@@ -301,13 +317,32 @@ namespace BinaryNinja
 
 		public BNLogListener ToNative()
 		{
+			// Build the thunk delegates once and store them in fields so they stay rooted for the
+			// lifetime of this listener. The core keeps the function pointers after Register(), so
+			// the delegate objects must outlive every native callback.
+			BNLogListener.LogDelegate logThunk = new BNLogListener.LogDelegate(this.LogThunk);
+
+			BNLogListener.LogWithStackTraceDelegate logWithStackTraceThunk =
+				new BNLogListener.LogWithStackTraceDelegate(this.LogWithStackTraceThunk);
+
+			BNLogListener.LogCloseDelegate logCloseThunk =
+				new BNLogListener.LogCloseDelegate(this.CloseLogThunk);
+
+			BNLogListener.GetLogLevelDelegate getLogLevelThunk =
+				new BNLogListener.GetLogLevelDelegate(this.GetLogLevelThunk);
+
+			this.m_logThunk = logThunk;
+			this.m_logWithStackTraceThunk = logWithStackTraceThunk;
+			this.m_logCloseThunk = logCloseThunk;
+			this.m_getLogLevelThunk = getLogLevelThunk;
+
 			return new BNLogListener()
 			{
-				context = IntPtr.Zero ,
-				log = Marshal.GetFunctionPointerForDelegate<BNLogListener.LogDelegate>(this.LogThunk) ,
-				logWithStackTrace = Marshal.GetFunctionPointerForDelegate<BNLogListener.LogWithStackTraceDelegate>(this.LogWithStackTraceThunk) ,
-				close = Marshal.GetFunctionPointerForDelegate<BNLogListener.LogCloseDelegate>(this.CloseLogThunk) ,
-				getLogLevel = Marshal.GetFunctionPointerForDelegate<BNLogListener.GetLogLevelDelegate>(this.GetLogLevelThunk) ,
+				context = IntPtr.Zero,
+				log = Marshal.GetFunctionPointerForDelegate(logThunk),
+				logWithStackTrace = Marshal.GetFunctionPointerForDelegate(logWithStackTraceThunk),
+				close = Marshal.GetFunctionPointerForDelegate(logCloseThunk),
+				getLogLevel = Marshal.GetFunctionPointerForDelegate(getLogLevelThunk),
 			};
 		}
 

@@ -148,20 +148,25 @@ namespace BinaryNinja
 		    {
 			    QualifiedName[] typeNames = QualifiedNameAndType.PickNames(types);
 			    
+			    // Hoist the wrapper into a rooted local so a GC during the native call
+			    // cannot collect it (CallbackOnCollectedDelegate).
+			    NativeDelegates.BNProgressFunction? progressWrapper =
+				    null == progress ? null : UnsafeUtils.WrapProgressDelegate(progress);
+
 			    bool ok = NativeMethods.BNTypeContainerAddTypes(
 				    this.handle,
 				    allocator.ConvertToNativeArrayEx<BNQualifiedName,QualifiedName>(typeNames),
 				    allocator.AllocHandleArray<BinaryNinja.Type>(QualifiedNameAndType.PickTypes(types)) ,
 				    (ulong)typeNames.Length,
-				    null == progress ? IntPtr.Zero :
-					    Marshal.GetFunctionPointerForDelegate<NativeDelegates.BNProgressFunction>(
-					    UnsafeUtils.WrapProgressDelegate(progress)
-					),
+				    null == progressWrapper ? IntPtr.Zero :
+					    Marshal.GetFunctionPointerForDelegate<NativeDelegates.BNProgressFunction>(progressWrapper),
 				    IntPtr.Zero, 
 				    out IntPtr resultNamesPointer,
 				    out IntPtr resultIdsPointer,
 				    out ulong resultCount  
 			    );
+
+			    GC.KeepAlive(progressWrapper);
 			    
 			    List<QualifiedNameAndId> results = new List<QualifiedNameAndId>();
 

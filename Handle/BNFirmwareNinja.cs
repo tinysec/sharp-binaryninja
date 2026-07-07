@@ -244,15 +244,21 @@ namespace BinaryNinja
             IntPtr fma = IntPtr.Zero;
 
             // 2. Call the native analysis function with optional progress callback.
+            //    Hoist the wrapper into a rooted local so a GC during the native
+            //    call cannot collect it (CallbackOnCollectedDelegate).
+            NativeDelegates.BNProgressFunction? progressWrapper =
+                null == progress ? null : UnsafeUtils.WrapProgressDelegate(progress);
+
             int count = NativeMethods.BNFirmwareNinjaGetFunctionMemoryAccesses(
                 this.handle,
                 (IntPtr)(&fma),
-                null == progress
+                null == progressWrapper
                     ? IntPtr.Zero
-                    : Marshal.GetFunctionPointerForDelegate<NativeDelegates.BNProgressFunction>(
-                        UnsafeUtils.WrapProgressDelegate(progress)),
+                    : Marshal.GetFunctionPointerForDelegate<NativeDelegates.BNProgressFunction>(progressWrapper),
                 IntPtr.Zero
             );
+
+            GC.KeepAlive(progressWrapper);
 
             // 3. Copy the resulting pointer to the out parameter.
             fmaPointer = fma;

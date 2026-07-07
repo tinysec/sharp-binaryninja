@@ -287,41 +287,165 @@ namespace BinaryNinja
 		internal IntPtr save;
 	}
 
-    public abstract class CustomBinaryView 
+    public abstract class CustomBinaryView
     {
-		public CustomBinaryView() 
+		// Cached thunk delegates for the ToNative() direction. A function pointer returned by
+		// GetFunctionPointerForDelegate stays valid only while its source delegate is alive; the
+		// inline method-group delegates (this.InitThunk, etc.) would otherwise be collectible the
+		// moment ToNative() returns, and the next native callback into this registered view would
+		// dereference freed memory (AccessViolation).
+		private BNCustomBinaryView.InitDelegate? m_initThunk = null;
+
+		private BNCustomBinaryView.FreeObjectDelegate? m_freeObjectThunk = null;
+
+		private BNCustomBinaryView.ExternalRefTakenDelegate? m_externalRefTakenThunk = null;
+
+		private BNCustomBinaryView.ExternalRefReleasedDelegate? m_externalRefReleasedThunk = null;
+
+		private BNCustomBinaryView.ReadDelegate? m_readThunk = null;
+
+		private BNCustomBinaryView.WriteDelegate? m_writeThunk = null;
+
+		private BNCustomBinaryView.InsertDelegate? m_insertThunk = null;
+
+		private BNCustomBinaryView.RemoveDelegate? m_removeThunk = null;
+
+		private BNCustomBinaryView.GetModificationDelegate? m_getModificationThunk = null;
+
+		private BNCustomBinaryView.IsValidOffsetDelegate? m_isValidOffsetThunk = null;
+
+		private BNCustomBinaryView.IsOffsetReadableDelegate? m_isOffsetReadableThunk = null;
+
+		private BNCustomBinaryView.IsOffsetWritableDelegate? m_isOffsetWritableThunk = null;
+
+		private BNCustomBinaryView.IsOffsetExecutableDelegate? m_isOffsetExecutableThunk = null;
+
+		private BNCustomBinaryView.IsOffsetBackedByFileDelegate? m_isOffsetBackedByFileThunk = null;
+
+		private BNCustomBinaryView.GetNextValidOffsetDelegate? m_getNextValidOffsetThunk = null;
+
+		private BNCustomBinaryView.GetStartDelegate? m_getStartThunk = null;
+
+		private BNCustomBinaryView.GetLengthDelegate? m_getLengthThunk = null;
+
+		private BNCustomBinaryView.GetEntryPointDelegate? m_getEntryPointThunk = null;
+
+		private BNCustomBinaryView.IsExecutableDelegate? m_isExecutableThunk = null;
+
+		private BNCustomBinaryView.GetDefaultEndiannessDelegate? m_getDefaultEndiannessThunk = null;
+
+		private BNCustomBinaryView.IsRelocatableDelegate? m_isRelocatableThunk = null;
+
+		private BNCustomBinaryView.GetAddressSizeDelegate? m_getAddressSizeThunk = null;
+
+		private BNCustomBinaryView.SaveDelegate? m_saveThunk = null;
+
+		public CustomBinaryView()
 		{
-			
+
 		}
 
 		public BNCustomBinaryView ToNative()
 		{
+			// Build the thunk delegates once and store them in fields so they stay rooted for the
+			// lifetime of this view. The core keeps the function pointers after CreateView(), so
+			// the delegate objects must outlive every native callback.
+			BNCustomBinaryView.InitDelegate initThunk = new BNCustomBinaryView.InitDelegate(this.InitThunk);
+
+			BNCustomBinaryView.FreeObjectDelegate freeObjectThunk = new BNCustomBinaryView.FreeObjectDelegate(this.FreeObjectThunk);
+
+			BNCustomBinaryView.ExternalRefTakenDelegate externalRefTakenThunk = new BNCustomBinaryView.ExternalRefTakenDelegate(this.ExternalRefTakenThunk);
+
+			BNCustomBinaryView.ExternalRefReleasedDelegate externalRefReleasedThunk = new BNCustomBinaryView.ExternalRefReleasedDelegate(this.ExternalRefReleasedThunk);
+
+			BNCustomBinaryView.ReadDelegate readThunk = new BNCustomBinaryView.ReadDelegate(this.ReadThunk);
+
+			BNCustomBinaryView.WriteDelegate writeThunk = new BNCustomBinaryView.WriteDelegate(this.WriteThunk);
+
+			BNCustomBinaryView.InsertDelegate insertThunk = new BNCustomBinaryView.InsertDelegate(this.InsertThunk);
+
+			BNCustomBinaryView.RemoveDelegate removeThunk = new BNCustomBinaryView.RemoveDelegate(this.RemoveThunk);
+
+			BNCustomBinaryView.GetModificationDelegate getModificationThunk = new BNCustomBinaryView.GetModificationDelegate(this.GetModificationThunk);
+
+			BNCustomBinaryView.IsValidOffsetDelegate isValidOffsetThunk = new BNCustomBinaryView.IsValidOffsetDelegate(this.IsValidOffsetThunk);
+
+			BNCustomBinaryView.IsOffsetReadableDelegate isOffsetReadableThunk = new BNCustomBinaryView.IsOffsetReadableDelegate(this.IsOffsetReadableThunk);
+
+			BNCustomBinaryView.IsOffsetWritableDelegate isOffsetWritableThunk = new BNCustomBinaryView.IsOffsetWritableDelegate(this.IsOffsetWritableThunk);
+
+			BNCustomBinaryView.IsOffsetExecutableDelegate isOffsetExecutableThunk = new BNCustomBinaryView.IsOffsetExecutableDelegate(this.IsOffsetExecutableThunk);
+
+			BNCustomBinaryView.IsOffsetBackedByFileDelegate isOffsetBackedByFileThunk = new BNCustomBinaryView.IsOffsetBackedByFileDelegate(this.IsOffsetBackedByFileThunk);
+
+			BNCustomBinaryView.GetNextValidOffsetDelegate getNextValidOffsetThunk = new BNCustomBinaryView.GetNextValidOffsetDelegate(this.GetNextValidOffsetThunk);
+
+			BNCustomBinaryView.GetStartDelegate getStartThunk = new BNCustomBinaryView.GetStartDelegate(this.GetStartThunk);
+
+			BNCustomBinaryView.GetLengthDelegate getLengthThunk = new BNCustomBinaryView.GetLengthDelegate(this.GetLengthThunk);
+
+			BNCustomBinaryView.GetEntryPointDelegate getEntryPointThunk = new BNCustomBinaryView.GetEntryPointDelegate(this.GetEntryPointThunk);
+
+			BNCustomBinaryView.IsExecutableDelegate isExecutableThunk = new BNCustomBinaryView.IsExecutableDelegate(this.IsExecutableThunk);
+
+			BNCustomBinaryView.GetDefaultEndiannessDelegate getDefaultEndiannessThunk = new BNCustomBinaryView.GetDefaultEndiannessDelegate(this.GetDefaultEndiannessThunk);
+
+			BNCustomBinaryView.IsRelocatableDelegate isRelocatableThunk = new BNCustomBinaryView.IsRelocatableDelegate(this.IsRelocatableThunk);
+
+			BNCustomBinaryView.GetAddressSizeDelegate getAddressSizeThunk = new BNCustomBinaryView.GetAddressSizeDelegate(this.GetAddressSizeThunk);
+
+			BNCustomBinaryView.SaveDelegate saveThunk = new BNCustomBinaryView.SaveDelegate(this.SaveThunk);
+
+			this.m_initThunk = initThunk;
+			this.m_freeObjectThunk = freeObjectThunk;
+			this.m_externalRefTakenThunk = externalRefTakenThunk;
+			this.m_externalRefReleasedThunk = externalRefReleasedThunk;
+			this.m_readThunk = readThunk;
+			this.m_writeThunk = writeThunk;
+			this.m_insertThunk = insertThunk;
+			this.m_removeThunk = removeThunk;
+			this.m_getModificationThunk = getModificationThunk;
+			this.m_isValidOffsetThunk = isValidOffsetThunk;
+			this.m_isOffsetReadableThunk = isOffsetReadableThunk;
+			this.m_isOffsetWritableThunk = isOffsetWritableThunk;
+			this.m_isOffsetExecutableThunk = isOffsetExecutableThunk;
+			this.m_isOffsetBackedByFileThunk = isOffsetBackedByFileThunk;
+			this.m_getNextValidOffsetThunk = getNextValidOffsetThunk;
+			this.m_getStartThunk = getStartThunk;
+			this.m_getLengthThunk = getLengthThunk;
+			this.m_getEntryPointThunk = getEntryPointThunk;
+			this.m_isExecutableThunk = isExecutableThunk;
+			this.m_getDefaultEndiannessThunk = getDefaultEndiannessThunk;
+			this.m_isRelocatableThunk = isRelocatableThunk;
+			this.m_getAddressSizeThunk = getAddressSizeThunk;
+			this.m_saveThunk = saveThunk;
+
 			return new BNCustomBinaryView
 			{
 				context = IntPtr.Zero,
-				init = Marshal.GetFunctionPointerForDelegate<BNCustomBinaryView.InitDelegate>(this.InitThunk),
-				freeObject = Marshal.GetFunctionPointerForDelegate<BNCustomBinaryView.FreeObjectDelegate>(this.FreeObjectThunk),
-				externalRefTaken = Marshal.GetFunctionPointerForDelegate<BNCustomBinaryView.ExternalRefTakenDelegate>(this.ExternalRefTakenThunk),
-				externalRefReleased = Marshal.GetFunctionPointerForDelegate<BNCustomBinaryView.ExternalRefReleasedDelegate>(this.ExternalRefReleasedThunk),
-				read = Marshal.GetFunctionPointerForDelegate<BNCustomBinaryView.ReadDelegate>(this.ReadThunk),
-				write = Marshal.GetFunctionPointerForDelegate<BNCustomBinaryView.WriteDelegate>(this.WriteThunk),
-				insert = Marshal.GetFunctionPointerForDelegate<BNCustomBinaryView.InsertDelegate>(this.InsertThunk),
-				remove = Marshal.GetFunctionPointerForDelegate<BNCustomBinaryView.RemoveDelegate>(this.RemoveThunk),
-				getModification = Marshal.GetFunctionPointerForDelegate<BNCustomBinaryView.GetModificationDelegate>(this.GetModificationThunk),
-				isValidOffset = Marshal.GetFunctionPointerForDelegate<BNCustomBinaryView.IsValidOffsetDelegate>(this.IsValidOffsetThunk),
-				isOffsetReadable = Marshal.GetFunctionPointerForDelegate<BNCustomBinaryView.IsOffsetReadableDelegate>(this.IsOffsetReadableThunk),
-				isOffsetWritable = Marshal.GetFunctionPointerForDelegate<BNCustomBinaryView.IsOffsetWritableDelegate>(this.IsOffsetWritableThunk),
-				isOffsetExecutable = Marshal.GetFunctionPointerForDelegate<BNCustomBinaryView.IsOffsetExecutableDelegate>(this.IsOffsetExecutableThunk),
-				isOffsetBackedByFile = Marshal.GetFunctionPointerForDelegate<BNCustomBinaryView.IsOffsetBackedByFileDelegate>(this.IsOffsetBackedByFileThunk),
-				getNextValidOffset = Marshal.GetFunctionPointerForDelegate<BNCustomBinaryView.GetNextValidOffsetDelegate>(this.GetNextValidOffsetThunk),
-				getStart = Marshal.GetFunctionPointerForDelegate<BNCustomBinaryView.GetStartDelegate>(this.GetStartThunk),
-				getLength = Marshal.GetFunctionPointerForDelegate<BNCustomBinaryView.GetLengthDelegate>(this.GetLengthThunk),
-				getEntryPoint = Marshal.GetFunctionPointerForDelegate<BNCustomBinaryView.GetEntryPointDelegate>(this.GetEntryPointThunk),
-				isExecutable = Marshal.GetFunctionPointerForDelegate<BNCustomBinaryView.IsExecutableDelegate>(this.IsExecutableThunk),
-				getDefaultEndianness = Marshal.GetFunctionPointerForDelegate<BNCustomBinaryView.GetDefaultEndiannessDelegate>(this.GetDefaultEndiannessThunk),
-				isRelocatable = Marshal.GetFunctionPointerForDelegate<BNCustomBinaryView.IsRelocatableDelegate>(this.IsRelocatableThunk),
-				getAddressSize = Marshal.GetFunctionPointerForDelegate<BNCustomBinaryView.GetAddressSizeDelegate>(this.GetAddressSizeThunk),
-				save = Marshal.GetFunctionPointerForDelegate<BNCustomBinaryView.SaveDelegate>(this.SaveThunk),
+				init = Marshal.GetFunctionPointerForDelegate(initThunk),
+				freeObject = Marshal.GetFunctionPointerForDelegate(freeObjectThunk),
+				externalRefTaken = Marshal.GetFunctionPointerForDelegate(externalRefTakenThunk),
+				externalRefReleased = Marshal.GetFunctionPointerForDelegate(externalRefReleasedThunk),
+				read = Marshal.GetFunctionPointerForDelegate(readThunk),
+				write = Marshal.GetFunctionPointerForDelegate(writeThunk),
+				insert = Marshal.GetFunctionPointerForDelegate(insertThunk),
+				remove = Marshal.GetFunctionPointerForDelegate(removeThunk),
+				getModification = Marshal.GetFunctionPointerForDelegate(getModificationThunk),
+				isValidOffset = Marshal.GetFunctionPointerForDelegate(isValidOffsetThunk),
+				isOffsetReadable = Marshal.GetFunctionPointerForDelegate(isOffsetReadableThunk),
+				isOffsetWritable = Marshal.GetFunctionPointerForDelegate(isOffsetWritableThunk),
+				isOffsetExecutable = Marshal.GetFunctionPointerForDelegate(isOffsetExecutableThunk),
+				isOffsetBackedByFile = Marshal.GetFunctionPointerForDelegate(isOffsetBackedByFileThunk),
+				getNextValidOffset = Marshal.GetFunctionPointerForDelegate(getNextValidOffsetThunk),
+				getStart = Marshal.GetFunctionPointerForDelegate(getStartThunk),
+				getLength = Marshal.GetFunctionPointerForDelegate(getLengthThunk),
+				getEntryPoint = Marshal.GetFunctionPointerForDelegate(getEntryPointThunk),
+				isExecutable = Marshal.GetFunctionPointerForDelegate(isExecutableThunk),
+				getDefaultEndianness = Marshal.GetFunctionPointerForDelegate(getDefaultEndiannessThunk),
+				isRelocatable = Marshal.GetFunctionPointerForDelegate(isRelocatableThunk),
+				getAddressSize = Marshal.GetFunctionPointerForDelegate(getAddressSizeThunk),
+				save = Marshal.GetFunctionPointerForDelegate(saveThunk),
 			};
 		}
 		

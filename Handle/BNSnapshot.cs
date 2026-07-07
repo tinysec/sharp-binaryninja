@@ -333,17 +333,25 @@ namespace BinaryNinja
         /// <returns>A KeyValueStore containing the snapshot's analysis data, or null on failure.</returns>
         public KeyValueStore? ReadDataWithProgress(ProgressDelegate? progress = null)
         {
+            // Hoist the wrapper into a rooted local so a GC during the native call
+            // cannot collect it (CallbackOnCollectedDelegate).
+            NativeDelegates.BNProgressFunction? progressWrapper =
+                null == progress ? null : UnsafeUtils.WrapProgressDelegate(progress);
+
             // Delegate to the native read-with-progress function.
-            return KeyValueStore.TakeHandle(
+            KeyValueStore? result = KeyValueStore.TakeHandle(
                 NativeMethods.BNReadSnapshotDataWithProgress(
                     this.handle ,
                     IntPtr.Zero ,
-                    null == progress
+                    null == progressWrapper
                         ? IntPtr.Zero
-                        : Marshal.GetFunctionPointerForDelegate<NativeDelegates.BNProgressFunction>(
-                            UnsafeUtils.WrapProgressDelegate(progress))
+                        : Marshal.GetFunctionPointerForDelegate<NativeDelegates.BNProgressFunction>(progressWrapper)
                 )
             );
+
+            GC.KeepAlive(progressWrapper);
+
+            return result;
         }
 
         /// <summary>

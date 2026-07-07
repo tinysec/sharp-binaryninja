@@ -420,16 +420,20 @@ namespace BinaryNinja
 		    }
 		    else
 		    {
-			    return BinaryView.TakeHandle(
+			    NativeDelegates.BNProgressFunction progressWrapper = UnsafeUtils.WrapProgressDelegate(progress);
+
+			    BinaryView? result = BinaryView.TakeHandle(
 				    NativeMethods.BNOpenExistingDatabaseWithProgress(
 					    this.handle ,
 					    filename,
-					    IntPtr.Zero, 
-					    Marshal.GetFunctionPointerForDelegate<NativeDelegates.BNProgressFunction>(
-						    UnsafeUtils.WrapProgressDelegate(progress)
-						    )
+					    IntPtr.Zero,
+					    Marshal.GetFunctionPointerForDelegate<NativeDelegates.BNProgressFunction>(progressWrapper)
 					)
 			    );
+
+			    GC.KeepAlive(progressWrapper);
+
+			    return result;
 		    }
 	    }
 	    
@@ -545,20 +549,23 @@ namespace BinaryNinja
 		    ProgressDelegate? progress = null
 	    )
 	    {
+		    NativeDelegates.BNProgressFunction? progressWrapper =
+			    null == progress ? null : UnsafeUtils.WrapProgressDelegate(progress);
+
 		    NativeMethods.BNApplySnapshotData(
 			    this.handle ,
 			    view.DangerousGetHandle() ,
 			    data.DangerousGetHandle() ,
 			    cache.DangerousGetHandle() ,
 			    IntPtr.Zero ,
-			    null == progress
+			    null == progressWrapper
 				    ? IntPtr.Zero
-				    : Marshal.GetFunctionPointerForDelegate<NativeDelegates.BNProgressFunction>(
-					    UnsafeUtils.WrapProgressDelegate(progress)
-				    ) ,
+				    : Marshal.GetFunctionPointerForDelegate<NativeDelegates.BNProgressFunction>(progressWrapper) ,
 			    openForConfiguration ,
 			    restoreRawView
 		    );
+
+		    GC.KeepAlive(progressWrapper);
 	    }
 
 	    /// <summary>
@@ -573,17 +580,20 @@ namespace BinaryNinja
 		    ProgressDelegate? progress = null
 	    )
 	    {
+		    NativeDelegates.BNProgressFunction? progressWrapper =
+			    null == progress ? null : UnsafeUtils.WrapProgressDelegate(progress);
+
 		    NativeMethods.BNGetSnapshotData(
 			    this.handle ,
 			    data.DangerousGetHandle() ,
 			    cache.DangerousGetHandle() ,
 			    IntPtr.Zero ,
-			    null == progress
+			    null == progressWrapper
 				    ? IntPtr.Zero
-				    : Marshal.GetFunctionPointerForDelegate<NativeDelegates.BNProgressFunction>(
-					    UnsafeUtils.WrapProgressDelegate(progress)
-				    )
+				    : Marshal.GetFunctionPointerForDelegate<NativeDelegates.BNProgressFunction>(progressWrapper)
 		    );
+
+		    GC.KeepAlive(progressWrapper);
 	    }
 
 	}

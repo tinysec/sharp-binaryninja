@@ -7,7 +7,15 @@ namespace BinaryNinja
 {
 	public sealed class Activity : AbstractSafeHandle<Activity>
 	{
-	    internal Activity(IntPtr handle , bool owner) 
+	    // The core stores the action and eligibility function pointers for the Activity's lifetime.
+	    // Rooting the caller-supplied delegates on the instance keeps them alive as long as the
+	    // Activity; without this, a temporary delegate passed to Create would be GC-eligible after
+	    // Create returns and the next activity callback would dereference freed memory.
+	    private Action<IntPtr>? m_action = null;
+
+	    private Action<IntPtr>? m_eligibilityHandler = null;
+
+	    internal Activity(IntPtr handle , bool owner)
 		    : base(handle , owner)
 	    {
 	        
@@ -117,13 +125,23 @@ namespace BinaryNinja
 		    }
 
 		    // 2. Create the activity via the native API.
-		    return Activity.TakeHandle(
+		    Activity? activity = Activity.TakeHandle(
 			    NativeMethods.BNCreateActivity(
 				    configuration ?? string.Empty ,
 				    IntPtr.Zero ,
 				    actionPtr
 			    )
 		    );
+
+		    // 3. Root the action delegate on the instance for the Activity's lifetime; otherwise the
+		    // function pointer handed to the core would dangle once Create returns and the caller's
+		    // delegate is collected (see m_action).
+		    if (null != activity && null != action)
+		    {
+			    activity.m_action = action;
+		    }
+
+		    return activity;
 	    }
 
 	    /// <summary>
@@ -156,7 +174,7 @@ namespace BinaryNinja
 		    }
 
 		    // 3. Create the activity with eligibility via the native API.
-		    return Activity.TakeHandle(
+		    Activity? activity = Activity.TakeHandle(
 			    NativeMethods.BNCreateActivityWithEligibility(
 				    configuration ?? string.Empty ,
 				    IntPtr.Zero ,
@@ -164,6 +182,18 @@ namespace BinaryNinja
 				    eligibilityPtr
 			    )
 		    );
+
+		    // 4. Root both delegates on the instance for the Activity's lifetime; otherwise the
+		    // function pointers handed to the core would dangle once CreateWithEligibility returns
+		    // and the caller's delegates are collected (see m_action / m_eligibilityHandler).
+		    if (null != activity)
+		    {
+			    activity.m_action = action;
+
+			    activity.m_eligibilityHandler = eligibilityHandler;
+		    }
+
+		    return activity;
 	    }
 	}
 }

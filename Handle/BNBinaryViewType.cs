@@ -238,13 +238,15 @@ namespace BinaryNinja
 			    return platform.DangerousGetHandle();
 		    };
 		    
+		    // The core stores this recognizer for the BinaryViewType's lifetime, so the adapter
+		    // must be rooted for the process lifetime. PinCallback adds it to a static root list
+		    // and returns the function pointer; otherwise the next GC would reclaim the adapter
+		    // and the next platform-recognition callback would crash.
 		    NativeMethods.BNRegisterPlatformRecognizerForViewType(
-			    this.handle, 
+			    this.handle,
 			    id ,
 			    endianness,
-			    Marshal.GetFunctionPointerForDelegate<Func<IntPtr,IntPtr,IntPtr,IntPtr>>(
-				    adapter
-				),
+			    UnsafeUtils.PinCallback(adapter),
 			    IntPtr.Zero
 		    );
 	    }

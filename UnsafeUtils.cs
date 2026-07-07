@@ -647,5 +647,28 @@ namespace BinaryNinja
 
 			return arrayPointer;
 		}
+
+		// Roots a callback delegate that the core stores as a raw function pointer for an
+		// unbounded lifetime (registered binary-view events, platform recognizers, plugin
+		// commands, flow-graph layout completion). Without this, an adapter delegate built for a
+		// registration call would be GC-eligible the moment that method returns, and the next
+		// native callback would dereference freed memory (AccessViolation). The static list
+		// intentionally retains these for the process lifetime, matching the core's permanent
+		// registration contract (the C++ side heap-allocates the callback context and never frees
+		// it; the official Python wrappers root the same callbacks in class-level dicts).
+		private static readonly List<Delegate> s_rootedCallbacks = new List<Delegate>();
+
+		// Returns the function pointer for a callback AND adds the delegate to the static root
+		// list so it survives for the process lifetime. Call this at every registration site that
+		// hands a function pointer to a core API storing it long-term. The generic form drives the
+		// AOT-safe GetFunctionPointerForDelegate<TDelegate> overload (the non-generic Delegate
+		// overload is flagged RequiresDynamicCode).
+		internal static IntPtr PinCallback<TDelegate>(TDelegate callback)
+			where TDelegate : Delegate
+		{
+			UnsafeUtils.s_rootedCallbacks.Add(callback);
+
+			return Marshal.GetFunctionPointerForDelegate<TDelegate>(callback);
+		}
 	}
 }

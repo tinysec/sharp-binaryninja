@@ -1334,11 +1334,15 @@ namespace BinaryNinja
 			    return isValid( new BinaryView(view , false));
 		    };
 		    
+		    // Plugin commands are registered for the process lifetime, so commandAdapter and
+		    // isValidAdapter must be rooted beyond this method's return. PinCallback adds them to
+		    // a process-lifetime static root list and returns the function pointer; otherwise the
+		    // next GC could reclaim the adapters and the next command invocation would crash.
 		    NativeMethods.BNRegisterPluginCommand(
 			    name,
 			    description,
-			    Marshal.GetFunctionPointerForDelegate<BNPluginCommand.DefaultCommandDelegate>(commandAdapter),
-			    Marshal.GetFunctionPointerForDelegate<BNPluginCommand.DefaultIsValidDelegate>(isValidAdapter),
+			    UnsafeUtils.PinCallback(commandAdapter),
+			    UnsafeUtils.PinCallback(isValidAdapter),
 			    IntPtr.Zero
 		    );
 	    }
@@ -1363,8 +1367,8 @@ namespace BinaryNinja
 		    NativeMethods.BNRegisterPluginCommandForAddress(
 			    name,
 			    description,
-			    Marshal.GetFunctionPointerForDelegate<BNPluginCommand.AddressCommandDelegate>(commandAdapter),
-			    Marshal.GetFunctionPointerForDelegate<BNPluginCommand.AddressIsValidDelegate>(isValidAdapter),
+			    UnsafeUtils.PinCallback(commandAdapter),
+			    UnsafeUtils.PinCallback(isValidAdapter),
 			    IntPtr.Zero
 		    );
 	    }
@@ -1389,8 +1393,8 @@ namespace BinaryNinja
 		    NativeMethods.BNRegisterPluginCommandForRange(
 			    name,
 			    description,
-			    Marshal.GetFunctionPointerForDelegate<BNPluginCommand.RangeCommandDelegate>(commandAdapter),
-			    Marshal.GetFunctionPointerForDelegate<BNPluginCommand.RangeIsValidDelegate>(isValidAdapter),
+			    UnsafeUtils.PinCallback(commandAdapter),
+			    UnsafeUtils.PinCallback(isValidAdapter),
 			    IntPtr.Zero
 		    );
 	    }
@@ -1421,8 +1425,8 @@ namespace BinaryNinja
 		    NativeMethods.BNRegisterPluginCommandForFunction(
 			    name,
 			    description,
-			    Marshal.GetFunctionPointerForDelegate<BNPluginCommand.FunctionCommandDelegate>(commandAdapter),
-			    Marshal.GetFunctionPointerForDelegate<BNPluginCommand.FunctionIsValidDelegate>(isValidAdapter),
+			    UnsafeUtils.PinCallback(commandAdapter),
+			    UnsafeUtils.PinCallback(isValidAdapter),
 			    IntPtr.Zero
 		    );
 	    }
@@ -1453,8 +1457,8 @@ namespace BinaryNinja
 		    NativeMethods.BNRegisterPluginCommandForLowLevelILFunction(
 			    name,
 			    description,
-			    Marshal.GetFunctionPointerForDelegate<BNPluginCommand.LowLevelILFunctionCommandDelegate>(commandAdapter),
-			    Marshal.GetFunctionPointerForDelegate<BNPluginCommand.LowLevelILFunctionIsValidDelegate>(isValidAdapter),
+			    UnsafeUtils.PinCallback(commandAdapter),
+			    UnsafeUtils.PinCallback(isValidAdapter),
 			    IntPtr.Zero
 		    );
 	    }
@@ -1487,8 +1491,8 @@ namespace BinaryNinja
 		    NativeMethods.BNRegisterPluginCommandForLowLevelILInstruction(
 			    name,
 			    description,
-			    Marshal.GetFunctionPointerForDelegate<BNPluginCommand.LowLevelILInstructionCommandDelegate>(commandAdapter),
-			    Marshal.GetFunctionPointerForDelegate<BNPluginCommand.LowLevelILInstructionIsValidDelegate>(isValidAdapter),
+			    UnsafeUtils.PinCallback(commandAdapter),
+			    UnsafeUtils.PinCallback(isValidAdapter),
 			    IntPtr.Zero
 		    );
 	    }
@@ -1519,8 +1523,8 @@ namespace BinaryNinja
 		    NativeMethods.BNRegisterPluginCommandForMediumLevelILFunction(
 			    name,
 			    description,
-			    Marshal.GetFunctionPointerForDelegate<BNPluginCommand.MediumLevelILFunctionCommandDelegate>(commandAdapter),
-			    Marshal.GetFunctionPointerForDelegate<BNPluginCommand.MediumLevelILFunctionIsValidDelegate>(isValidAdapter),
+			    UnsafeUtils.PinCallback(commandAdapter),
+			    UnsafeUtils.PinCallback(isValidAdapter),
 			    IntPtr.Zero
 		    );
 	    }
@@ -1554,8 +1558,8 @@ namespace BinaryNinja
 		    NativeMethods.BNRegisterPluginCommandForMediumLevelILInstruction(
 			    name,
 			    description,
-			    Marshal.GetFunctionPointerForDelegate<BNPluginCommand.MediumLevelILInstructionCommandDelegate>(commandAdapter),
-			    Marshal.GetFunctionPointerForDelegate<BNPluginCommand.MediumLevelILInstructionIsValidDelegate>(isValidAdapter),
+			    UnsafeUtils.PinCallback(commandAdapter),
+			    UnsafeUtils.PinCallback(isValidAdapter),
 			    IntPtr.Zero
 		    );
 	    }
@@ -1586,8 +1590,8 @@ namespace BinaryNinja
 		    NativeMethods.BNRegisterPluginCommandForHighLevelILFunction(
 			    name,
 			    description,
-			    Marshal.GetFunctionPointerForDelegate<BNPluginCommand.HighLevelILFunctionCommandDelegate>(commandAdapter),
-			    Marshal.GetFunctionPointerForDelegate<BNPluginCommand.HighLevelILFunctionIsValidDelegate>(isValidAdapter),
+			    UnsafeUtils.PinCallback(commandAdapter),
+			    UnsafeUtils.PinCallback(isValidAdapter),
 			    IntPtr.Zero
 		    );
 	    }
@@ -1621,8 +1625,8 @@ namespace BinaryNinja
 		    NativeMethods.BNRegisterPluginCommandForHighLevelILInstruction(
 			    name,
 			    description,
-			    Marshal.GetFunctionPointerForDelegate<BNPluginCommand.HighLevelILInstructionCommandDelegate>(commandAdapter),
-			    Marshal.GetFunctionPointerForDelegate<BNPluginCommand.HighLevelILInstructionIsValidDelegate>(isValidAdapter),
+			    UnsafeUtils.PinCallback(commandAdapter),
+			    UnsafeUtils.PinCallback(isValidAdapter),
 			    IntPtr.Zero
 		    );
 	    }
@@ -1651,8 +1655,8 @@ namespace BinaryNinja
 		    NativeMethods.BNRegisterPluginCommandForProject(
 			    name,
 			    description,
-			    Marshal.GetFunctionPointerForDelegate<BNPluginCommand.ProjectCommandDelegate>(commandAdapter),
-			    Marshal.GetFunctionPointerForDelegate<BNPluginCommand.ProjectIsValidDelegate>(isValidAdapter),
+			    UnsafeUtils.PinCallback(commandAdapter),
+			    UnsafeUtils.PinCallback(isValidAdapter),
 			    IntPtr.Zero
 		    );
 	    }
@@ -1867,21 +1871,42 @@ namespace BinaryNinja
     public abstract class CustomPluginCommand<TSelf> 
 		where TSelf : CustomPluginCommand<TSelf>
     {
-		public CustomPluginCommand() 
+		// Cached thunk delegates for the Register() direction. A function pointer returned by
+		// GetFunctionPointerForDelegate stays valid only while its source delegate is alive; the
+		// inline method-group delegates (this.CommandThunk / this.IsValidThunk) would otherwise be
+		// collectible the moment Register() returns, and the next native callback into this
+		// registered command would dereference freed memory (AccessViolation).
+		private BNPluginCommand.DefaultCommandDelegate? m_commandThunk = null;
+
+		private BNPluginCommand.DefaultIsValidDelegate? m_isValidThunk = null;
+
+		public CustomPluginCommand()
 		{
-			
+
 		}
-		
+
 		public TSelf Register(
 			string name,
 			string description = ""
 		)
 		{
+			// Build the thunk delegates once and store them in fields so they stay rooted for the
+			// lifetime of this command. The core keeps the function pointers after Register(), so
+			// the delegate objects must outlive every native callback.
+			BNPluginCommand.DefaultCommandDelegate commandThunk =
+				new BNPluginCommand.DefaultCommandDelegate(this.CommandThunk);
+
+			BNPluginCommand.DefaultIsValidDelegate isValidThunk =
+				new BNPluginCommand.DefaultIsValidDelegate(this.IsValidThunk);
+
+			this.m_commandThunk = commandThunk;
+			this.m_isValidThunk = isValidThunk;
+
 			NativeMethods.BNRegisterPluginCommand(
 				name,
 				description,
-				Marshal.GetFunctionPointerForDelegate<BNPluginCommand.DefaultCommandDelegate>(this.CommandThunk),
-				Marshal.GetFunctionPointerForDelegate<BNPluginCommand.DefaultIsValidDelegate>(this.IsValidThunk),
+				Marshal.GetFunctionPointerForDelegate<BNPluginCommand.DefaultCommandDelegate>(commandThunk),
+				Marshal.GetFunctionPointerForDelegate<BNPluginCommand.DefaultIsValidDelegate>(isValidThunk),
 				IntPtr.Zero
 			);
 
@@ -1926,7 +1951,17 @@ namespace BinaryNinja
     
     public abstract class CustomAddressCommand
     {
-	    public CustomAddressCommand() 
+	    // Cached thunk delegates for the RegisterForAddress() direction. A function pointer
+	    // returned by GetFunctionPointerForDelegate stays valid only while its source delegate is
+	    // alive; the inline method-group delegates (this.AddressCommandThunk /
+	    // this.AddressIsValidThunk) would otherwise be collectible the moment
+	    // RegisterForAddress() returns, and the next native callback into this registered command
+	    // would dereference freed memory (AccessViolation).
+	    private BNPluginCommand.AddressCommandDelegate? m_addressCommandThunk = null;
+
+	    private BNPluginCommand.AddressIsValidDelegate? m_addressIsValidThunk = null;
+
+	    public CustomAddressCommand()
 	    {
 			
 	    }
@@ -1936,11 +1971,23 @@ namespace BinaryNinja
 		    string description = ""
 		)
 	    {
+		    // Build the thunk delegates once and store them in fields so they stay rooted for the
+		    // lifetime of this command. The core keeps the function pointers after
+		    // RegisterForAddress(), so the delegate objects must outlive every native callback.
+		    BNPluginCommand.AddressCommandDelegate addressCommandThunk =
+			    new BNPluginCommand.AddressCommandDelegate(this.AddressCommandThunk);
+
+		    BNPluginCommand.AddressIsValidDelegate addressIsValidThunk =
+			    new BNPluginCommand.AddressIsValidDelegate(this.AddressIsValidThunk);
+
+		    this.m_addressCommandThunk = addressCommandThunk;
+		    this.m_addressIsValidThunk = addressIsValidThunk;
+
 		    NativeMethods.BNRegisterPluginCommandForAddress(
 			    name,
 			    description,
-			    Marshal.GetFunctionPointerForDelegate<BNPluginCommand.AddressCommandDelegate>(this.AddressCommandThunk),
-			    Marshal.GetFunctionPointerForDelegate<BNPluginCommand.AddressIsValidDelegate>(this.AddressIsValidThunk),
+			    Marshal.GetFunctionPointerForDelegate<BNPluginCommand.AddressCommandDelegate>(addressCommandThunk),
+			    Marshal.GetFunctionPointerForDelegate<BNPluginCommand.AddressIsValidDelegate>(addressIsValidThunk),
 			    IntPtr.Zero
 		    );
 	    }
@@ -1986,9 +2033,19 @@ namespace BinaryNinja
 	    }
     }
     
-    public abstract class CustomRangeCommand 
+    public abstract class CustomRangeCommand
     {
-	    public CustomRangeCommand() 
+	    // Cached thunk delegates for the RegisterPluginCommandForRange() direction. A function
+	    // pointer returned by GetFunctionPointerForDelegate stays valid only while its source
+	    // delegate is alive; the inline method-group delegates (this.RangeCommandThunk /
+	    // this.RangeIsValidThunk) would otherwise be collectible the moment
+	    // RegisterPluginCommandForRange() returns, and the next native callback into this
+	    // registered command would dereference freed memory (AccessViolation).
+	    private BNPluginCommand.RangeCommandDelegate? m_rangeCommandThunk = null;
+
+	    private BNPluginCommand.RangeIsValidDelegate? m_rangeIsValidThunk = null;
+
+	    public CustomRangeCommand()
 	    {
 			
 	    }
@@ -1998,11 +2055,24 @@ namespace BinaryNinja
 		    string description = ""
 		)
 	    {
+		    // Build the thunk delegates once and store them in fields so they stay rooted for the
+		    // lifetime of this command. The core keeps the function pointers after
+		    // RegisterPluginCommandForRange(), so the delegate objects must outlive every native
+		    // callback.
+		    BNPluginCommand.RangeCommandDelegate rangeCommandThunk =
+			    new BNPluginCommand.RangeCommandDelegate(this.RangeCommandThunk);
+
+		    BNPluginCommand.RangeIsValidDelegate rangeIsValidThunk =
+			    new BNPluginCommand.RangeIsValidDelegate(this.RangeIsValidThunk);
+
+		    this.m_rangeCommandThunk = rangeCommandThunk;
+		    this.m_rangeIsValidThunk = rangeIsValidThunk;
+
 		    NativeMethods.BNRegisterPluginCommandForRange(
 			    name,
 			    description,
-			    Marshal.GetFunctionPointerForDelegate<BNPluginCommand.RangeCommandDelegate>(this.RangeCommandThunk),
-			    Marshal.GetFunctionPointerForDelegate<BNPluginCommand.RangeIsValidDelegate>(this.RangeIsValidThunk),
+			    Marshal.GetFunctionPointerForDelegate<BNPluginCommand.RangeCommandDelegate>(rangeCommandThunk),
+			    Marshal.GetFunctionPointerForDelegate<BNPluginCommand.RangeIsValidDelegate>(rangeIsValidThunk),
 			    IntPtr.Zero
 		    );
 	    }
@@ -2061,7 +2131,16 @@ namespace BinaryNinja
     public abstract class CustomFunctionCommand<TSelf>
 		where TSelf : CustomFunctionCommand<TSelf>
     {
-	    public CustomFunctionCommand() 
+	    // Cached thunk delegates for the RegisterForFunction() direction. A function pointer
+	    // returned by GetFunctionPointerForDelegate stays valid only while its source delegate is
+	    // alive; the inline method-group delegates (this.CommandThunk / this.IsValidThunk) would
+	    // otherwise be collectible the moment RegisterForFunction() returns, and the next native
+	    // callback into this registered command would dereference freed memory (AccessViolation).
+	    private BNPluginCommand.FunctionCommandDelegate? m_commandThunk = null;
+
+	    private BNPluginCommand.FunctionIsValidDelegate? m_isValidThunk = null;
+
+	    public CustomFunctionCommand()
 	    {
 			
 	    }
@@ -2071,11 +2150,23 @@ namespace BinaryNinja
 		    string description = ""
 		)
 	    {
+		    // Build the thunk delegates once and store them in fields so they stay rooted for the
+		    // lifetime of this command. The core keeps the function pointers after
+		    // RegisterForFunction(), so the delegate objects must outlive every native callback.
+		    BNPluginCommand.FunctionCommandDelegate commandThunk =
+			    new BNPluginCommand.FunctionCommandDelegate(this.CommandThunk);
+
+		    BNPluginCommand.FunctionIsValidDelegate isValidThunk =
+			    new BNPluginCommand.FunctionIsValidDelegate(this.IsValidThunk);
+
+		    this.m_commandThunk = commandThunk;
+		    this.m_isValidThunk = isValidThunk;
+
 		    NativeMethods.BNRegisterPluginCommandForFunction(
 			    name,
 			    description,
-			    Marshal.GetFunctionPointerForDelegate<BNPluginCommand.FunctionCommandDelegate>(this.CommandThunk),
-			    Marshal.GetFunctionPointerForDelegate<BNPluginCommand.FunctionIsValidDelegate>(this.IsValidThunk),
+			    Marshal.GetFunctionPointerForDelegate<BNPluginCommand.FunctionCommandDelegate>(commandThunk),
+			    Marshal.GetFunctionPointerForDelegate<BNPluginCommand.FunctionIsValidDelegate>(isValidThunk),
 			    IntPtr.Zero
 		    );
 
@@ -2125,9 +2216,19 @@ namespace BinaryNinja
     
     
     
-    public abstract class CustomLowLevelILFunctionCommand 
+    public abstract class CustomLowLevelILFunctionCommand
     {
-	    public CustomLowLevelILFunctionCommand() 
+	    // Cached thunk delegates for the RegisterForLowLevelILFunction() direction. A function
+	    // pointer returned by GetFunctionPointerForDelegate stays valid only while its source
+	    // delegate is alive; the inline method-group delegates (this.CommandThunk /
+	    // this.LowLevelILFunctionIsValidThunk) would otherwise be collectible the moment
+	    // RegisterForLowLevelILFunction() returns, and the next native callback into this
+	    // registered command would dereference freed memory (AccessViolation).
+	    private BNPluginCommand.LowLevelILFunctionCommandDelegate? m_commandThunk = null;
+
+	    private BNPluginCommand.LowLevelILFunctionIsValiddDelegate? m_lowLevelILFunctionIsValidThunk = null;
+
+	    public CustomLowLevelILFunctionCommand()
 	    {
 			
 	    }
@@ -2137,11 +2238,24 @@ namespace BinaryNinja
 		    string description = ""
 		    )
 	    {
+		    // Build the thunk delegates once and store them in fields so they stay rooted for the
+		    // lifetime of this command. The core keeps the function pointers after
+		    // RegisterForLowLevelILFunction(), so the delegate objects must outlive every native
+		    // callback.
+		    BNPluginCommand.LowLevelILFunctionCommandDelegate commandThunk =
+			    new BNPluginCommand.LowLevelILFunctionCommandDelegate(this.CommandThunk);
+
+		    BNPluginCommand.LowLevelILFunctionIsValiddDelegate lowLevelILFunctionIsValidThunk =
+			    new BNPluginCommand.LowLevelILFunctionIsValiddDelegate(this.LowLevelILFunctionIsValidThunk);
+
+		    this.m_commandThunk = commandThunk;
+		    this.m_lowLevelILFunctionIsValidThunk = lowLevelILFunctionIsValidThunk;
+
 		    NativeMethods.BNRegisterPluginCommandForLowLevelILFunction(
 			    name,
 			    description,
-			    Marshal.GetFunctionPointerForDelegate<BNPluginCommand.LowLevelILFunctionCommandDelegate>(this.CommandThunk),
-			    Marshal.GetFunctionPointerForDelegate<BNPluginCommand.LowLevelILFunctionIsValiddDelegate>(this.LowLevelILFunctionIsValidThunk),
+			    Marshal.GetFunctionPointerForDelegate<BNPluginCommand.LowLevelILFunctionCommandDelegate>(commandThunk),
+			    Marshal.GetFunctionPointerForDelegate<BNPluginCommand.LowLevelILFunctionIsValiddDelegate>(lowLevelILFunctionIsValidThunk),
 			    IntPtr.Zero
 		    );
 	    }
@@ -2188,9 +2302,19 @@ namespace BinaryNinja
     }
     
     
-    public abstract class CustomLowLevelILInstructionCommand 
+    public abstract class CustomLowLevelILInstructionCommand
     {
-	    public CustomLowLevelILInstructionCommand() 
+	    // Cached thunk delegates for the RegisterForLowLevelIlInstruction() direction. A function
+	    // pointer returned by GetFunctionPointerForDelegate stays valid only while its source
+	    // delegate is alive; the inline method-group delegates (this.CommandThunk /
+	    // this.IsValidThunk) would otherwise be collectible the moment
+	    // RegisterForLowLevelIlInstruction() returns, and the next native callback into this
+	    // registered command would dereference freed memory (AccessViolation).
+	    private BNPluginCommand.LowLevelILInstructionCommandDelegate? m_commandThunk = null;
+
+	    private BNPluginCommand.LowLevelILInstructionIsValidDelegate? m_isValidThunk = null;
+
+	    public CustomLowLevelILInstructionCommand()
 	    {
 			
 	    }
@@ -2200,11 +2324,24 @@ namespace BinaryNinja
 		    string description = ""
 		    )
 	    {
+		    // Build the thunk delegates once and store them in fields so they stay rooted for the
+		    // lifetime of this command. The core keeps the function pointers after
+		    // RegisterForLowLevelIlInstruction(), so the delegate objects must outlive every
+		    // native callback.
+		    BNPluginCommand.LowLevelILInstructionCommandDelegate commandThunk =
+			    new BNPluginCommand.LowLevelILInstructionCommandDelegate(this.CommandThunk);
+
+		    BNPluginCommand.LowLevelILInstructionIsValidDelegate isValidThunk =
+			    new BNPluginCommand.LowLevelILInstructionIsValidDelegate(this.IsValidThunk);
+
+		    this.m_commandThunk = commandThunk;
+		    this.m_isValidThunk = isValidThunk;
+
 		    NativeMethods.BNRegisterPluginCommandForLowLevelILInstruction(
 			    name,
 			    description,
-			    Marshal.GetFunctionPointerForDelegate<BNPluginCommand.LowLevelILInstructionCommandDelegate>(this.CommandThunk),
-			    Marshal.GetFunctionPointerForDelegate<BNPluginCommand.LowLevelILInstructionIsValidDelegate>(this.IsValidThunk),
+			    Marshal.GetFunctionPointerForDelegate<BNPluginCommand.LowLevelILInstructionCommandDelegate>(commandThunk),
+			    Marshal.GetFunctionPointerForDelegate<BNPluginCommand.LowLevelILInstructionIsValidDelegate>(isValidThunk),
 			    IntPtr.Zero
 		    );
 	    }
@@ -2259,7 +2396,17 @@ namespace BinaryNinja
     public abstract class CustomMediumLevelILFunctionCommand
     {
 
-	    public CustomMediumLevelILFunctionCommand() 
+	    // Cached thunk delegates for the RegisterForMediumLevelILFunction() direction. A function
+	    // pointer returned by GetFunctionPointerForDelegate stays valid only while its source
+	    // delegate is alive; the inline method-group delegates (this.CommandThunk /
+	    // this.IsValidThunk) would otherwise be collectible the moment
+	    // RegisterForMediumLevelILFunction() returns, and the next native callback into this
+	    // registered command would dereference freed memory (AccessViolation).
+	    private BNPluginCommand.MediumLevelILFunctionCommandDelegate? m_commandThunk = null;
+
+	    private BNPluginCommand.MediumLevelILFunctionIsValidDelegate? m_isValidThunk = null;
+
+	    public CustomMediumLevelILFunctionCommand()
 	    {
 			
 	    }
@@ -2269,11 +2416,24 @@ namespace BinaryNinja
 		    string description = ""
 		)
 	    {
+		    // Build the thunk delegates once and store them in fields so they stay rooted for the
+		    // lifetime of this command. The core keeps the function pointers after
+		    // RegisterForMediumLevelILFunction(), so the delegate objects must outlive every
+		    // native callback.
+		    BNPluginCommand.MediumLevelILFunctionCommandDelegate commandThunk =
+			    new BNPluginCommand.MediumLevelILFunctionCommandDelegate(this.CommandThunk);
+
+		    BNPluginCommand.MediumLevelILFunctionIsValidDelegate isValidThunk =
+			    new BNPluginCommand.MediumLevelILFunctionIsValidDelegate(this.IsValidThunk);
+
+		    this.m_commandThunk = commandThunk;
+		    this.m_isValidThunk = isValidThunk;
+
 		    NativeMethods.BNRegisterPluginCommandForMediumLevelILFunction(
 			    name,
 			    description,
-			    Marshal.GetFunctionPointerForDelegate<BNPluginCommand.MediumLevelILFunctionCommandDelegate>(this.CommandThunk),
-			    Marshal.GetFunctionPointerForDelegate<BNPluginCommand.MediumLevelILFunctionIsValidDelegate>(this.IsValidThunk),
+			    Marshal.GetFunctionPointerForDelegate<BNPluginCommand.MediumLevelILFunctionCommandDelegate>(commandThunk),
+			    Marshal.GetFunctionPointerForDelegate<BNPluginCommand.MediumLevelILFunctionIsValidDelegate>(isValidThunk),
 			    IntPtr.Zero
 		    );
 	    }
@@ -2320,9 +2480,19 @@ namespace BinaryNinja
     }
     
     
-    public abstract class CustomMediumLevelILInstructionCommand 
+    public abstract class CustomMediumLevelILInstructionCommand
     {
-	    public CustomMediumLevelILInstructionCommand() 
+	    // Cached thunk delegates for the RegisterForMediumLevelILInstruction() direction. A
+	    // function pointer returned by GetFunctionPointerForDelegate stays valid only while its
+	    // source delegate is alive; the inline method-group delegates (this.CommandThunk /
+	    // this.IsValidThunk) would otherwise be collectible the moment
+	    // RegisterForMediumLevelILInstruction() returns, and the next native callback into this
+	    // registered command would dereference freed memory (AccessViolation).
+	    private BNPluginCommand.MediumLevelILInstructionCommandDelegate? m_commandThunk = null;
+
+	    private BNPluginCommand.MediumLevelILInstructionIsValidDelegate? m_isValidThunk = null;
+
+	    public CustomMediumLevelILInstructionCommand()
 	    {
 			
 	    }
@@ -2332,11 +2502,24 @@ namespace BinaryNinja
 		    string description = ""
 		    )
 	    {
+		    // Build the thunk delegates once and store them in fields so they stay rooted for the
+		    // lifetime of this command. The core keeps the function pointers after
+		    // RegisterForMediumLevelILInstruction(), so the delegate objects must outlive every
+		    // native callback.
+		    BNPluginCommand.MediumLevelILInstructionCommandDelegate commandThunk =
+			    new BNPluginCommand.MediumLevelILInstructionCommandDelegate(this.CommandThunk);
+
+		    BNPluginCommand.MediumLevelILInstructionIsValidDelegate isValidThunk =
+			    new BNPluginCommand.MediumLevelILInstructionIsValidDelegate(this.IsValidThunk);
+
+		    this.m_commandThunk = commandThunk;
+		    this.m_isValidThunk = isValidThunk;
+
 		    NativeMethods.BNRegisterPluginCommandForMediumLevelILInstruction(
 			    name,
 			    description,
-			    Marshal.GetFunctionPointerForDelegate<BNPluginCommand.MediumLevelILInstructionCommandDelegate>(this.CommandThunk),
-			    Marshal.GetFunctionPointerForDelegate<BNPluginCommand.MediumLevelILInstructionIsValidDelegate>(this.IsValidThunk),
+			    Marshal.GetFunctionPointerForDelegate<BNPluginCommand.MediumLevelILInstructionCommandDelegate>(commandThunk),
+			    Marshal.GetFunctionPointerForDelegate<BNPluginCommand.MediumLevelILInstructionIsValidDelegate>(isValidThunk),
 			    IntPtr.Zero
 		    );
 	    }
@@ -2390,7 +2573,17 @@ namespace BinaryNinja
     
     public abstract class CustomHighLevelILFunctionCommand
     {
-	    public CustomHighLevelILFunctionCommand() 
+	    // Cached thunk delegates for the RegisterPluginCommandForHighLevelILFunction() direction.
+	    // A function pointer returned by GetFunctionPointerForDelegate stays valid only while its
+	    // source delegate is alive; the inline method-group delegates (this.CommandThunk /
+	    // this.IsValidThunk) would otherwise be collectible the moment
+	    // RegisterPluginCommandForHighLevelILFunction() returns, and the next native callback into
+	    // this registered command would dereference freed memory (AccessViolation).
+	    private BNPluginCommand.HighLevelILFunctionCommandDelegate? m_commandThunk = null;
+
+	    private BNPluginCommand.HighLevelILFunctionIsValidDelegate? m_isValidThunk = null;
+
+	    public CustomHighLevelILFunctionCommand()
 	    {
 			
 	    }
@@ -2400,11 +2593,24 @@ namespace BinaryNinja
 		    string description = ""
 		)
 	    {
+		    // Build the thunk delegates once and store them in fields so they stay rooted for the
+		    // lifetime of this command. The core keeps the function pointers after
+		    // RegisterPluginCommandForHighLevelILFunction(), so the delegate objects must outlive
+		    // every native callback.
+		    BNPluginCommand.HighLevelILFunctionCommandDelegate commandThunk =
+			    new BNPluginCommand.HighLevelILFunctionCommandDelegate(this.CommandThunk);
+
+		    BNPluginCommand.HighLevelILFunctionIsValidDelegate isValidThunk =
+			    new BNPluginCommand.HighLevelILFunctionIsValidDelegate(this.IsValidThunk);
+
+		    this.m_commandThunk = commandThunk;
+		    this.m_isValidThunk = isValidThunk;
+
 		    NativeMethods.BNRegisterPluginCommandForHighLevelILFunction(
 			    name,
 			    description,
-			    Marshal.GetFunctionPointerForDelegate<BNPluginCommand.HighLevelILFunctionCommandDelegate>(this.CommandThunk),
-			    Marshal.GetFunctionPointerForDelegate<BNPluginCommand.HighLevelILFunctionIsValidDelegate>(this.IsValidThunk),
+			    Marshal.GetFunctionPointerForDelegate<BNPluginCommand.HighLevelILFunctionCommandDelegate>(commandThunk),
+			    Marshal.GetFunctionPointerForDelegate<BNPluginCommand.HighLevelILFunctionIsValidDelegate>(isValidThunk),
 			    IntPtr.Zero
 		    );
 	    }
@@ -2450,9 +2656,19 @@ namespace BinaryNinja
 	    }
     }
     
-    public abstract class CustomHighLevelILInstructionCommand 
+    public abstract class CustomHighLevelILInstructionCommand
     {
-	    public CustomHighLevelILInstructionCommand() 
+	    // Cached thunk delegates for the RegisterForHighLevelILInstruction() direction. A function
+	    // pointer returned by GetFunctionPointerForDelegate stays valid only while its source
+	    // delegate is alive; the inline method-group delegates (this.CommandThunk /
+	    // this.IsValidThunk) would otherwise be collectible the moment
+	    // RegisterForHighLevelILInstruction() returns, and the next native callback into this
+	    // registered command would dereference freed memory (AccessViolation).
+	    private BNPluginCommand.HighLevelILInstructionCommandDelegate? m_commandThunk = null;
+
+	    private BNPluginCommand.HighLevelILInstructionIsValidDelegate? m_isValidThunk = null;
+
+	    public CustomHighLevelILInstructionCommand()
 	    {
 			
 	    }
@@ -2462,11 +2678,24 @@ namespace BinaryNinja
 		    string description = ""
 		)
 	    {
+		    // Build the thunk delegates once and store them in fields so they stay rooted for the
+		    // lifetime of this command. The core keeps the function pointers after
+		    // RegisterForHighLevelILInstruction(), so the delegate objects must outlive every
+		    // native callback.
+		    BNPluginCommand.HighLevelILInstructionCommandDelegate commandThunk =
+			    new BNPluginCommand.HighLevelILInstructionCommandDelegate(this.CommandThunk);
+
+		    BNPluginCommand.HighLevelILInstructionIsValidDelegate isValidThunk =
+			    new BNPluginCommand.HighLevelILInstructionIsValidDelegate(this.IsValidThunk);
+
+		    this.m_commandThunk = commandThunk;
+		    this.m_isValidThunk = isValidThunk;
+
 		    NativeMethods.BNRegisterPluginCommandForHighLevelILInstruction(
 			    name,
 			    description,
-			    Marshal.GetFunctionPointerForDelegate<BNPluginCommand.HighLevelILInstructionCommandDelegate>(this.CommandThunk),
-			    Marshal.GetFunctionPointerForDelegate<BNPluginCommand.HighLevelILInstructionIsValidDelegate>(this.IsValidThunk),
+			    Marshal.GetFunctionPointerForDelegate<BNPluginCommand.HighLevelILInstructionCommandDelegate>(commandThunk),
+			    Marshal.GetFunctionPointerForDelegate<BNPluginCommand.HighLevelILInstructionIsValidDelegate>(isValidThunk),
 			    IntPtr.Zero
 		    );
 	    }
@@ -2521,7 +2750,16 @@ namespace BinaryNinja
     
     public abstract class CustomProjectCommand
     {
-	    public CustomProjectCommand() 
+	    // Cached thunk delegates for the RegisterForProject() direction. A function pointer
+	    // returned by GetFunctionPointerForDelegate stays valid only while its source delegate is
+	    // alive; the inline method-group delegates (this.CommandThunk / this.IsValidThunk) would
+	    // otherwise be collectible the moment RegisterForProject() returns, and the next native
+	    // callback into this registered command would dereference freed memory (AccessViolation).
+	    private BNPluginCommand.ProjectCommandDelegate? m_commandThunk = null;
+
+	    private BNPluginCommand.ProjectIsValidDelegate? m_isValidThunk = null;
+
+	    public CustomProjectCommand()
 	    {
 			
 	    }
@@ -2531,11 +2769,23 @@ namespace BinaryNinja
 		    string description = ""
 		)
 	    {
+		    // Build the thunk delegates once and store them in fields so they stay rooted for the
+		    // lifetime of this command. The core keeps the function pointers after
+		    // RegisterForProject(), so the delegate objects must outlive every native callback.
+		    BNPluginCommand.ProjectCommandDelegate commandThunk =
+			    new BNPluginCommand.ProjectCommandDelegate(this.CommandThunk);
+
+		    BNPluginCommand.ProjectIsValidDelegate isValidThunk =
+			    new BNPluginCommand.ProjectIsValidDelegate(this.IsValidThunk);
+
+		    this.m_commandThunk = commandThunk;
+		    this.m_isValidThunk = isValidThunk;
+
 		    NativeMethods.BNRegisterPluginCommandForProject(
 			    name,
 			    description,
-			    Marshal.GetFunctionPointerForDelegate<BNPluginCommand.ProjectCommandDelegate>(this.CommandThunk),
-			    Marshal.GetFunctionPointerForDelegate<BNPluginCommand.ProjectIsValidDelegate>(this.IsValidThunk),
+			    Marshal.GetFunctionPointerForDelegate<BNPluginCommand.ProjectCommandDelegate>(commandThunk),
+			    Marshal.GetFunctionPointerForDelegate<BNPluginCommand.ProjectIsValidDelegate>(isValidThunk),
 			    IntPtr.Zero
 		    );
 	    }
