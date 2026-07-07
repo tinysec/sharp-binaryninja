@@ -230,6 +230,17 @@ namespace BinaryNinja
     
     public abstract class CustomFileAccessor : INativeWrapper<BNFileAccessor>
     {
+	    // Cached thunk delegates for the ToNative() direction. A function pointer returned by
+	    // GetFunctionPointerForDelegate stays valid only while its source delegate is alive; the
+	    // inline method-group delegates (this.GetLengthThunk) would otherwise be collectible the
+	    // moment ToNative() returns, and the next native callback into this accessor would
+	    // dereference freed memory (AccessViolation).
+	    private BNFileAccessor.GetLengthDelegate? m_getLengthThunk = null;
+
+	    private BNFileAccessor.ReadDelegate? m_readThunk = null;
+
+	    private BNFileAccessor.WriteDelegate? m_writeThunk = null;
+
 	    public CustomFileAccessor() 
 	    {
 		    
@@ -237,12 +248,26 @@ namespace BinaryNinja
 
 	    public BNFileAccessor ToNative()
 	    {
+		    // Build the thunk delegates once and store them in fields so they stay rooted for the
+		    // lifetime of this accessor. The core keeps the function pointers for the lifetime of
+		    // the accessor, so the delegate objects must outlive every native callback.
+		    BNFileAccessor.GetLengthDelegate getLengthThunk =
+			    new BNFileAccessor.GetLengthDelegate(this.GetLengthThunk);
+
+		    BNFileAccessor.ReadDelegate readThunk = new BNFileAccessor.ReadDelegate(this.ReadThunk);
+
+		    BNFileAccessor.WriteDelegate writeThunk = new BNFileAccessor.WriteDelegate(this.WriteThunk);
+
+		    this.m_getLengthThunk = getLengthThunk;
+		    this.m_readThunk = readThunk;
+		    this.m_writeThunk = writeThunk;
+
 		    return new BNFileAccessor()
 		    {
-			    context = IntPtr.Zero ,
-			    getLength = Marshal.GetFunctionPointerForDelegate<BNFileAccessor.GetLengthDelegate>(this.GetLengthThunk) ,
-			    read = Marshal.GetFunctionPointerForDelegate<BNFileAccessor.ReadDelegate>(this.ReadThunk) ,
-			    write = Marshal.GetFunctionPointerForDelegate<BNFileAccessor.WriteDelegate>(this.WriteThunk) ,
+			    context = IntPtr.Zero,
+			    getLength = Marshal.GetFunctionPointerForDelegate(getLengthThunk),
+			    read = Marshal.GetFunctionPointerForDelegate(readThunk),
+			    write = Marshal.GetFunctionPointerForDelegate(writeThunk),
 		    };
 	    }
 

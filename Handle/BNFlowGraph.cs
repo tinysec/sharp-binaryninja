@@ -423,9 +423,11 @@ namespace BinaryNinja
 		    {
 			    Action<IntPtr> callbackAdapter = ( _ctx => { callback(); } );
 			    
-			    argCallback = Marshal.GetFunctionPointerForDelegate<Action<IntPtr>>(
-				    callbackAdapter
-				);
+			    // Layout completes asynchronously after BNStartFlowGraphLayout returns, so the
+			    // completion callback fires after this method has exited. PinCallback roots the
+			    // adapter for the process lifetime; otherwise the local would be GC-eligible before
+			    // the layout worker invokes it and the callback would crash.
+			    argCallback = UnsafeUtils.PinCallback(callbackAdapter);
 		    }
 		    
 		    return new FlowGraphLayoutRequest(

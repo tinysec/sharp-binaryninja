@@ -50,11 +50,15 @@ namespace BinaryNinja
 			return new MetadataValueStore()
 			{
 				Keys = UnsafeUtils.ReadAnsiStringArray(native.keys , (ulong)native.size) ,
+				// The core transfers ownership of each value ref (no AddRef); BNFreeMetadataValueStore
+				// frees only the container and keys. Take ownership so the per-entry ref is released
+				// when the managed Metadata wrapper is disposed (MustNewFromHandle would addref and
+				// strand the original ref, leaking one BNMetadata ref per entry).
 				Values = UnsafeUtils.ReadHandleArray(
-					native.values , 
+					native.values ,
 					(ulong)native.size,
-					Metadata.MustNewFromHandle
-				) 
+					Metadata.MustTakeHandle
+				)
 			};
 		}
 

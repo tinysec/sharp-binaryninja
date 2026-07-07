@@ -153,19 +153,24 @@ namespace BinaryNinja
 			ProgressDelegate? progress
 		)
 		{
-			return BinaryView.TakeHandle(
+			NativeDelegates.BNProgressFunction? progressWrapper =
+				null == progress ? null : UnsafeUtils.WrapProgressDelegate(progress);
+
+			BinaryView? result = BinaryView.TakeHandle(
 				NativeMethods.BNLoadBinaryView(
 					this.handle ,
 					updateAnalysis ,
 					options ,
-					null == progress
+					null == progressWrapper
 						? IntPtr.Zero
-						: Marshal.GetFunctionPointerForDelegate<NativeDelegates.BNProgressFunction>(
-							UnsafeUtils.WrapProgressDelegate(progress)
-							) ,
+						: Marshal.GetFunctionPointerForDelegate<NativeDelegates.BNProgressFunction>(progressWrapper) ,
 					IntPtr.Zero
 				)
 			);
+
+			GC.KeepAlive(progressWrapper);
+
+			return result;
 		}
 
 		/// <summary>
@@ -183,18 +188,24 @@ namespace BinaryNinja
 			ProgressDelegate? progress = null
 		)
 		{
-			return BinaryView.TakeHandle(
+			NativeDelegates.BNProgressFunction? progressWrapper =
+				null == progress ? null : UnsafeUtils.WrapProgressDelegate(progress);
+
+			BinaryView? result = BinaryView.TakeHandle(
 				NativeMethods.BNLoadFilename(
 					filename ,
 					updateAnalysis ,
 					options ,
-					null == progress
+					null == progressWrapper
 						? IntPtr.Zero
-						: Marshal.GetFunctionPointerForDelegate<NativeDelegates.BNProgressFunction>(
-							UnsafeUtils.WrapProgressDelegate(progress)) ,
+						: Marshal.GetFunctionPointerForDelegate<NativeDelegates.BNProgressFunction>(progressWrapper) ,
 					IntPtr.Zero
 				)
 			);
+
+			GC.KeepAlive(progressWrapper);
+
+			return result;
 		}
 
 		public static BinaryView? OpenExisting(string filename , ProgressDelegate? progress = null)
@@ -212,16 +223,20 @@ namespace BinaryNinja
 			}
 			else
 			{
-				return BinaryView.TakeHandle(
+				NativeDelegates.BNProgressFunction progressWrapper = UnsafeUtils.WrapProgressDelegate(progress);
+
+				BinaryView? result = BinaryView.TakeHandle(
 					NativeMethods.BNOpenExistingDatabaseWithProgress(
 						file.DangerousGetHandle() ,
 						filename,
-						IntPtr.Zero, 
-						Marshal.GetFunctionPointerForDelegate<NativeDelegates.BNProgressFunction>(
-							UnsafeUtils.WrapProgressDelegate(progress)
-						)
+						IntPtr.Zero,
+						Marshal.GetFunctionPointerForDelegate<NativeDelegates.BNProgressFunction>(progressWrapper)
 					)
 				);
+
+				GC.KeepAlive(progressWrapper);
+
+				return result;
 			}
 		}
 		
@@ -4199,18 +4214,21 @@ namespace BinaryNinja
 		{
 			using (ScopedAllocator allocator = new ScopedAllocator())
 			{
+				NativeDelegates.BNProgressFunction? progressWrapper =
+					null == progress ? null : UnsafeUtils.WrapProgressDelegate(progress);
+
 				ulong arrayLength = NativeMethods.BNDefineAnalysisTypes(
 					this.handle ,
 					allocator.ConvertToNativeArrayEx<BNQualifiedNameTypeAndId,QualifiedNameTypeAndId>(types),
 					(ulong)types.Length,
-					null == progress ? IntPtr.Zero : 
-						Marshal.GetFunctionPointerForDelegate<NativeDelegates.BNProgressFunction>(
-							UnsafeUtils.WrapProgressDelegate(progress)
-							) ,
-					IntPtr.Zero, 
+					null == progressWrapper ? IntPtr.Zero :
+						Marshal.GetFunctionPointerForDelegate<NativeDelegates.BNProgressFunction>(progressWrapper) ,
+					IntPtr.Zero,
 					out IntPtr idsPointer,
 					out IntPtr namesPointer
 				);
+
+				GC.KeepAlive(progressWrapper);
 
 				string[] ids = UnsafeUtils.TakeStringArrayEx(
 					idsPointer , 
@@ -4246,16 +4264,19 @@ namespace BinaryNinja
 		{
 			using (ScopedAllocator allocator = new ScopedAllocator())
 			{
+				NativeDelegates.BNProgressFunction? progressWrapper =
+					null == progress ? null : UnsafeUtils.WrapProgressDelegate(progress);
+
 				NativeMethods.BNDefineUserAnalysisTypes(
 					this.handle ,
 					allocator.ConvertToNativeArrayEx<BNQualifiedNameAndType,QualifiedNameAndType>(types),
 					(ulong)types.Length,
-					null == progress ? IntPtr.Zero : 
-						Marshal.GetFunctionPointerForDelegate<NativeDelegates.BNProgressFunction>(
-							UnsafeUtils.WrapProgressDelegate(progress)
-							) ,
+					null == progressWrapper ? IntPtr.Zero :
+						Marshal.GetFunctionPointerForDelegate<NativeDelegates.BNProgressFunction>(progressWrapper) ,
 					IntPtr.Zero
 				);
+
+				GC.KeepAlive(progressWrapper);
 			}
 		}
 
@@ -4579,6 +4600,8 @@ namespace BinaryNinja
 			FindFlag flags = FindFlag.FindCaseSensitive
 		)
 		{
+			NativeDelegates.BNProgressFunction progressWrapper = UnsafeUtils.WrapProgressDelegate(progress);
+
 			bool ok = NativeMethods.BNFindNextDataWithProgress(
 				this.handle ,
 				start ,
@@ -4587,10 +4610,10 @@ namespace BinaryNinja
 				out ulong result ,
 				flags ,
 				IntPtr.Zero ,
-				Marshal.GetFunctionPointerForDelegate<NativeDelegates.BNProgressFunction>(
-					UnsafeUtils.WrapProgressDelegate(progress)
-				)
+				Marshal.GetFunctionPointerForDelegate<NativeDelegates.BNProgressFunction>(progressWrapper)
 			);
+
+			GC.KeepAlive(progressWrapper);
 
 			if (!ok)
 			{
@@ -4641,6 +4664,8 @@ namespace BinaryNinja
 		{
 			using (ScopedAllocator allocator = new ScopedAllocator())
 			{
+				NativeDelegates.BNProgressFunction progressWrapper = UnsafeUtils.WrapProgressDelegate(progress);
+
 				bool ok = NativeMethods.BNFindNextTextWithProgress(
 					this.handle ,
 					start ,
@@ -4651,10 +4676,10 @@ namespace BinaryNinja
 					flags ,
 					viewType.ToNativeEx(allocator) ,
 					IntPtr.Zero ,
-					Marshal.GetFunctionPointerForDelegate<NativeDelegates.BNProgressFunction>(
-						UnsafeUtils.WrapProgressDelegate(progress)
-					)
+					Marshal.GetFunctionPointerForDelegate<NativeDelegates.BNProgressFunction>(progressWrapper)
 				);
+
+				GC.KeepAlive(progressWrapper);
 
 				if (!ok)
 				{
@@ -4703,19 +4728,21 @@ namespace BinaryNinja
 		{
 			using (ScopedAllocator allocator = new ScopedAllocator())
 			{
+				NativeDelegates.BNProgressFunction progressWrapper = UnsafeUtils.WrapProgressDelegate(progress);
+
 				bool ok =  NativeMethods.BNFindNextConstantWithProgress(
-					this.handle , 
-					start, 
+					this.handle ,
+					start,
 					end,
 					data,
 					out ulong result,
 					null == settings ? IntPtr.Zero : settings.DangerousGetHandle(),
-					viewType.ToNativeEx(allocator), 
+					viewType.ToNativeEx(allocator),
 					IntPtr.Zero,
-					Marshal.GetFunctionPointerForDelegate<NativeDelegates.BNProgressFunction>(
-						UnsafeUtils.WrapProgressDelegate(progress)
-					)
+					Marshal.GetFunctionPointerForDelegate<NativeDelegates.BNProgressFunction>(progressWrapper)
 				);
+
+				GC.KeepAlive(progressWrapper);
 			
 				if (!ok)
 				{
@@ -4735,23 +4762,28 @@ namespace BinaryNinja
 			FindFlag flags = FindFlag.FindCaseSensitive
 		)
 		{
-			return NativeMethods.BNFindAllDataWithProgress(
+			NativeDelegates.BNProgressFunction? progressWrapper =
+				null == progress ? null : UnsafeUtils.WrapProgressDelegate(progress);
+
+			bool result = NativeMethods.BNFindAllDataWithProgress(
 				this.handle ,
 				start ,
 				end ,
 				new DataBuffer(data).DangerousGetHandle() ,
 				flags ,
 				IntPtr.Zero ,
-				null == progress
+				null == progressWrapper
 					? IntPtr.Zero
-					: Marshal.GetFunctionPointerForDelegate<NativeDelegates.BNProgressFunction>(
-						UnsafeUtils.WrapProgressDelegate(progress)
-					) ,
+					: Marshal.GetFunctionPointerForDelegate<NativeDelegates.BNProgressFunction>(progressWrapper) ,
 				IntPtr.Zero ,
 				Marshal.GetFunctionPointerForDelegate<NativeDelegates.MatchDataDelegate>(
 					UnsafeUtils.WrapMatchDataDelegate(match)
 				)
 			);
+
+			GC.KeepAlive(progressWrapper);
+
+			return result;
 		}
 
 
@@ -4768,7 +4800,10 @@ namespace BinaryNinja
 		{
 			using (ScopedAllocator allocator = new ScopedAllocator())
 			{
-				return NativeMethods.BNFindAllTextWithProgress(
+				NativeDelegates.BNProgressFunction? progressWrapper =
+					null == progress ? null : UnsafeUtils.WrapProgressDelegate(progress);
+
+				bool result = NativeMethods.BNFindAllTextWithProgress(
 					this.handle ,
 					start ,
 					end ,
@@ -4777,16 +4812,18 @@ namespace BinaryNinja
 					flags ,
 					viewType.ToNativeEx(allocator) ,
 					IntPtr.Zero ,
-					null == progress
+					null == progressWrapper
 						? IntPtr.Zero
-						: Marshal.GetFunctionPointerForDelegate<NativeDelegates.BNProgressFunction>(
-							UnsafeUtils.WrapProgressDelegate(progress)
-						) ,
+						: Marshal.GetFunctionPointerForDelegate<NativeDelegates.BNProgressFunction>(progressWrapper) ,
 					IntPtr.Zero ,
 					Marshal.GetFunctionPointerForDelegate<NativeDelegates.MatchDataDelegate>(
 						UnsafeUtils.WrapMatchDataDelegate(match)
 					)
 				);
+
+				GC.KeepAlive(progressWrapper);
+
+				return result;
 			}
 		}
 
@@ -4802,7 +4839,10 @@ namespace BinaryNinja
 		{
 			using (ScopedAllocator allocator = new ScopedAllocator())
 			{
-				return NativeMethods.BNFindAllConstantWithProgress(
+				NativeDelegates.BNProgressFunction? progressWrapper =
+					null == progress ? null : UnsafeUtils.WrapProgressDelegate(progress);
+
+				bool result = NativeMethods.BNFindAllConstantWithProgress(
 					this.handle ,
 					start ,
 					end ,
@@ -4810,16 +4850,18 @@ namespace BinaryNinja
 					null == settings ? IntPtr.Zero : settings.DangerousGetHandle() ,
 					viewType.ToNativeEx(allocator) ,
 					IntPtr.Zero ,
-					null == progress
+					null == progressWrapper
 						? IntPtr.Zero
-						: Marshal.GetFunctionPointerForDelegate<NativeDelegates.BNProgressFunction>(
-							UnsafeUtils.WrapProgressDelegate(progress)
-						) ,
+						: Marshal.GetFunctionPointerForDelegate<NativeDelegates.BNProgressFunction>(progressWrapper) ,
 					IntPtr.Zero ,
 					Marshal.GetFunctionPointerForDelegate<NativeDelegates.MatchDataDelegate>(
 						UnsafeUtils.WrapMatchDataDelegate(match)
 					)
 				);
+
+				GC.KeepAlive(progressWrapper);
+
+				return result;
 			}
 		}
 		
@@ -4831,20 +4873,25 @@ namespace BinaryNinja
 		{
 			using (ScopedAllocator allocator = new ScopedAllocator())
 			{
-				return NativeMethods.BNSearch(
+				NativeDelegates.BNProgressFunction? progressWrapper =
+					null == progress ? null : UnsafeUtils.WrapProgressDelegate(progress);
+
+				bool result = NativeMethods.BNSearch(
 					this.handle ,
 					query ,
 					IntPtr.Zero ,
-					null == progress
+					null == progressWrapper
 						? IntPtr.Zero
-						: Marshal.GetFunctionPointerForDelegate<NativeDelegates.BNProgressFunction>(
-							UnsafeUtils.WrapProgressDelegate(progress)
-						) ,
+						: Marshal.GetFunctionPointerForDelegate<NativeDelegates.BNProgressFunction>(progressWrapper) ,
 					IntPtr.Zero ,
 					Marshal.GetFunctionPointerForDelegate<NativeDelegates.MatchDataDelegate>(
 						UnsafeUtils.WrapMatchDataDelegate(match)
 					)
 				);
+
+				GC.KeepAlive(progressWrapper);
+
+				return result;
 			}
 		}
 		
@@ -4875,14 +4922,18 @@ namespace BinaryNinja
 			}
 			else
 			{
-				return NativeMethods.BNRebaseWithProgress(
+				NativeDelegates.BNProgressFunction progressWrapper = UnsafeUtils.WrapProgressDelegate(progress);
+
+				bool result = NativeMethods.BNRebaseWithProgress(
 					this.handle,
 					address,
-					IntPtr.Zero, 
-					Marshal.GetFunctionPointerForDelegate<NativeDelegates.BNProgressFunction>(
-						UnsafeUtils.WrapProgressDelegate(progress)
-					)
+					IntPtr.Zero,
+					Marshal.GetFunctionPointerForDelegate<NativeDelegates.BNProgressFunction>(progressWrapper)
 				);
+
+				GC.KeepAlive(progressWrapper);
+
+				return result;
 			}
 			
 		}
@@ -5616,15 +5667,19 @@ namespace BinaryNinja
 		    }
 		    else
 		    {
-			    return NativeMethods.BNCreateDatabaseWithProgress(
+			    NativeDelegates.BNProgressFunction progressWrapper = UnsafeUtils.WrapProgressDelegate(progress);
+
+			    bool result = NativeMethods.BNCreateDatabaseWithProgress(
 				    this.handle ,
 				    filename ,
 				    IntPtr.Zero ,
-				    Marshal.GetFunctionPointerForDelegate<NativeDelegates.BNProgressFunction>(
-					    UnsafeUtils.WrapProgressDelegate(progress)
-					    ) ,
+				    Marshal.GetFunctionPointerForDelegate<NativeDelegates.BNProgressFunction>(progressWrapper) ,
 				    null == settings ? IntPtr.Zero : settings.DangerousGetHandle()
 			    );
+
+			    GC.KeepAlive(progressWrapper);
+
+			    return result;
 		    }
 	    }
 	    
@@ -5641,13 +5696,18 @@ namespace BinaryNinja
 		    }
 		    else
 		    {
-			    return NativeMethods.BNSaveAutoSnapshotWithProgress(
+			    NativeDelegates.BNProgressFunction progressWrapper = UnsafeUtils.WrapProgressDelegate(progress);
+
+			    bool result = NativeMethods.BNSaveAutoSnapshotWithProgress(
 				    this.handle ,
 				    IntPtr.Zero ,
-				    Marshal.GetFunctionPointerForDelegate<NativeDelegates.BNProgressFunction>
-					    (UnsafeUtils.WrapProgressDelegate(progress)) ,
+				    Marshal.GetFunctionPointerForDelegate<NativeDelegates.BNProgressFunction>(progressWrapper) ,
 				    null == settings ? IntPtr.Zero : settings.DangerousGetHandle()
 			    );
+
+			    GC.KeepAlive(progressWrapper);
+
+			    return result;
 		    }
 	    }
 	    
@@ -6819,14 +6879,18 @@ namespace BinaryNinja
 		    }
 		    else
 		    {
-			    return NativeMethods.BNCreateSnapshotedViewWithProgress(
+			    NativeDelegates.BNProgressFunction progressWrapper = UnsafeUtils.WrapProgressDelegate(progress);
+
+			    bool result = NativeMethods.BNCreateSnapshotedViewWithProgress(
 				    this.handle ,
 				    viewName ,
 				    IntPtr.Zero ,
-				    Marshal.GetFunctionPointerForDelegate<NativeDelegates.BNProgressFunction>(
-					    UnsafeUtils.WrapProgressDelegate(progress)
-				    )
+				    Marshal.GetFunctionPointerForDelegate<NativeDelegates.BNProgressFunction>(progressWrapper)
 			    );
+
+			    GC.KeepAlive(progressWrapper);
+
+			    return result;
 		    }
 	    }
 

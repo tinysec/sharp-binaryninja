@@ -96,6 +96,23 @@ namespace BinaryNinja
 
 	public class CustomTransform : INativeWrapper<BNCustomTransform>
 	{
+		// Cached thunk delegates for the ToNative() direction. A function pointer returned by
+		// GetFunctionPointerForDelegate stays valid only while its source delegate is alive; the
+		// inline method-group delegates (this.DecodeThunk) would otherwise be collectible the moment
+		// ToNative() returns, and the next native callback into this registered transform would
+		// dereference freed memory (AccessViolation).
+		private BNCustomTransform.GetParametersDelegate? m_getParametersThunk = null;
+
+		private BNCustomTransform.FreeParametersDelegate? m_freeParametersThunk = null;
+
+		private BNCustomTransform.DecodeDelegate? m_decodeThunk = null;
+
+		private BNCustomTransform.EncodeDelegate? m_encodeThunk = null;
+
+		private BNCustomTransform.DecodeWithContextDelegate? m_decodeWithContextThunk = null;
+
+		private BNCustomTransform.CanDecodeDelegate? m_canDecodeThunk = null;
+
 		public CustomTransform()
 		{
 
@@ -143,15 +160,43 @@ namespace BinaryNinja
 
 		public BNCustomTransform ToNative()
 		{
+			// Build the thunk delegates once and store them in fields so they stay rooted for the
+			// lifetime of this transform. The core keeps the function pointers after Register(), so
+			// the delegate objects must outlive every native callback.
+			BNCustomTransform.GetParametersDelegate getParametersThunk =
+				new BNCustomTransform.GetParametersDelegate(this.GetParametersThunk);
+
+			BNCustomTransform.FreeParametersDelegate freeParametersThunk =
+				new BNCustomTransform.FreeParametersDelegate(this.FreeParametersThunk);
+
+			BNCustomTransform.DecodeDelegate decodeThunk =
+				new BNCustomTransform.DecodeDelegate(this.DecodeThunk);
+
+			BNCustomTransform.EncodeDelegate encodeThunk =
+				new BNCustomTransform.EncodeDelegate(this.EncodeThunk);
+
+			BNCustomTransform.DecodeWithContextDelegate decodeWithContextThunk =
+				new BNCustomTransform.DecodeWithContextDelegate(this.DecodeWithContextThunk);
+
+			BNCustomTransform.CanDecodeDelegate canDecodeThunk =
+				new BNCustomTransform.CanDecodeDelegate(this.CanDecodeThunk);
+
+			this.m_getParametersThunk = getParametersThunk;
+			this.m_freeParametersThunk = freeParametersThunk;
+			this.m_decodeThunk = decodeThunk;
+			this.m_encodeThunk = encodeThunk;
+			this.m_decodeWithContextThunk = decodeWithContextThunk;
+			this.m_canDecodeThunk = canDecodeThunk;
+
 			return new BNCustomTransform()
 			{
-				context = IntPtr.Zero ,
-				getParameters = Marshal.GetFunctionPointerForDelegate<BNCustomTransform.GetParametersDelegate>(this.GetParametersThunk) ,
-				freeParameters = Marshal.GetFunctionPointerForDelegate<BNCustomTransform.FreeParametersDelegate>(this.FreeParametersThunk) ,
-				decode = Marshal.GetFunctionPointerForDelegate<BNCustomTransform.DecodeDelegate>(this.DecodeThunk) ,
-				encode = Marshal.GetFunctionPointerForDelegate<BNCustomTransform.EncodeDelegate>(this.EncodeThunk) ,
-				decodeWithContext = Marshal.GetFunctionPointerForDelegate<BNCustomTransform.DecodeWithContextDelegate>(this.DecodeWithContextThunk) ,
-				canDecode = Marshal.GetFunctionPointerForDelegate<BNCustomTransform.CanDecodeDelegate>(this.CanDecodeThunk) ,
+				context = IntPtr.Zero,
+				getParameters = Marshal.GetFunctionPointerForDelegate(getParametersThunk),
+				freeParameters = Marshal.GetFunctionPointerForDelegate(freeParametersThunk),
+				decode = Marshal.GetFunctionPointerForDelegate(decodeThunk),
+				encode = Marshal.GetFunctionPointerForDelegate(encodeThunk),
+				decodeWithContext = Marshal.GetFunctionPointerForDelegate(decodeWithContextThunk),
+				canDecode = Marshal.GetFunctionPointerForDelegate(canDecodeThunk),
 			};
 		}
 		

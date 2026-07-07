@@ -524,7 +524,7 @@ namespace BinaryNinja
 		    return UnsafeUtils.TakeHandleArray<Metadata>(
 			    arrayPointer,
 			    arrayLength,
-			    Metadata.MustNewFromHandle,
+			    Metadata.MustTakeHandle,
 			    NativeMethods.BNFreeMetadataArray
 			);
 	    }
@@ -657,110 +657,194 @@ namespace BinaryNinja
 
 	    public bool SetValue(string key , bool value)
 	    {
-		    return NativeMethods.BNMetadataSetValueForKey(
-			    this.handle, 
-			    key, 
+		    Metadata tmp = Metadata.MustTakeHandle(
 			    NativeMethods.BNCreateMetadataBooleanData(value)
 		    );
+
+		    using (tmp)
+		    {
+			    return NativeMethods.BNMetadataSetValueForKey(
+				    this.handle, 
+				    key, 
+				    tmp.DangerousGetHandle()
+			    );
+		    }
 	    }
 	    
 	    public bool SetValue(string key , string value)
 	    {
-		    return NativeMethods.BNMetadataSetValueForKey(
-			    this.handle, 
-			    key, 
+		    Metadata tmp = Metadata.MustTakeHandle(
 			    NativeMethods.BNCreateMetadataStringData(value)
 		    );
+
+		    using (tmp)
+		    {
+			    return NativeMethods.BNMetadataSetValueForKey(
+				    this.handle, 
+				    key, 
+				    tmp.DangerousGetHandle()
+			    );
+		    }
 	    }
 	  
 	    public bool SetValue(string key , long value)
 	    {
-		    return NativeMethods.BNMetadataSetValueForKey(
-			    this.handle, 
-			    key, 
+		    Metadata tmp = Metadata.MustTakeHandle(
 			    NativeMethods.BNCreateMetadataSignedIntegerData(value)
 		    );
+
+		    using (tmp)
+		    {
+			    return NativeMethods.BNMetadataSetValueForKey(
+				    this.handle, 
+				    key, 
+				    tmp.DangerousGetHandle()
+			    );
+		    }
 	    }
 	    
 	    public bool SetValue(string key , ulong value)
 	    {
-		    return NativeMethods.BNMetadataSetValueForKey(
-			    this.handle, 
-			    key, 
+		    Metadata tmp = Metadata.MustTakeHandle(
 			    NativeMethods.BNCreateMetadataUnsignedIntegerData(value)
 		    );
+
+		    using (tmp)
+		    {
+			    return NativeMethods.BNMetadataSetValueForKey(
+				    this.handle, 
+				    key, 
+				    tmp.DangerousGetHandle()
+			    );
+		    }
 	    }
 	   
 	    public bool SetValue(string key , double value)
 	    {
-		    return NativeMethods.BNMetadataSetValueForKey(
-			    this.handle, 
-			    key, 
+		    Metadata tmp = Metadata.MustTakeHandle(
 			    NativeMethods.BNCreateMetadataDoubleData(value)
 		    );
+
+		    using (tmp)
+		    {
+			    return NativeMethods.BNMetadataSetValueForKey(
+				    this.handle, 
+				    key, 
+				    tmp.DangerousGetHandle()
+			    );
+		    }
 	    }
 	    
 	    public bool SetValue(string key , byte[] data)
 	    {
-		    return NativeMethods.BNMetadataSetValueForKey(
-			    this.handle, 
-			    key, 
+		    Metadata tmp = Metadata.MustTakeHandle(
 			    NativeMethods.BNCreateMetadataRawData(data , (ulong)data.Length)
 		    );
+
+		    using (tmp)
+		    {
+			    return NativeMethods.BNMetadataSetValueForKey(
+				    this.handle, 
+				    key, 
+				    tmp.DangerousGetHandle()
+			    );
+		    }
 	    }
 	    
 	    public bool SetValue(string key , MetadataType value)
 	    {
-		    return NativeMethods.BNMetadataSetValueForKey(
-			    this.handle, 
-			    key, 
+		    Metadata tmp = Metadata.MustTakeHandle(
 			    NativeMethods.BNCreateMetadataOfType(value)
 		    );
+
+		    using (tmp)
+		    {
+			    return NativeMethods.BNMetadataSetValueForKey(
+				    this.handle, 
+				    key, 
+				    tmp.DangerousGetHandle()
+			    );
+		    }
 	    }
 	    
 	    public bool SetValue(string key , bool[] values)
 	    {
-		    return NativeMethods.BNMetadataSetValueForKey(
-			    this.handle, 
-			    key, 
+		    Metadata tmp = Metadata.MustTakeHandle(
 			    NativeMethods.BNCreateMetadataBooleanListData(values , (ulong)values.Length)
 		    );
+
+		    using (tmp)
+		    {
+			    return NativeMethods.BNMetadataSetValueForKey(
+				    this.handle, 
+				    key, 
+				    tmp.DangerousGetHandle()
+			    );
+		    }
 	    }
 	    
 	    public bool SetValue(string key , long[] values)
 	    {
-		    return NativeMethods.BNMetadataSetValueForKey(
-			    this.handle, 
-			    key, 
+		    Metadata tmp = Metadata.MustTakeHandle(
 			    NativeMethods.BNCreateMetadataSignedIntegerListData(values , (ulong)values.Length)
 		    );
+
+		    using (tmp)
+		    {
+			    return NativeMethods.BNMetadataSetValueForKey(
+				    this.handle, 
+				    key, 
+				    tmp.DangerousGetHandle()
+			    );
+		    }
 	    }
 	    
 	    public bool SetValue(string key , ulong[] values)
 	    {
-		    return NativeMethods.BNMetadataSetValueForKey(
-			    this.handle, 
-			    key, 
+		    Metadata tmp = Metadata.MustTakeHandle(
 			    NativeMethods.BNCreateMetadataUnsignedIntegerListData(values , (ulong)values.Length)
 		    );
+
+		    using (tmp)
+		    {
+			    return NativeMethods.BNMetadataSetValueForKey(
+				    this.handle, 
+				    key, 
+				    tmp.DangerousGetHandle()
+			    );
+		    }
 	    }
 	    
 	    public bool SetValue(string key , double[] values)
 	    {
-		    return NativeMethods.BNMetadataSetValueForKey(
-			    this.handle, 
-			    key, 
+		    Metadata tmp = Metadata.MustTakeHandle(
 			    NativeMethods.BNCreateMetadataDoubleListData(values , (ulong)values.Length)
 		    );
+
+		    using (tmp)
+		    {
+			    return NativeMethods.BNMetadataSetValueForKey(
+				    this.handle, 
+				    key, 
+				    tmp.DangerousGetHandle()
+			    );
+		    }
 	    }
 	    
 	    public bool SetValue(string key , string[] values)
 	    {
-		    return NativeMethods.BNMetadataSetValueForKey(
-			    this.handle,
-			    key,
+		    Metadata tmp = Metadata.MustTakeHandle(
 			    Metadata.rawCreateMetadataStringList(values)
 		    );
+
+		    using (tmp)
+		    {
+			    return NativeMethods.BNMetadataSetValueForKey(
+				    this.handle,
+				    key,
+				    tmp.DangerousGetHandle()
+			    );
+		    }
 	    }
 
 	    public Metadata? GetValue(string key)

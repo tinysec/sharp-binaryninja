@@ -91,6 +91,23 @@ namespace BinaryNinja
 	
     public abstract class CustomBinaryViewType : INativeWrapper<BNCustomBinaryViewType>
     {
+		// Cached thunk delegates for the ToNative() direction. A function pointer returned by
+		// GetFunctionPointerForDelegate stays valid only while its source delegate is alive; the
+		// inline method-group delegates (this.CreateThunk) would otherwise be collectible the moment
+		// ToNative() returns, and the next native callback into this registered type would
+		// dereference freed memory (AccessViolation).
+		private BNCustomBinaryViewType.CreateDelegate? m_createThunk = null;
+
+		private BNCustomBinaryViewType.ParseDelegate? m_parseThunk = null;
+
+		private BNCustomBinaryViewType.IsValidForDataDelegate? m_isValidForDataThunk = null;
+
+		private BNCustomBinaryViewType.IsDeprecatedDelegate? m_isDeprecatedThunk = null;
+
+		private BNCustomBinaryViewType.IsForceLoadableDelegate? m_isForceLoadableThunk = null;
+
+		private BNCustomBinaryViewType.GetLoadSettingsForDataDelegate? m_getLoadSettingsForDataThunk = null;
+
 		public CustomBinaryViewType() 
 		{
 		    
@@ -98,15 +115,43 @@ namespace BinaryNinja
 		
 		public BNCustomBinaryViewType ToNative()
 		{
+			// Build the thunk delegates once and store them in fields so they stay rooted for the
+			// lifetime of this type. The core keeps the function pointers after Register(), so
+			// the delegate objects must outlive every native callback.
+			BNCustomBinaryViewType.CreateDelegate createThunk =
+				new BNCustomBinaryViewType.CreateDelegate(this.CreateThunk);
+
+			BNCustomBinaryViewType.ParseDelegate parseThunk =
+				new BNCustomBinaryViewType.ParseDelegate(this.ParseThunk);
+
+			BNCustomBinaryViewType.IsValidForDataDelegate isValidForDataThunk =
+				new BNCustomBinaryViewType.IsValidForDataDelegate(this.IsValidForDataThunk);
+
+			BNCustomBinaryViewType.IsDeprecatedDelegate isDeprecatedThunk =
+				new BNCustomBinaryViewType.IsDeprecatedDelegate(this.IsDeprecatedThunk);
+
+			BNCustomBinaryViewType.IsForceLoadableDelegate isForceLoadableThunk =
+				new BNCustomBinaryViewType.IsForceLoadableDelegate(this.IsForceLoadableThunk);
+
+			BNCustomBinaryViewType.GetLoadSettingsForDataDelegate getLoadSettingsForDataThunk =
+				new BNCustomBinaryViewType.GetLoadSettingsForDataDelegate(this.GetLoadSettingsForDataThunk);
+
+			this.m_createThunk = createThunk;
+			this.m_parseThunk = parseThunk;
+			this.m_isValidForDataThunk = isValidForDataThunk;
+			this.m_isDeprecatedThunk = isDeprecatedThunk;
+			this.m_isForceLoadableThunk = isForceLoadableThunk;
+			this.m_getLoadSettingsForDataThunk = getLoadSettingsForDataThunk;
+
 			return new BNCustomBinaryViewType
 			{
 				context = IntPtr.Zero,
-				create = Marshal.GetFunctionPointerForDelegate<BNCustomBinaryViewType.CreateDelegate>(this.CreateThunk),
-				parse = Marshal.GetFunctionPointerForDelegate<BNCustomBinaryViewType.ParseDelegate>(this.ParseThunk),
-				isValidForData = Marshal.GetFunctionPointerForDelegate<BNCustomBinaryViewType.IsValidForDataDelegate>(this.IsValidForDataThunk),
-				isDeprecated = Marshal.GetFunctionPointerForDelegate<BNCustomBinaryViewType.IsDeprecatedDelegate>(this.IsDeprecatedThunk),
-				isForceLoadable = Marshal.GetFunctionPointerForDelegate<BNCustomBinaryViewType.IsForceLoadableDelegate>(this.IsForceLoadableThunk),
-				getLoadSettingsForData = Marshal.GetFunctionPointerForDelegate<BNCustomBinaryViewType.GetLoadSettingsForDataDelegate>(this.GetLoadSettingsForDataThunk),
+				create = Marshal.GetFunctionPointerForDelegate(createThunk),
+				parse = Marshal.GetFunctionPointerForDelegate(parseThunk),
+				isValidForData = Marshal.GetFunctionPointerForDelegate(isValidForDataThunk),
+				isDeprecated = Marshal.GetFunctionPointerForDelegate(isDeprecatedThunk),
+				isForceLoadable = Marshal.GetFunctionPointerForDelegate(isForceLoadableThunk),
+				getLoadSettingsForData = Marshal.GetFunctionPointerForDelegate(getLoadSettingsForDataThunk),
 				hasNoInitialContent = IntPtr.Zero,
 			};
 		}
