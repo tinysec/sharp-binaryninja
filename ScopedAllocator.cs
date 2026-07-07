@@ -107,7 +107,7 @@ namespace BinaryNinja
 			}
 			else
 			{
-				throw new Exception("Unsupported element type");
+				throw new NotSupportedException("Unsupported element type");
 			}
 
 			return pointer;
@@ -122,7 +122,13 @@ namespace BinaryNinja
 			
 			int elementSize = Marshal.SizeOf<T>();
 
-			IntPtr arrayPointer = this.AllocHGlobal(IntPtr.Size * items.Length);
+			// Stride by the actual element size, not IntPtr.Size: AllocIntegerArray<uint>
+			// (BNRegisterSetWithConfidence) writes 4 bytes per element, so the previous
+			// IntPtr.Size stride over-allocated 2x (8x for byte arrays). Matches the
+			// element-sized allocation already used by AllocStructArray.
+			int totalSize = elementSize * items.Length;
+
+			IntPtr arrayPointer = this.AllocHGlobal(totalSize);
 
 			for (int i = 0; i < items.Length; i++)
 			{
@@ -146,7 +152,7 @@ namespace BinaryNinja
 				}
 				else
 				{
-					throw new Exception("Unsupported element type");
+					throw new NotSupportedException("Unsupported element type");
 				}
 			}
 
