@@ -65,21 +65,16 @@ namespace BinaryNinja
 			}
 			else if (typeof(T).UnderlyingSystemType == typeof(float))
 			{
-				byte[] buf = new byte[4];
-				
-				Marshal.Copy(address, buf, 0, 4);
-				
-				float value = BitConverter.ToSingle(buf, 0);
+				// Read the raw IEEE bits directly: identical to the byte[]/Marshal.Copy/
+				// BitConverter path but allocation-free and AOT-safe, matching the enum
+				// branch above (Unsafe.ReadUnaligned<T>).
+				float value = Unsafe.ReadUnaligned<float>((void*)address);
 
 				return UnsafeUtils.ForceConvert<float , T>(value);
 			}
 			else if (typeof(T).UnderlyingSystemType == typeof(double))
 			{
-				byte[] buf = new byte[8];
-				
-				Marshal.Copy(address, buf, 0, 8);
-				
-				double value = BitConverter.ToDouble(buf, 0);
+				double value = Unsafe.ReadUnaligned<double>((void*)address);
 
 				return UnsafeUtils.ForceConvert<double , T>(value);
 			}
