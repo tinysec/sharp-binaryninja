@@ -1081,6 +1081,22 @@ namespace BinaryNinja
 	    }
 
 	    /// <summary>
+	    /// Registers a new calling convention with this architecture, mirroring Python
+	    /// <c>Architecture.register_calling_convention</c> (architecture.py:2593). A calling
+	    /// convention must be registered here before it can be assigned as the
+	    /// default/cdecl/stdcall/fastcall convention. Intended for custom-architecture plugin
+	    /// authors.
+	    /// </summary>
+	    /// <param name="callingConvention">The CallingConvention to register.</param>
+	    public void RegisterCallingConvention(CallingConvention callingConvention)
+	    {
+		    NativeMethods.BNRegisterCallingConvention(
+			    this.handle ,
+			    callingConvention.DangerousGetHandle()
+		    );
+	    }
+
+	    /// <summary>
 	    /// Gets the cdecl calling convention for this architecture.
 	    /// </summary>
 	    /// <returns>The cdecl CallingConvention, or null if not set.</returns>
