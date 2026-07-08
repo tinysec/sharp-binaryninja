@@ -770,12 +770,15 @@ namespace BinaryNinja
         }
 
         /// <summary>
-        /// Adds an array of types to this type archive.
-        /// Each element carries a qualified name, a type ID, and the type itself.
+        /// <summary>
+        /// Adds an array of named types to this type archive, mirroring Python
+        /// <c>TypeArchive.add_types</c> (typearchive.py:222). The core assigns each type its id, so
+        /// callers supply only name and definition (the id-bearing <c>BNQualifiedNameTypeAndId</c>
+        /// struct belongs to the type-reading and analysis-definition APIs, not to add).
         /// </summary>
-        /// <param name="types">The array of qualified-name-type-and-id triples to add.</param>
+        /// <param name="types">The array of qualified-name-and-type pairs to add.</param>
         /// <returns>True if the types were added successfully; false otherwise.</returns>
-        public unsafe bool AddTypes(QualifiedNameTypeAndId[] types)
+        public unsafe bool AddTypes(QualifiedNameAndType[] types)
         {
             // 1. Validate the required parameter.
             if (null == types || 0 == types.Length)
@@ -787,7 +790,7 @@ namespace BinaryNinja
             using (ScopedAllocator allocator = new ScopedAllocator())
             {
                 // 2.1 Convert each managed item to its native representation.
-                BNQualifiedNameTypeAndId[] nativeArray = new BNQualifiedNameTypeAndId[types.Length];
+                BNQualifiedNameAndType[] nativeArray = new BNQualifiedNameAndType[types.Length];
 
                 for (int i = 0; i < types.Length; i++)
                 {
@@ -795,7 +798,7 @@ namespace BinaryNinja
                 }
 
                 // 2.2 Pin the native array and call the API.
-                IntPtr arrayPointer = allocator.AllocStructArray<BNQualifiedNameTypeAndId>(nativeArray);
+                IntPtr arrayPointer = allocator.AllocStructArray<BNQualifiedNameAndType>(nativeArray);
 
                 // 3. Forward to the native API.
                 return NativeMethods.BNAddTypeArchiveTypes(
@@ -805,6 +808,35 @@ namespace BinaryNinja
                 );
             }
         }
+
+        /// <summary>
+        /// Adds a single named type to this archive, mirroring Python
+        /// <c>TypeArchive.add_type</c> (typearchive.py:225). Convenience over
+        /// <see cref="AddTypes(QualifiedNameAndType[])"/>.
+        /// </summary>
+        /// <param name="name">The qualified name of the new type.</param>
+        /// <param name="type">The definition of the new type.</param>
+        /// <returns>True if the type was added successfully; false otherwise.</returns>
+        public bool AddType(QualifiedName name, BinaryNinja.Type type)
+        {
+            if (null == name)
+            {
+                throw new ArgumentNullException(nameof(name));
+            }
+
+            if (null == type)
+            {
+                throw new ArgumentNullException(nameof(type));
+            }
+
+            QualifiedNameAndType[] pair = new QualifiedNameAndType[]
+            {
+                new QualifiedNameAndType(name, type)
+            };
+
+            return this.AddTypes(pair);
+        }
+
 
         /// <summary>
         /// Retrieves all type names stored in this type archive at the given snapshot.
