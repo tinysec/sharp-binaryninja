@@ -203,6 +203,18 @@ namespace BinaryNinja
 		    }
 	    }
 	    
+	    /// <summary>
+	    /// Whether this integer-like type is signed (wraps BNIsTypeSigned).
+	    /// </summary>
+	    public BoolWithConfidence Signed
+	    {
+	    	get
+	    	{
+	    		return BoolWithConfidence.FromNative(NativeMethods.BNIsTypeSigned(this.handle));
+	    	}
+	    }
+	    
+	    
 	    public ulong Alignment
 	    {
 		    get
