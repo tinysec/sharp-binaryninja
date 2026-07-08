@@ -35,11 +35,16 @@ namespace BinaryNinja
 			}
 		}
 		
-		public ulong MemoryIndex
+		/// <summary>
+		/// The named-member index, or null when there is no named member. Mirrors Python
+		/// <c>_get_member_index</c> (renamed from <c>MemoryIndex</c> for parity with
+		/// <see cref="HLILStructField.MemberIndex"/> and <see cref="HLILDerefField"/>).
+		/// </summary>
+		public long? MemberIndex
 		{
 			get
 			{
-				return this.RawOperands[3];
+				return HighLevelILInstruction.MemberIndexFromRawOperand(this.RawOperands[3]);
 			}
 		}
 	}
