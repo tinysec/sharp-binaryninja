@@ -802,9 +802,10 @@ namespace BinaryNinja
 				    break;
 			    }
 
-			    // Carry the instruction's start address on the line, mirroring Python's
-			    // Function.instructions / BinaryView.instructions which yield (tokens, addr).
-			    yield return new InstructionTextLine(tokens, address);
+			    // Carry the instruction's start address and decoded byte length on the line,
+			    // mirroring Python's Function.instructions / BinaryView.instructions (yield
+			    // (tokens, addr)) and BasicBlock.__getitem__ (yield (tokens, size)).
+			    yield return new InstructionTextLine(tokens, address, length);
 			    address += length;
 		    }
 		    

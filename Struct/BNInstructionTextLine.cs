@@ -30,6 +30,14 @@ namespace BinaryNinja
 		// line was not produced by an address-walking generator (e.g. synthesized token lists).
 		public ulong Address { get; } = 0;
 
+		// The byte length of the instruction this line disassembles. Python's
+		// BasicBlock.__getitem__ (basicblock.py:210) yields (tokens, size) per instruction, so the
+		// size is as much a part of an instruction's identity as its address. It is 0 when the line
+		// was not produced by an address-walking generator (e.g. synthesized token lists); a block's
+		// last instruction has no successor, so its size cannot otherwise be recovered from
+		// consecutive addresses.
+		public ulong ByteSize { get; } = 0;
+
 		public InstructionTextLine()
 		{
 
@@ -44,6 +52,13 @@ namespace BinaryNinja
 		{
 			this.Tokens = tokens;
 			this.Address = address;
+		}
+
+		public InstructionTextLine(InstructionTextToken[] tokens, ulong address, ulong byteSize)
+		{
+			this.Tokens = tokens;
+			this.Address = address;
+			this.ByteSize = byteSize;
 		}
 
 		public override string ToString()
