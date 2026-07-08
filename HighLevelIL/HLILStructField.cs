@@ -27,11 +27,15 @@ namespace BinaryNinja
 			}
 		}
 		
-		public ulong MemberIndex
+		/// <summary>
+		/// The named-member index, or null when there is no named member. Mirrors Python
+		/// <c>_get_member_index</c>: the sentinel (1&lt;&lt;63) means no named member.
+		/// </summary>
+		public long? MemberIndex
 		{
 			get
 			{
-				return this.RawOperands[2];
+				return HighLevelILInstruction.MemberIndexFromRawOperand(this.RawOperands[2]);
 			}
 		}
 	}

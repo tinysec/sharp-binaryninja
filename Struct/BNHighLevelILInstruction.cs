@@ -94,11 +94,11 @@ namespace BinaryNinja
 			{ HighLevelILOperation.HLIL_ASSERT, 1 },                // cond
 
 			{ HighLevelILOperation.HLIL_VAR, 1 },                   // var
-			{ HighLevelILOperation.HLIL_STRUCT_FIELD, 2 },          // base, fieldOffset/index
+			{ HighLevelILOperation.HLIL_STRUCT_FIELD, 3 },          // base, fieldOffset, memberIndex
 			{ HighLevelILOperation.HLIL_ARRAY_INDEX, 2 },           // base, index
 			{ HighLevelILOperation.HLIL_SPLIT, 2 },                 // hi, lo
 			{ HighLevelILOperation.HLIL_DEREF, 1 },                 // addr
-			{ HighLevelILOperation.HLIL_DEREF_FIELD, 2 },           // addr, fieldOffset/index
+			{ HighLevelILOperation.HLIL_DEREF_FIELD, 3 },           // addr, fieldOffset, memberIndex
 			{ HighLevelILOperation.HLIL_ADDRESS_OF, 1 },            // var/expr
 
 			{ HighLevelILOperation.HLIL_CONST, 1 },                 // value
@@ -201,7 +201,7 @@ namespace BinaryNinja
 			{ HighLevelILOperation.HLIL_VAR_SSA, 2 },               // var, version
 			{ HighLevelILOperation.HLIL_ARRAY_INDEX_SSA, 3 },       // base, index, srcMem
 			{ HighLevelILOperation.HLIL_DEREF_SSA, 2 },             // addr, srcMem
-			{ HighLevelILOperation.HLIL_DEREF_FIELD_SSA, 3 },       // addr, field, srcMem
+			{ HighLevelILOperation.HLIL_DEREF_FIELD_SSA, 4 },       // addr, srcMem, fieldOffset, memberIndex
 
 			{ HighLevelILOperation.HLIL_CALL_SSA, 4 },              // dest, params(list), outputs(list), srcMem
 			{ HighLevelILOperation.HLIL_SYSCALL_SSA, 3 },           // params(list), outputs(list), srcMem
@@ -985,6 +985,19 @@ namespace BinaryNinja
 		public double GetOperandAsDouble(OperandIndex operand)
 		{
 			return BitConverter.UInt64BitsToDouble(this.RawOperands[(ulong)operand]);
+		}
+
+		// member_index mask: mirrors Python HighLevelILInstruction._get_member_index. The sentinel
+		// (1<<63) means "no named member" and is returned as null; otherwise the (non-negative)
+		// named-member index. Callers pass the already-extracted raw operand value.
+		internal static long? MemberIndexFromRawOperand(ulong rawOperand)
+		{
+			if (0UL != (rawOperand & (1UL << 63)))
+			{
+				return null;
+			}
+
+			return (long)rawOperand;
 		}
 		
 		public RegisterValue GetOperandAsConstantData(
