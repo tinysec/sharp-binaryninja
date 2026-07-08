@@ -80,6 +80,17 @@ namespace BinaryNinja
 
         public ulong Length { get; }
 
+        /// <summary>
+        /// Constructs a value-only DerivedString with no location, mirroring Python
+        /// <c>DerivedString(value=..., location=None, custom_type=None)</c> for the common case of
+        /// attaching a derived string via
+        /// <see cref="HighLevelILFunction.SetDerivedStringReferenceForExpr"/>.
+        /// </summary>
+        public DerivedString(string value)
+            : this(value, false, 0, 0UL, 0UL)
+        {
+        }
+
         private DerivedString(
             string value,
             bool locationValid,
@@ -108,6 +119,37 @@ namespace BinaryNinja
                 raw.location.addr,
                 raw.location.len
             );
+        }
+
+        // Re-materializes this projection as a native BNDerivedString for the Set path
+        // (BNSetHighLevelILDerivedStringReferenceForExpr). The Value text is rebuilt as a fresh
+        // BNStringRef* because this projection reads eagerly and does not retain the original core
+        // handle. The caller owns that BNStringRef* and must free it (BNFreeStringRef) once the
+        // core has consumed the struct: core copies/add-refs the string, mirroring Python's
+        // owned=False borrow. custom_type is not surfaced by this read-only projection (Python
+        // CustomStringType handle is dropped), so it is left null.
+        internal BNDerivedString ToNativeEx()
+        {
+            ulong byteCount = (ulong)Encoding.UTF8.GetByteCount(this.Value);
+            IntPtr stringRef = NativeMethods.BNCreateStringRefOfLength(
+                this.Value,
+                (UIntPtr)byteCount
+            );
+
+            BNDerivedString native = new BNDerivedString();
+            native.value = stringRef;
+            native.locationValid = this.LocationValid;
+
+            if (this.LocationValid)
+            {
+                native.location.locationType = (int)this.LocationType;
+                native.location.addr = this.Address;
+                native.location.len = this.Length;
+            }
+
+            native.customType = IntPtr.Zero;
+
+            return native;
         }
 
         // Decodes a BNStringRef* as a UTF-8 string. The core hands back a NUL-terminated C

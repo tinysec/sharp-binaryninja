@@ -1496,6 +1496,49 @@ namespace BinaryNinja
 				return this.MediumLevelIL.Value;
 			}
 		}
+
+		/// <summary>
+		/// The derived string this expression references, mirroring Python
+		/// <c>HighLevelILInstruction.derived_string_reference</c> (highlevelil.py:978). Returns
+		/// <c>null</c> when the expression carries no derived-string reference.
+		/// </summary>
+		public DerivedString? DerivedStringReference
+		{
+			get
+			{
+				// 1. Allocate the out-struct the core writes into.
+				using (ScopedAllocator allocator = new ScopedAllocator())
+				{
+					IntPtr outPointer = allocator.AllocStruct(new BNDerivedString());
+
+					// 2. Ask the core for the reference; false means there is none.
+					UIntPtr exprIndex = (UIntPtr)(ulong)this.ExpressionIndex;
+					bool found = NativeMethods.BNGetHighLevelILDerivedStringReferenceForExpr(
+						this.ILFunction.DangerousGetHandle(),
+						exprIndex,
+						outPointer
+					);
+
+					if (!found)
+					{
+						return null;
+					}
+
+					// 3. Project the struct, then free the owned BNStringRef*. Python's StringRef
+					// takes ownership (owned=True) and frees the handle on GC; this binding reads the
+					// text eagerly, so it must free the handle itself to avoid a leak per call.
+					BNDerivedString raw = Marshal.PtrToStructure<BNDerivedString>(outPointer);
+					DerivedString result = DerivedString.FromNative(raw);
+
+					if (IntPtr.Zero != raw.value)
+					{
+						NativeMethods.BNFreeStringRef(raw.value);
+					}
+
+					return result;
+				}
+			}
+		}
 		
 		public PossibleValueSet PossibleValues
 		{

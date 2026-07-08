@@ -666,6 +666,55 @@ namespace BinaryNinja
 			    attributes
 		    );
 	    }
+
+	    /// <summary>
+	    /// Attaches <paramref name="str"/> as the derived-string reference for <paramref name="expression"/>,
+	    /// mirroring Python <c>HighLevelILFunction.set_derived_string_reference_for_expr</c>
+	    /// (highlevelil.py:3014).
+	    /// </summary>
+	    /// <param name="expression">The expression to attach the derived string to.</param>
+	    /// <param name="str">The derived string to attach. Must not be null.</param>
+	    public void SetDerivedStringReferenceForExpr(HighLevelILExpressionIndex expression, DerivedString str)
+	    {
+		    if (null == str)
+		    {
+			    throw new ArgumentNullException(nameof(str));
+		    }
+
+		    using (ScopedAllocator allocator = new ScopedAllocator())
+		    {
+			    // 1. Build the native struct; its value is a fresh BNStringRef* this method owns.
+			    BNDerivedString native = str.ToNativeEx();
+
+			    // 2. Pin the struct and hand it to the core.
+			    IntPtr structPointer = allocator.AllocStruct(native);
+			    UIntPtr exprIndex = (UIntPtr)(ulong)expression;
+			    NativeMethods.BNSetHighLevelILDerivedStringReferenceForExpr(this.handle, exprIndex, structPointer);
+
+			    // 3. Free the BNStringRef* this method created. Core copies/add-refs the string
+			    //    (Python passes owned=False; its StringRef outlives the call), so freeing here
+			    //    balances this method's own allocation and is safe.
+			    if (IntPtr.Zero != native.value)
+			    {
+				    NativeMethods.BNFreeStringRef(native.value);
+			    }
+		    }
+	    }
+
+	    /// <summary>
+	    /// Removes any derived-string reference attached to <paramref name="expression"/>, mirroring
+	    /// Python <c>HighLevelILFunction.remove_derived_string_reference_for_expr</c>
+	    /// (highlevelil.py:3023).
+	    /// </summary>
+	    /// <param name="expression">The expression whose derived-string reference to clear.</param>
+	    public void RemoveDerivedStringReferenceForExpr(HighLevelILExpressionIndex expression)
+	    {
+		    UIntPtr exprIndex = (UIntPtr)(ulong)expression;
+		    NativeMethods.BNRemoveHighLevelILDerivedStringReferenceForExpr(
+			    this.handle ,
+			    exprIndex
+		    );
+	    }
 	    
 	    public LinearViewObject CreateLinearView( DisassemblySettings? settings = null) 
 	    {
