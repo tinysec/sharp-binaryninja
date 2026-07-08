@@ -120,8 +120,51 @@ namespace BinaryNinja
 		    {
 			    return null;
 		    }
-		    
+
 		    return new TypeLibrary(raw, true);
+	    }
+
+	    /// <summary>
+	    /// Looks up a registered type library by its GUID on the given architecture, mirroring
+	    /// Python <c>TypeLibrary.lookup_by_guid</c>. Returns <c>null</c> when no library with that
+	    /// GUID is registered.
+	    /// </summary>
+	    /// <param name="arch">The architecture whose type libraries to search.</param>
+	    /// <param name="guid">The GUID string to match.</param>
+	    /// <returns>The matching TypeLibrary, or <c>null</c> if none is registered.</returns>
+	    public static TypeLibrary? LookupByGuid(Architecture arch, string guid)
+	    {
+		    IntPtr raw = NativeMethods.BNLookupTypeLibraryByGuid(arch.DangerousGetHandle(), guid);
+
+		    if (IntPtr.Zero == raw)
+		    {
+			    return null;
+		    }
+
+		    return new TypeLibrary(raw, true);
+	    }
+
+	    /// <summary>
+	    /// Creates a new type library instance with a fresh GUID and the same data as this one,
+	    /// mirroring Python <c>TypeLibrary.duplicate</c> (typelibrary.py:142).
+	    /// </summary>
+	    /// <returns>An independent copy of this type library.</returns>
+	    public TypeLibrary Duplicate()
+	    {
+		    return TypeLibrary.MustTakeHandle(
+			    NativeMethods.BNDuplicateTypeLibrary(this.handle)
+		    );
+	    }
+
+	    /// <summary>
+	    /// Makes this created or loaded type library available for platforms to use when loading
+	    /// binaries, mirroring Python <c>TypeLibrary.register</c> (typelibrary.py:244). Python exposes
+	    /// this as a property; the C# binding exposes it as a method since it performs an action with
+	    /// no meaningful return value.
+	    /// </summary>
+	    public void Register()
+	    {
+		    NativeMethods.BNRegisterTypeLibrary(this.handle);
 	    }
 	    
 	    public bool WriteToFile(string filename)
@@ -301,13 +344,55 @@ namespace BinaryNinja
 		    using (ScopedAllocator allocator = new ScopedAllocator())
 		    {
 			    NativeMethods.BNAddTypeLibraryNamedType(
-				    this.handle , 
-				    name.ToNativeEx(allocator) , 
+				    this.handle ,
+				    name.ToNativeEx(allocator) ,
 				    kind.DangerousGetHandle()
 			    );
 		    }
 	    }
-	    
+
+	    /// <summary>
+	    /// Removes a named object from this type library's object store, mirroring Python
+	    /// <c>TypeLibrary.remove_named_object</c> (typelibrary.py:383). Only the object is removed;
+	    /// any types it references are left in place.
+	    /// </summary>
+	    /// <param name="name">The qualified name of the object to remove.</param>
+	    public void RemoveNamedObject(QualifiedName name)
+	    {
+		    using (ScopedAllocator allocator = new ScopedAllocator())
+		    {
+			    // The Remove P/Invoke takes the name as a pointer (BNQualifiedName*), unlike Add which
+			    // takes it by reference, so pin the converted struct and pass its address.
+			    IntPtr namePointer = allocator.AllocStruct(name.ToNativeEx(allocator));
+
+			    NativeMethods.BNRemoveTypeLibraryNamedObject(
+				    this.handle ,
+				    namePointer
+			    );
+		    }
+	    }
+
+	    /// <summary>
+	    /// Removes a named type from this type library's type store, mirroring Python
+	    /// <c>TypeLibrary.remove_named_type</c> (typelibrary.py:416). Only the type is removed; any
+	    /// objects that reference it are left in place.
+	    /// </summary>
+	    /// <param name="name">The qualified name of the type to remove.</param>
+	    public void RemoveNamedType(QualifiedName name)
+	    {
+		    using (ScopedAllocator allocator = new ScopedAllocator())
+		    {
+			    // The Remove P/Invoke takes the name as a pointer (BNQualifiedName*), unlike Add which
+			    // takes it by reference, so pin the converted struct and pass its address.
+			    IntPtr namePointer = allocator.AllocStruct(name.ToNativeEx(allocator));
+
+			    NativeMethods.BNRemoveTypeLibraryNamedType(
+				    this.handle ,
+				    namePointer
+			    );
+		    }
+	    }
+
 	    public void AddTypeSource(QualifiedName name , string source)
 	    {
 		    using (ScopedAllocator allocator = new ScopedAllocator())
