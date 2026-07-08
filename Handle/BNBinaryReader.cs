@@ -7,7 +7,7 @@ using Microsoft.Win32.SafeHandles;
 
 namespace BinaryNinja
 {
-	public sealed class BinaryReader : AbstractSafeHandle<Architecture>
+	public sealed class BinaryReader : AbstractSafeHandle<BinaryReader>
 	{
 		public BinaryReader(BinaryView view)
 			: this(NativeMethods.BNCreateBinaryReader(view.DangerousGetHandle()) , true)
@@ -243,7 +243,7 @@ namespace BinaryNinja
 	    
 	    public long? ReadInt64()
 	    {
-		    bool ok = NativeMethods.BNReadLE64(this.handle, out ulong slug);
+		    bool ok = NativeMethods.BNRead64(this.handle, out ulong slug);
 
 		    if (!ok)
 		    {
@@ -374,7 +374,7 @@ namespace BinaryNinja
 	    
 	    public ulong? ReadUInt64()
 	    {
-		    bool ok = NativeMethods.BNReadLE64(this.handle, out ulong slug);
+		    bool ok = NativeMethods.BNRead64(this.handle, out ulong slug);
 
 		    if (!ok)
 		    {
