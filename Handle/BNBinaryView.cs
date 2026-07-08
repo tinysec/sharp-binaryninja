@@ -1755,6 +1755,25 @@ namespace BinaryNinja
 			NativeMethods.BNUpdateAnalysisAndWait(this.handle);
 		}
 		
+		/// <summary>
+		/// Registers a callback that fires once when the next analysis pass on this view completes,
+		/// mirroring Python <c>BinaryView.add_analysis_completion_event</c> (binaryview.py:8068).
+		/// Useful with <see cref="UpdateAnalysis"/>, which returns before analysis finishes. The
+		/// returned event must be kept alive by the caller for as long as the callback should remain
+		/// armed; disposing or GC-collecting it cancels the event.
+		/// </summary>
+		/// <param name="callback">The action invoked when analysis completes.</param>
+		/// <returns>The armed event, or <c>null</c> if the core refused to create it.</returns>
+		public AnalysisCompletionEvent? AddAnalysisCompletionEvent(Action callback)
+		{
+			if (null == callback)
+			{
+				throw new ArgumentNullException(nameof(callback));
+			}
+
+			return AnalysisCompletionEvent.Create(this, callback);
+		}
+
 		public void AbortAnalysis()
 		{
 			NativeMethods.BNAbortAnalysis(this.handle);
