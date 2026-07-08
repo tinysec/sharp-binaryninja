@@ -529,8 +529,7 @@ namespace BinaryNinja
                 return null;
             }
 
-            // Match the requested platform (or the view default) first, then fall back to the
-            // first candidate, exactly as Python does.
+            // Match the requested platform (or the view default) first.
             Platform? resolved = platform;
             if (null == resolved)
             {
@@ -545,7 +544,18 @@ namespace BinaryNinja
                 }
             }
 
-            return candidates[0];
+            // Implicit-platform lookups fall back to the first candidate, exactly as Python does
+            // when plat is None (get_function_at falls back to funcs[0]). An explicit platform
+            // with no match returns null: Python's plat-is-not-None branch is a strict
+            // BNGetAnalysisFunction(view, plat, addr) lookup that returns None when no function on
+            // that platform sits at the address -- it must NOT silently return a different
+            // platform's function.
+            if (null == platform)
+            {
+                return candidates[0];
+            }
+
+            return null;
         }
 
         /// <summary>

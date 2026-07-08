@@ -20,18 +20,30 @@ namespace BinaryNinja
 		public ulong count;
 	}
 
-    public sealed class InstructionTextLine 
+    public sealed class InstructionTextLine
     {
 		public InstructionTextToken[] Tokens { get; } = Array.Empty<InstructionTextToken>();
-	
-		public InstructionTextLine() 
+
+		// The virtual address of the first byte of the instruction this line disassembles. Python's
+		// Function.instructions / BinaryView.instructions generators yield (tokens, addr) per
+		// instruction; this field carries that address so consumers do not lose it. It is 0 when the
+		// line was not produced by an address-walking generator (e.g. synthesized token lists).
+		public ulong Address { get; } = 0;
+
+		public InstructionTextLine()
 		{
-			
+
 		}
-		
-		public InstructionTextLine(InstructionTextToken[] tokens) 
+
+		public InstructionTextLine(InstructionTextToken[] tokens)
 		{
-		    this.Tokens = tokens;
+			this.Tokens = tokens;
+		}
+
+		public InstructionTextLine(InstructionTextToken[] tokens, ulong address)
+		{
+			this.Tokens = tokens;
+			this.Address = address;
 		}
 
 		public override string ToString()
@@ -42,7 +54,7 @@ namespace BinaryNinja
 			{
 				builder.Append(token.Text);
 			}
-			
+
 			return builder.ToString();
 		}
     }
