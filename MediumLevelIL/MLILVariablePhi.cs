@@ -26,13 +26,5 @@ namespace BinaryNinja
 				return this.GetOperandAsSSAVariableList((OperandIndex)2);
 			}
 		}
-		
-		public ulong SourceMemory
-		{
-			get
-			{
-				return this.RawOperands[1];
-			}
-		}
 	}
 }

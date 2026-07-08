@@ -80,8 +80,8 @@ namespace BinaryNinja
         	{ MediumLevelILOperation.MLIL_SET_VAR, 2 },
         	{ MediumLevelILOperation.MLIL_SET_VAR_FIELD, 3 },
         	{ MediumLevelILOperation.MLIL_SET_VAR_SPLIT, 3 },
-        	{ MediumLevelILOperation.MLIL_ASSERT, 1 },
-        	{ MediumLevelILOperation.MLIL_FORCE_VER, 1 },
+        	{ MediumLevelILOperation.MLIL_ASSERT, 2 },  // variable, constraint
+        	{ MediumLevelILOperation.MLIL_FORCE_VER, 2 },  // destVariable, variable
         	{ MediumLevelILOperation.MLIL_LOAD, 1 },
         	{ MediumLevelILOperation.MLIL_LOAD_STRUCT, 2 },
         	{ MediumLevelILOperation.MLIL_STORE, 2 },
@@ -98,9 +98,9 @@ namespace BinaryNinja
         	{ MediumLevelILOperation.MLIL_FLOAT_CONST, 1 },
         	{ MediumLevelILOperation.MLIL_IMPORT, 1 },
         	{ MediumLevelILOperation.MLIL_ADD, 2 },
-        	{ MediumLevelILOperation.MLIL_ADC, 2 },
+        	{ MediumLevelILOperation.MLIL_ADC, 3 },  // left, right, carry
         	{ MediumLevelILOperation.MLIL_SUB, 2 },
-        	{ MediumLevelILOperation.MLIL_SBB, 2 },
+        	{ MediumLevelILOperation.MLIL_SBB, 3 },  // left, right, carry
         	{ MediumLevelILOperation.MLIL_AND, 2 },
         	{ MediumLevelILOperation.MLIL_OR, 2 },
         	{ MediumLevelILOperation.MLIL_XOR, 2 },
@@ -108,9 +108,9 @@ namespace BinaryNinja
         	{ MediumLevelILOperation.MLIL_LSR, 2 },
         	{ MediumLevelILOperation.MLIL_ASR, 2 },
         	{ MediumLevelILOperation.MLIL_ROL, 2 },
-        	{ MediumLevelILOperation.MLIL_RLC, 2 },
+        	{ MediumLevelILOperation.MLIL_RLC, 3 },  // left, right, carry
         	{ MediumLevelILOperation.MLIL_ROR, 2 },
-        	{ MediumLevelILOperation.MLIL_RRC, 2 },
+        	{ MediumLevelILOperation.MLIL_RRC, 3 },  // left, right, carry
         	{ MediumLevelILOperation.MLIL_MUL, 2 },
         	{ MediumLevelILOperation.MLIL_MULU_DP, 2 },
         	{ MediumLevelILOperation.MLIL_MULS_DP, 2 },
@@ -153,11 +153,11 @@ namespace BinaryNinja
         	{ MediumLevelILOperation.MLIL_TEST_BIT, 2 },
         	{ MediumLevelILOperation.MLIL_BOOL_TO_INT, 1 },
         	{ MediumLevelILOperation.MLIL_ADD_OVERFLOW, 2 },
-        	{ MediumLevelILOperation.MLIL_SYSCALL, 2 }, // params(list), outputs(list)
+        	{ MediumLevelILOperation.MLIL_SYSCALL, 3 },  // output(varList), params(list)
         	{ MediumLevelILOperation.MLIL_SYSCALL_UNTYPED, 2 }, // params(list), outputs(list)
-        	{ MediumLevelILOperation.MLIL_TAILCALL, 2 }, // dest, params(list)
+        	{ MediumLevelILOperation.MLIL_TAILCALL, 4 },  // output(varList), dest, params(list)
         	{ MediumLevelILOperation.MLIL_TAILCALL_UNTYPED, 2 }, // dest, params(list)
-        	{ MediumLevelILOperation.MLIL_INTRINSIC, 3 }, // intrinsicId, params(list), outputs(list)
+        	{ MediumLevelILOperation.MLIL_INTRINSIC, 4 },  // output(varList), intrinsic, params(list)
         	{ MediumLevelILOperation.MLIL_FREE_VAR_SLOT, 1 }, // var
         	{ MediumLevelILOperation.MLIL_BP, 0 },
         	{ MediumLevelILOperation.MLIL_TRAP, 1 }, // code
@@ -187,36 +187,36 @@ namespace BinaryNinja
         	{ MediumLevelILOperation.MLIL_FCMP_O, 2 },
         	{ MediumLevelILOperation.MLIL_FCMP_UO, 2 },
 
-        	{ MediumLevelILOperation.MLIL_SET_VAR_SSA, 2 },
-        	{ MediumLevelILOperation.MLIL_SET_VAR_SSA_FIELD, 3 },
-        	{ MediumLevelILOperation.MLIL_SET_VAR_SPLIT_SSA, 3 },
-        	{ MediumLevelILOperation.MLIL_SET_VAR_ALIASED, 2 },
-        	{ MediumLevelILOperation.MLIL_SET_VAR_ALIASED_FIELD, 3 },
+        	{ MediumLevelILOperation.MLIL_SET_VAR_SSA, 3 },  // destSSAVariable(var,version), sourceExpr
+        	{ MediumLevelILOperation.MLIL_SET_VAR_SSA_FIELD, 5 },  // destSSAVariable(var,version), prev, offset, sourceExpr
+        	{ MediumLevelILOperation.MLIL_SET_VAR_SPLIT_SSA, 5 },  // destSSAVariable(var,version), high, low, sourceExpr
+        	{ MediumLevelILOperation.MLIL_SET_VAR_ALIASED, 4 },  // destSSAVariable(var,version), prev, sourceExpr
+        	{ MediumLevelILOperation.MLIL_SET_VAR_ALIASED_FIELD, 5 },  // destSSAVariable(var,version), prev, offset, sourceExpr
         	{ MediumLevelILOperation.MLIL_VAR_SSA, 2 }, // var, version
         	{ MediumLevelILOperation.MLIL_VAR_SSA_FIELD, 3 }, // var, version, offset/size
-        	{ MediumLevelILOperation.MLIL_VAR_ALIASED, 1 },
-        	{ MediumLevelILOperation.MLIL_VAR_ALIASED_FIELD, 2 },
-        	{ MediumLevelILOperation.MLIL_VAR_SPLIT_SSA, 3 }, // varLo, verLo, varHi/verHi
+        	{ MediumLevelILOperation.MLIL_VAR_ALIASED, 2 },  // var, version
+        	{ MediumLevelILOperation.MLIL_VAR_ALIASED_FIELD, 3 },  // var, version, offset
+        	{ MediumLevelILOperation.MLIL_VAR_SPLIT_SSA, 4 },  // destSSAVariable(var,version), high, low
         	{ MediumLevelILOperation.MLIL_ASSERT_SSA, 2 },
-        	{ MediumLevelILOperation.MLIL_FORCE_VER_SSA, 2 },
-        	{ MediumLevelILOperation.MLIL_CALL_SSA, 4 }, // dest, params(list), outputs(list), srcMem
+        	{ MediumLevelILOperation.MLIL_FORCE_VER_SSA, 4 },  // destSSAVariable(var,version), sourceSSAVariable(var,version)
+        	{ MediumLevelILOperation.MLIL_CALL_SSA, 5 },  // output(wrapper holds destMem), dest, params(list), srcMemory
         	{ MediumLevelILOperation.MLIL_CALL_UNTYPED_SSA, 4 }, // dest, params, outputs, srcMem
-        	{ MediumLevelILOperation.MLIL_SYSCALL_SSA, 3 }, // params(list), outputs(list), srcMem
+        	{ MediumLevelILOperation.MLIL_SYSCALL_SSA, 4 },  // output(wrapper holds destMem), params(list), srcMemory
         	{ MediumLevelILOperation.MLIL_SYSCALL_UNTYPED_SSA, 3 }, // params, outputs, srcMem
-        	{ MediumLevelILOperation.MLIL_TAILCALL_SSA, 3 }, // dest, params(list), srcMem
-        	{ MediumLevelILOperation.MLIL_TAILCALL_UNTYPED_SSA, 3 }, // dest, params, srcMem
+        	{ MediumLevelILOperation.MLIL_TAILCALL_SSA, 5 },  // output(wrapper holds destMem), dest, params(list), srcMemory
+        	{ MediumLevelILOperation.MLIL_TAILCALL_UNTYPED_SSA, 4 },  // output(wrapper), dest, params(wrapper), stack
         	{ MediumLevelILOperation.MLIL_CALL_PARAM_SSA, 3 }, // paramLoc, sourceExpr, srcMem
         	{ MediumLevelILOperation.MLIL_CALL_OUTPUT_SSA, 3 }, // outputLoc, sourceExpr, dstMem
         	{ MediumLevelILOperation.MLIL_MEMORY_INTRINSIC_OUTPUT_SSA, 3 }, // dest, size, dstMem
         	{ MediumLevelILOperation.MLIL_LOAD_SSA, 2 }, // addr, srcMem
         	{ MediumLevelILOperation.MLIL_LOAD_STRUCT_SSA, 3 }, // addr, offset, srcMem
-        	{ MediumLevelILOperation.MLIL_STORE_SSA, 3 }, // addr, value, dstMem
+        	{ MediumLevelILOperation.MLIL_STORE_SSA, 4 },  // destExpr, destMemoryVersion, sourceMemoryVersion, sourceExpr
         	{ MediumLevelILOperation.MLIL_STORE_STRUCT_SSA, 4 }, // addr, offset, value, dstMem
         	{ MediumLevelILOperation.MLIL_INTRINSIC_SSA, 4 }, // intrinsicId, params(list), outputs(list), srcMem
-        	{ MediumLevelILOperation.MLIL_MEMORY_INTRINSIC_SSA, 4 }, // dest, src, size, dstMem
-        	{ MediumLevelILOperation.MLIL_FREE_VAR_SLOT_SSA, 2 }, // var, version
-        	{ MediumLevelILOperation.MLIL_VAR_PHI, 1 }, // vars(list pairs)
-        	{ MediumLevelILOperation.MLIL_MEM_PHI, 1 }, // memVersions(list)
+        	{ MediumLevelILOperation.MLIL_MEMORY_INTRINSIC_SSA, 5 },  // output, destMemory, intrinsic, params(list), srcMemory
+        	{ MediumLevelILOperation.MLIL_FREE_VAR_SLOT_SSA, 3 },  // destSSAVariable(var,version), prev
+        	{ MediumLevelILOperation.MLIL_VAR_PHI, 3 },  // destSSAVariable(var,version), sourceSSAVariables(list)
+        	{ MediumLevelILOperation.MLIL_MEM_PHI, 2 },  // destMemoryVersion, sourceMemoryVersions(list)
 
         	{ MediumLevelILOperation.MLIL_ABS, 1 },    // src
         	{ MediumLevelILOperation.MLIL_BSWAP, 1 },  // src
