@@ -130,7 +130,7 @@ namespace BinaryNinja
 		
 		public override bool Equals(object? rawOther)
 	    {
-		    InstructionTextToken? other = rawOther as InstructionTextToken;
+		    DisassemblyTextLine? other = rawOther as DisassemblyTextLine;
 			
 		    if (other is null)
 		    {

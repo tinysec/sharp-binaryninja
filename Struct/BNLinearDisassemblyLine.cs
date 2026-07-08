@@ -88,7 +88,7 @@ namespace BinaryNinja
 		
 		public override bool Equals(object? rawOther)
 		{
-			InstructionTextToken? other = rawOther as InstructionTextToken;
+			LinearDisassemblyLine? other = rawOther as LinearDisassemblyLine;
 			
 			if (other is null)
 			{
