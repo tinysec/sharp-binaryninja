@@ -558,42 +558,61 @@ namespace BinaryNinja
         }
 
         /// <summary>
-        /// The contiguous ASCII string that begins at <paramref name="address"/>, regardless of
-        /// whether analysis flagged it as a string, or <c>null</c> when the byte run there is
-        /// shorter than <paramref name="minLength"/>. Scans raw bytes via
-        /// <see cref="BinaryView.ReadData"/>, mirroring Python
-        /// <c>BinaryView.get_ascii_string_at</c> (binaryview.py:8023); complements the
-        /// analysis-backed <see cref="BinaryView.GetStringAtAddress"/>. The returned reference
-        /// carries the address and length; read its bytes with
+        /// The ASCII string that begins at <paramref name="address"/>, regardless of whether
+        /// analysis flagged it as a string, or <c>null</c> when no qualifying string is found.
+        /// Mirrors Python <c>BinaryView.get_ascii_string_at</c> (binaryview.py:8023): an ASCII byte
+        /// is any value in 0x01..0x7f (control characters such as tab and newline are included),
+        /// <paramref name="requireCstring"/> defaults to requiring a NUL terminator, and an address
+        /// outside the view yields <c>null</c>. Read the returned bytes with
         /// <see cref="BinaryView.ReadData"/>(<see cref="StringReference.Start"/>,
         /// <see cref="StringReference.Length"/>).
         /// </summary>
         public static StringReference? GetAsciiStringAt(
             this BinaryView view,
             ulong address,
-            ulong minLength = 4)
+            ulong minLength = 4,
+            ulong? maxLength = null,
+            bool requireCstring = true)
         {
-            // Scan a bounded window so a long run cannot allocate unboundedly. 4096 covers any
-            // realistic C string in one read; Python caps at max_length similarly.
-            byte[] window = view.ReadData(address, 4096);
-
-            int length = 0;
-            while (length < window.Length)
+            // 1. Bounds: an address outside the view has no string (Python: addr < start or
+            // addr >= end returns None).
+            if (address < view.Start || address >= view.End)
             {
-                byte value = window[length];
+                return null;
+            }
 
-                // Printable ASCII (0x20..0x7e) extends the run; anything else terminates it.
-                bool printable = value >= 0x20 && value <= 0x7e;
+            // 2. Walk bytes lazily from the address. The predicate is 0 < c <= 0x7f -- any non-NUL
+            // ASCII byte -- matching Python. Printable-only (0x20..0x7e) would wrongly truncate runs
+            // that contain control characters such as tab (0x09) or newline (0x0a).
+            using BinaryReader reader = new BinaryReader(view);
+            reader.Position = address;
 
-                if (!printable)
+            ulong length = 0;
+            byte? current = reader.ReadByte();
+
+            while (current.HasValue && 0 < current.Value && current.Value <= 0x7f)
+            {
+                // maxLength caps the run length; when null (unset) the run is uncapped.
+                if (maxLength.HasValue && length == maxLength.Value)
                 {
                     break;
                 }
 
                 length++;
+                current = reader.ReadByte();
             }
 
-            if ((ulong)length < minLength)
+            // 3. Minimum-length gate.
+            if (length < minLength)
+            {
+                return null;
+            }
+
+            // 4. requireCstring: the run must end on a NUL byte. EOF, or any non-NUL terminator
+            // (a byte > 0x7f), means the run is not a C string.
+            bool terminatorIsNotNul = !current.HasValue || 0 != current.Value;
+
+            if (requireCstring && terminatorIsNotNul)
             {
                 return null;
             }
@@ -602,7 +621,7 @@ namespace BinaryNinja
             {
                 Type = StringType.AsciiString,
                 Start = address,
-                Length = (ulong)length
+                Length = length
             };
         }
 
