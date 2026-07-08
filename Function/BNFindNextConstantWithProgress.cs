@@ -37,7 +37,7 @@ namespace BinaryNinja
 		    IntPtr settings  , 
 			
 			// BNFunctionViewType viewType
-		    in BNFunctionViewType viewType  , 
+		    BNFunctionViewType viewType  , 
 			
 			// void* ctxt
 		    IntPtr ctxt  , 
