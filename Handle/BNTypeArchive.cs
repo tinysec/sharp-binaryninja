@@ -12,6 +12,10 @@ namespace BinaryNinja
     /// </summary>
     public sealed class TypeArchive : AbstractSafeHandle<TypeArchive>
     {
+        // Live notification registrations, keyed by the user's TypeArchiveNotification instance. Each
+        // entry roots its native callback delegates and struct for the registration lifetime.
+        private readonly Dictionary<TypeArchiveNotification, UnsafeUtils.TypeArchiveNotificationContext>
+            m_notifications = new Dictionary<TypeArchiveNotification, UnsafeUtils.TypeArchiveNotificationContext>();
         /// <summary>
         /// Initializes a new TypeArchive wrapper around an existing native handle.
         /// </summary>
@@ -889,6 +893,59 @@ namespace BinaryNinja
                 QualifiedNameTypeAndId.FromNative ,
                 NativeMethods.BNFreeQualifiedNameTypeAndId
             );
+        }
+
+        /// <summary>
+        /// Registers a notification object to receive type-add/update/rename/delete events from this
+        /// archive, mirroring Python <c>TypeArchive.register_notification</c> (typearchive.py:711).
+        /// The notification must be unregistered (or this archive released) to stop delivery.
+        /// </summary>
+        /// <param name="notification">The notification whose virtual methods receive the events.</param>
+        public void RegisterNotification(TypeArchiveNotification notification)
+        {
+            if (null == notification)
+            {
+                throw new ArgumentNullException(nameof(notification));
+            }
+
+            // A notification already registered on this archive is a no-op (Python tolerates this).
+            if (this.m_notifications.ContainsKey(notification))
+            {
+                return;
+            }
+
+            // 1. Build the native callback struct (roots the four delegates + the context).
+            UnsafeUtils.TypeArchiveNotificationContext context =
+                new UnsafeUtils.TypeArchiveNotificationContext(notification);
+            IntPtr nativePointer = context.BuildNative();
+
+            // 2. Register with the core, then keep the context rooted so the delegates outlive the
+            // registration.
+            NativeMethods.BNRegisterTypeArchiveNotification(this.handle, nativePointer);
+            this.m_notifications[notification] = context;
+        }
+
+        /// <summary>
+        /// Unregisters a previously-registered notification, mirroring Python
+        /// <c>TypeArchive.unregister_notification</c> (typearchive.py:721). Frees the native callback
+        /// struct and releases the rooted delegates.
+        /// </summary>
+        /// <param name="notification">The notification to unregister.</param>
+        public void UnregisterNotification(TypeArchiveNotification notification)
+        {
+            if (null == notification)
+            {
+                throw new ArgumentNullException(nameof(notification));
+            }
+
+            if (!this.m_notifications.TryGetValue(notification, out UnsafeUtils.TypeArchiveNotificationContext? context))
+            {
+                return;
+            }
+
+            NativeMethods.BNUnregisterTypeArchiveNotification(this.handle, context.NativeStruct);
+            context.FreeNative();
+            this.m_notifications.Remove(notification);
         }
     }
 }
