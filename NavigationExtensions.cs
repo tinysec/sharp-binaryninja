@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
+using System.Text;
 
 namespace BinaryNinja
 {
@@ -633,6 +634,56 @@ namespace BinaryNinja
                 Start = address,
                 Length = length
             };
+        }
+
+        // Maps each StringType to the .NET encoding Python's StringReference._decodings uses
+        // (binaryview.py:491): Ascii->ascii, Utf8->utf-8, Utf16->utf-16, Utf32->utf-32. UTF-16 LE
+        // is Encoding.Unicode and UTF-32 LE is Encoding.UTF32 on all platforms Binary Ninja runs on.
+        private static readonly Dictionary<StringType, Encoding> s_stringDecodings =
+            new Dictionary<StringType, Encoding>
+            {
+                { StringType.AsciiString, Encoding.ASCII },
+                { StringType.Utf8String, Encoding.UTF8 },
+                { StringType.Utf16String, Encoding.Unicode },
+                { StringType.Utf32String, Encoding.UTF32 },
+            };
+
+        /// <summary>
+        /// The raw bytes of this string reference, mirroring Python <c>StringReference.raw</c>
+        /// (binaryview.py:514): reads <see cref="StringReference.Length"/> bytes at
+        /// <see cref="StringReference.Start"/> from <paramref name="view"/>. The view is taken as a
+        /// parameter because <see cref="StringReference"/> is a handle-less value carrier and does
+        /// not own one (unlike Python, where the reference stores the view).
+        /// </summary>
+        public static byte[] GetRaw(this StringReference stringReference, BinaryView view)
+        {
+            if (null == view)
+            {
+                throw new ArgumentNullException(nameof(view));
+            }
+
+            return view.ReadData(stringReference.Start, stringReference.Length);
+        }
+
+        /// <summary>
+        /// The decoded text of this string reference, mirroring Python <c>StringReference.value</c>
+        /// (binaryview.py:510): reads the bytes via <see cref="GetRaw"/> and decodes them according
+        /// to <see cref="StringReference.Type"/>. Undecodable bytes are replaced rather than
+        /// thrown, matching Python <c>errors='replace'</c>.
+        /// </summary>
+        public static string GetValue(this StringReference stringReference, BinaryView view)
+        {
+            byte[] raw = GetRaw(stringReference, view);
+
+            // Fall back to ASCII for an unexpected StringType, matching Python's dict lookup
+            // semantics as closely as possible (Python would KeyError; the binding degrades
+            // gracefully because the type is an open enum).
+            s_stringDecodings.TryGetValue(stringReference.Type, out Encoding? foundEncoding);
+            Encoding encoding = foundEncoding ?? Encoding.ASCII;
+
+            // .NET's default decoders use replacement fallback (U+FFFD / '?'), which is the
+            // equivalent of Python errors='replace'.
+            return encoding.GetString(raw);
         }
 
         /// <summary>
