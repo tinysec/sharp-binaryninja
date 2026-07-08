@@ -731,9 +731,55 @@ namespace BinaryNinja
 			);
 		}
 
-		// NOTE: BNRustSimplifyStrToFQN uses sret (struct return) calling convention
-		// which makes the P/Invoke binding non-trivial. Use RustSimplifyStrToStr
-		// for simple string simplification instead.
+		/// <summary>
+		/// Simplifies a templated C++ name to a qualified name, mirroring Python
+		/// <c>demangle.simplify_name_to_qualified_name</c> (demangle.py:253). This can also tokenize a
+		/// string to a qualified name without simplifying. Returns <c>null</c> when the simplifier
+		/// yields no components.
+		/// </summary>
+		/// <param name="inputName">The name to simplify.</param>
+		/// <param name="simplify">Whether to simplify the name; defaults to <c>true</c>.</param>
+		/// <returns>The simplified qualified name, or <c>null</c> if the result is empty.</returns>
+		public static QualifiedName? SimplifyNameToQualifiedName(string inputName, bool simplify = true)
+		{
+			if (null == inputName)
+			{
+				throw new ArgumentNullException(nameof(inputName));
+			}
+
+			// BNRustSimplifyStrToFQN returns a BNQualifiedName by value. The struct is blittable
+			// (two IntPtrs + a ulong), so the P/Invoke marshaller handles the struct-return (sret)
+			// ABI directly -- the same pattern as BNTypeBuilderGetStructureName. TakeNative reads the
+			// components eagerly then frees the native array the core allocated.
+			QualifiedName result = QualifiedName.TakeNative(
+				NativeMethods.BNRustSimplifyStrToFQN(inputName, simplify)
+			);
+
+			if (0 == result.Name.Length)
+			{
+				return null;
+			}
+
+			return result;
+		}
+
+		/// <summary>
+		/// Simplifies an already-tokenized qualified name, mirroring Python
+		/// <c>demangle.simplify_name_to_qualified_name</c> for <c>QualifiedName</c> input
+		/// (demangle.py:267). Python forces simplification for qualified-name input, so
+		/// <paramref name="inputName"/> is always simplified.
+		/// </summary>
+		/// <param name="inputName">The qualified name to simplify.</param>
+		/// <returns>The simplified qualified name, or <c>null</c> if the result is empty.</returns>
+		public static QualifiedName? SimplifyNameToQualifiedName(QualifiedName inputName)
+		{
+			if (null == inputName)
+			{
+				throw new ArgumentNullException(nameof(inputName));
+			}
+
+			return Core.SimplifyNameToQualifiedName(inputName.ToString(), true);
+		}
 
 		/// <summary>
 		/// Compute a fuzzy match score between a target string and a query.
@@ -1169,10 +1215,6 @@ namespace BinaryNinja
 
 		// TODO: BNRenderLinesForData / BNGetLinesForData — complex callback-based renderer
 		//       with custom data renderer context callback parameters.
-
-		// TODO: BNRustSimplifyStrToFQN — uses sret ABI (struct return by hidden pointer).
-		//       The BNQualifiedName return value is passed as a hidden first parameter;
-		//       requires special P/Invoke marshalling or a C wrapper to implement correctly.
 
 		// TODO: BNAppendSymbolQueue / BNProcessSymbolQueue — internal callback-based
 		//       symbol resolution pipeline. Requires managed delegate infrastructure.
