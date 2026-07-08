@@ -77,7 +77,7 @@ namespace BinaryNinja
 			{ HighLevelILOperation.HLIL_DO_WHILE, 2 },              // body, cond
 			{ HighLevelILOperation.HLIL_FOR, 4 },                   // init, cond, update, body
 			{ HighLevelILOperation.HLIL_SWITCH, 3 },                // expr, caseList, default
-			{ HighLevelILOperation.HLIL_CASE, 2 },                  // valueList, body
+			{ HighLevelILOperation.HLIL_CASE, 3 },  // valueExprs(list), trueExpr
 			{ HighLevelILOperation.HLIL_BREAK, 0 },
 			{ HighLevelILOperation.HLIL_CONTINUE, 0 },
 			{ HighLevelILOperation.HLIL_JUMP, 1 },                  // dest
@@ -89,9 +89,9 @@ namespace BinaryNinja
 			{ HighLevelILOperation.HLIL_VAR_DECLARE, 1 },           // var
 			{ HighLevelILOperation.HLIL_VAR_INIT, 2 },              // var, value
 			{ HighLevelILOperation.HLIL_ASSIGN, 2 },                // dst, src
-			{ HighLevelILOperation.HLIL_ASSIGN_UNPACK, 2 },         // dstList, src
-			{ HighLevelILOperation.HLIL_FORCE_VER, 1 },             // var
-			{ HighLevelILOperation.HLIL_ASSERT, 1 },                // cond
+			{ HighLevelILOperation.HLIL_ASSIGN_UNPACK, 3 },  // destExprs(list), sourceExpr
+			{ HighLevelILOperation.HLIL_FORCE_VER, 2 },  // destVariable, variable
+			{ HighLevelILOperation.HLIL_ASSERT, 2 },  // variable, constraint
 
 			{ HighLevelILOperation.HLIL_VAR, 1 },                   // var
 			{ HighLevelILOperation.HLIL_STRUCT_FIELD, 3 },          // base, fieldOffset, memberIndex
@@ -109,9 +109,9 @@ namespace BinaryNinja
 			{ HighLevelILOperation.HLIL_IMPORT, 1 },                // symbol/id
 
 			{ HighLevelILOperation.HLIL_ADD, 2 },
-			{ HighLevelILOperation.HLIL_ADC, 2 },
+			{ HighLevelILOperation.HLIL_ADC, 3 },  // left, right, carry
 			{ HighLevelILOperation.HLIL_SUB, 2 },
-			{ HighLevelILOperation.HLIL_SBB, 2 },
+			{ HighLevelILOperation.HLIL_SBB, 3 },  // left, right, carry
 			{ HighLevelILOperation.HLIL_AND, 2 },
 			{ HighLevelILOperation.HLIL_OR, 2 },
 			{ HighLevelILOperation.HLIL_XOR, 2 },
@@ -119,9 +119,9 @@ namespace BinaryNinja
 			{ HighLevelILOperation.HLIL_LSR, 2 },
 			{ HighLevelILOperation.HLIL_ASR, 2 },
 			{ HighLevelILOperation.HLIL_ROL, 2 },
-			{ HighLevelILOperation.HLIL_RLC, 2 },
+			{ HighLevelILOperation.HLIL_RLC, 3 },  // left, right, carry
 			{ HighLevelILOperation.HLIL_ROR, 2 },
-			{ HighLevelILOperation.HLIL_RRC, 2 },
+			{ HighLevelILOperation.HLIL_RRC, 3 },  // left, right, carry
 			{ HighLevelILOperation.HLIL_MUL, 2 },
 			{ HighLevelILOperation.HLIL_MULU_DP, 2 },
 			{ HighLevelILOperation.HLIL_MULS_DP, 2 },
@@ -189,26 +189,26 @@ namespace BinaryNinja
 
 			{ HighLevelILOperation.HLIL_UNREACHABLE, 0 },
 
-			{ HighLevelILOperation.HLIL_WHILE_SSA, 2 },             // cond, body
-			{ HighLevelILOperation.HLIL_DO_WHILE_SSA, 2 },          // body, cond
-			{ HighLevelILOperation.HLIL_FOR_SSA, 4 },               // init, cond, update, body
-			{ HighLevelILOperation.HLIL_VAR_INIT_SSA, 2 },          // var(versioned), value
-			{ HighLevelILOperation.HLIL_ASSIGN_MEM_SSA, 3 },        // dst(addr), src, dstMem
-			{ HighLevelILOperation.HLIL_ASSIGN_UNPACK_MEM_SSA, 3 }, // dstList, src, dstMem
-			{ HighLevelILOperation.HLIL_FORCE_VER_SSA, 2 },         // var, newVersion
-			{ HighLevelILOperation.HLIL_ASSERT_SSA, 2 },            // cond, mem/reg ver
+			{ HighLevelILOperation.HLIL_WHILE_SSA, 3 },  // conditionPhi, condition, loop
+			{ HighLevelILOperation.HLIL_DO_WHILE_SSA, 3 },  // loop, conditionPhi, condition
+			{ HighLevelILOperation.HLIL_FOR_SSA, 5 },  // init, conditionPhi, condition, update, loop
+			{ HighLevelILOperation.HLIL_VAR_INIT_SSA, 3 },  // destSSAVariable(var,version), sourceExpr
+			{ HighLevelILOperation.HLIL_ASSIGN_MEM_SSA, 4 },  // dest, destMem, source, srcMem
+			{ HighLevelILOperation.HLIL_ASSIGN_UNPACK_MEM_SSA, 5 },  // destExprs(list), [reserved], destMem, source, srcMem
+			{ HighLevelILOperation.HLIL_FORCE_VER_SSA, 4 },  // destSSAVariable(var,version), ssaVariable(var,version)
+			{ HighLevelILOperation.HLIL_ASSERT_SSA, 3 },  // ssaVariable(var,version), constraint
 
 			{ HighLevelILOperation.HLIL_VAR_SSA, 2 },               // var, version
 			{ HighLevelILOperation.HLIL_ARRAY_INDEX_SSA, 3 },       // base, index, srcMem
 			{ HighLevelILOperation.HLIL_DEREF_SSA, 2 },             // addr, srcMem
 			{ HighLevelILOperation.HLIL_DEREF_FIELD_SSA, 4 },       // addr, srcMem, fieldOffset, memberIndex
 
-			{ HighLevelILOperation.HLIL_CALL_SSA, 4 },              // dest, params(list), outputs(list), srcMem
-			{ HighLevelILOperation.HLIL_SYSCALL_SSA, 3 },           // params(list), outputs(list), srcMem
-			{ HighLevelILOperation.HLIL_INTRINSIC_SSA, 4 },         // intrinsicId, params(list), outputs(list), srcMem
+			{ HighLevelILOperation.HLIL_CALL_SSA, 5 },  // dest, params(list), [reserved], destMem, srcMem
+			{ HighLevelILOperation.HLIL_SYSCALL_SSA, 4 },  // params(list), [reserved], destMem, srcMem
+			{ HighLevelILOperation.HLIL_INTRINSIC_SSA, 5 },  // intrinsic, params(list), [reserved], destMem, srcMem
 
-			{ HighLevelILOperation.HLIL_VAR_PHI, 1 },               // varVersions(list)
-			{ HighLevelILOperation.HLIL_MEM_PHI, 1 },               // memVersions(list)
+			{ HighLevelILOperation.HLIL_VAR_PHI, 3 },  // destSSAVariable(var,version), sourceSSAVariableList
+			{ HighLevelILOperation.HLIL_MEM_PHI, 2 },  // destMemoryVersion, sourceMemoryVersions(list)
 
 			{ HighLevelILOperation.HLIL_ABS, 1 },                   // src
 			{ HighLevelILOperation.HLIL_BSWAP, 1 },                 // src

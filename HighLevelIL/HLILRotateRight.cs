@@ -26,13 +26,5 @@ namespace BinaryNinja
 				return this.GetOperandAsExpression((OperandIndex)1);
 			}
 		}
-		
-		public HighLevelILInstruction Carry
-		{
-			get
-			{
-				return this.GetOperandAsExpression((OperandIndex)2);
-			}
-		}
 	}
 }
