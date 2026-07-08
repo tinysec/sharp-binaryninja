@@ -41,7 +41,7 @@ namespace BinaryNinja
 		    FindFlag flags  , 
 			
 			// BNFunctionViewType viewType
-		    in BNFunctionViewType viewType  , 
+		    BNFunctionViewType viewType  , 
 			
 			// void* ctxt
 		    IntPtr ctxt  , 

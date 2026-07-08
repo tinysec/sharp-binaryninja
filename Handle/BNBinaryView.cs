@@ -4765,6 +4765,12 @@ namespace BinaryNinja
 			NativeDelegates.BNProgressFunction? progressWrapper =
 				null == progress ? null : UnsafeUtils.WrapProgressDelegate(progress);
 
+			// The match thunk is handed to the core as a raw function pointer and must survive the
+			// whole synchronous scan; without KeepAlive a GC during the call could free it and
+			// crash the native callback. The thunk takes (owns) each matched BNDataBuffer.
+			NativeDelegates.MatchDataDelegate matchWrapper =
+				UnsafeUtils.WrapMatchDataDelegate(match);
+
 			bool result = NativeMethods.BNFindAllDataWithProgress(
 				this.handle ,
 				start ,
@@ -4776,12 +4782,11 @@ namespace BinaryNinja
 					? IntPtr.Zero
 					: Marshal.GetFunctionPointerForDelegate<NativeDelegates.BNProgressFunction>(progressWrapper) ,
 				IntPtr.Zero ,
-				Marshal.GetFunctionPointerForDelegate<NativeDelegates.MatchDataDelegate>(
-					UnsafeUtils.WrapMatchDataDelegate(match)
-				)
+				Marshal.GetFunctionPointerForDelegate<NativeDelegates.MatchDataDelegate>(matchWrapper)
 			);
 
 			GC.KeepAlive(progressWrapper);
+			GC.KeepAlive(matchWrapper);
 
 			return result;
 		}
@@ -4791,39 +4796,67 @@ namespace BinaryNinja
 			string data ,
 			ulong start ,
 			ulong end ,
-			MatchDataDelegate match ,
+			MatchTextDelegate match ,
 			FunctionViewType viewType ,
 			ProgressDelegate? progress = null ,
 			FindFlag flags = FindFlag.FindCaseSensitive ,
 			DisassemblySettings? settings = null
 		)
 		{
-			using (ScopedAllocator allocator = new ScopedAllocator())
+			// The core dereferences the settings pointer while rendering text, so a null settings
+			// crashes the process. The official Python binding builds a default DisassemblySettings
+			// when none is supplied; do the same and dispose only the one allocated here, never a
+			// caller-owned instance.
+			bool ownsSettings = null == settings;
+			DisassemblySettings effectiveSettings =
+				ownsSettings ? new DisassemblySettings() : settings!;
+
+			try
 			{
-				NativeDelegates.BNProgressFunction? progressWrapper =
-					null == progress ? null : UnsafeUtils.WrapProgressDelegate(progress);
+				using (ScopedAllocator allocator = new ScopedAllocator())
+				{
+					NativeDelegates.BNProgressFunction? progressWrapper =
+						null == progress ? null : UnsafeUtils.WrapProgressDelegate(progress);
 
-				bool result = NativeMethods.BNFindAllTextWithProgress(
-					this.handle ,
-					start ,
-					end ,
-					data ,
-					null == settings ? IntPtr.Zero : settings.DangerousGetHandle() ,
-					flags ,
-					viewType.ToNativeEx(allocator) ,
-					IntPtr.Zero ,
-					null == progressWrapper
-						? IntPtr.Zero
-						: Marshal.GetFunctionPointerForDelegate<NativeDelegates.BNProgressFunction>(progressWrapper) ,
-					IntPtr.Zero ,
-					Marshal.GetFunctionPointerForDelegate<NativeDelegates.MatchDataDelegate>(
-						UnsafeUtils.WrapMatchDataDelegate(match)
-					)
-				);
+					// BNFindAllTextWithProgress invokes a 4-argument match callback
+					// (ctxt, addr, const char* text, BNLinearDisassemblyLine*); the public
+					// MatchTextDelegate mirrors that shape. Passing MatchDataDelegate here
+					// reinterpreted the text pointer as a BNDataBuffer handle and crashed on the
+					// first match.
+					NativeDelegates.MatchTextDelegate matchWrapper =
+						UnsafeUtils.WrapMatchTextDelegate(match);
 
-				GC.KeepAlive(progressWrapper);
+					bool result = NativeMethods.BNFindAllTextWithProgress(
+						this.handle ,
+						start ,
+						end ,
+						data ,
+						effectiveSettings.DangerousGetHandle() ,
+						flags ,
+						viewType.ToNativeEx(allocator) ,
+						IntPtr.Zero ,
+						null == progressWrapper
+							? IntPtr.Zero
+							: Marshal.GetFunctionPointerForDelegate<NativeDelegates.BNProgressFunction>(progressWrapper) ,
+						IntPtr.Zero ,
+						Marshal.GetFunctionPointerForDelegate<NativeDelegates.MatchTextDelegate>(matchWrapper)
+					);
 
-				return result;
+					// The match thunk is handed to the core as a raw function pointer and must
+					// survive the whole synchronous scan; without KeepAlive a GC during the call
+					// could free it and crash the native callback.
+					GC.KeepAlive(progressWrapper);
+					GC.KeepAlive(matchWrapper);
+
+					return result;
+				}
+			}
+			finally
+			{
+				if (ownsSettings)
+				{
+					effectiveSettings.Dispose();
+				}
 			}
 		}
 
@@ -4831,37 +4864,64 @@ namespace BinaryNinja
 			ulong data ,
 			ulong start ,
 			ulong end ,
-			MatchDataDelegate match ,
+			MatchConstantDelegate match ,
 			FunctionViewType viewType ,
 			ProgressDelegate? progress = null ,
 			DisassemblySettings? settings = null
 		)
 		{
-			using (ScopedAllocator allocator = new ScopedAllocator())
+			// The core dereferences the settings pointer while rendering instructions, so a null
+			// settings crashes the process. The official Python binding builds a default
+			// DisassemblySettings when none is supplied; do the same and dispose only the one
+			// allocated here, never a caller-owned instance.
+			bool ownsSettings = null == settings;
+			DisassemblySettings effectiveSettings =
+				ownsSettings ? new DisassemblySettings() : settings!;
+
+			try
 			{
-				NativeDelegates.BNProgressFunction? progressWrapper =
-					null == progress ? null : UnsafeUtils.WrapProgressDelegate(progress);
+				using (ScopedAllocator allocator = new ScopedAllocator())
+				{
+					NativeDelegates.BNProgressFunction? progressWrapper =
+						null == progress ? null : UnsafeUtils.WrapProgressDelegate(progress);
 
-				bool result = NativeMethods.BNFindAllConstantWithProgress(
-					this.handle ,
-					start ,
-					end ,
-					data ,
-					null == settings ? IntPtr.Zero : settings.DangerousGetHandle() ,
-					viewType.ToNativeEx(allocator) ,
-					IntPtr.Zero ,
-					null == progressWrapper
-						? IntPtr.Zero
-						: Marshal.GetFunctionPointerForDelegate<NativeDelegates.BNProgressFunction>(progressWrapper) ,
-					IntPtr.Zero ,
-					Marshal.GetFunctionPointerForDelegate<NativeDelegates.MatchDataDelegate>(
-						UnsafeUtils.WrapMatchDataDelegate(match)
-					)
-				);
+					// BNFindAllConstantWithProgress invokes a 3-argument match callback
+					// (ctxt, addr, BNLinearDisassemblyLine*); the public MatchConstantDelegate
+					// mirrors that shape. Passing MatchDataDelegate here fed the line pointer to
+					// the data-buffer thunk and crashed on the first match.
+					NativeDelegates.MatchConstantDelegate matchWrapper =
+						UnsafeUtils.WrapMatchConstantDelegate(match);
 
-				GC.KeepAlive(progressWrapper);
+					bool result = NativeMethods.BNFindAllConstantWithProgress(
+						this.handle ,
+						start ,
+						end ,
+						data ,
+						effectiveSettings.DangerousGetHandle() ,
+						viewType.ToNativeEx(allocator) ,
+						IntPtr.Zero ,
+						null == progressWrapper
+							? IntPtr.Zero
+							: Marshal.GetFunctionPointerForDelegate<NativeDelegates.BNProgressFunction>(progressWrapper) ,
+						IntPtr.Zero ,
+						Marshal.GetFunctionPointerForDelegate<NativeDelegates.MatchConstantDelegate>(matchWrapper)
+					);
 
-				return result;
+					// The match thunk is handed to the core as a raw function pointer and must
+					// survive the whole synchronous scan; without KeepAlive a GC during the call
+					// could free it and crash the native callback.
+					GC.KeepAlive(progressWrapper);
+					GC.KeepAlive(matchWrapper);
+
+					return result;
+				}
+			}
+			finally
+			{
+				if (ownsSettings)
+				{
+					effectiveSettings.Dispose();
+				}
 			}
 		}
 		
@@ -4876,6 +4936,12 @@ namespace BinaryNinja
 				NativeDelegates.BNProgressFunction? progressWrapper =
 					null == progress ? null : UnsafeUtils.WrapProgressDelegate(progress);
 
+				// The match thunk is handed to the core as a raw function pointer and must survive
+				// the whole synchronous search; without KeepAlive a GC during the call could free it
+				// and crash the native callback. The thunk takes (owns) each matched BNDataBuffer.
+				NativeDelegates.MatchDataDelegate matchWrapper =
+					UnsafeUtils.WrapMatchDataDelegate(match);
+
 				bool result = NativeMethods.BNSearch(
 					this.handle ,
 					query ,
@@ -4884,12 +4950,11 @@ namespace BinaryNinja
 						? IntPtr.Zero
 						: Marshal.GetFunctionPointerForDelegate<NativeDelegates.BNProgressFunction>(progressWrapper) ,
 					IntPtr.Zero ,
-					Marshal.GetFunctionPointerForDelegate<NativeDelegates.MatchDataDelegate>(
-						UnsafeUtils.WrapMatchDataDelegate(match)
-					)
+					Marshal.GetFunctionPointerForDelegate<NativeDelegates.MatchDataDelegate>(matchWrapper)
 				);
 
 				GC.KeepAlive(progressWrapper);
+				GC.KeepAlive(matchWrapper);
 
 				return result;
 			}
