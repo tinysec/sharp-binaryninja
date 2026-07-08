@@ -11,9 +11,12 @@ namespace BinaryNinja
 	    // Rooting the caller-supplied delegates on the instance keeps them alive as long as the
 	    // Activity; without this, a temporary delegate passed to Create would be GC-eligible after
 	    // Create returns and the next activity callback would dereference freed memory.
-	    private Action<IntPtr>? m_action = null;
+	    // Holds the NATIVE wrapper delegate (not the user delegate): the wrapper owns the GC root
+	    // for the user callback via its holder context, and its function pointer is what the core
+	    // invokes. Rooting the wrapper for the Activity's lifetime keeps the callback reachable.
+	    private NativeDelegates.ActivityActionDelegate? m_action = null;
 
-	    private Action<IntPtr>? m_eligibilityHandler = null;
+	    private NativeDelegates.ActivityEligibilityDelegate? m_eligibilityHandler = null;
 
 	    internal Activity(IntPtr handle , bool owner)
 		    : base(handle , owner)
@@ -114,15 +117,21 @@ namespace BinaryNinja
 	    /// <param name="configuration">The configuration name for the activity.</param>
 	    /// <param name="action">The action callback delegate, or null for no action.</param>
 	    /// <returns>A new owned Activity, or null on failure.</returns>
-	    public static Activity? Create(string configuration , Action<IntPtr>? action = null)
+	    public static Activity? Create(string configuration , ActivityAction? action = null)
 	    {
-		    // 1. Marshal the action delegate to a function pointer if provided.
-		    IntPtr actionPtr = IntPtr.Zero;
+		    // 1. Wrap the action into the native (ctxt, analysisContext) callback shape, then take a
+		    // function pointer from the wrapper. The wrapper carries the AnalysisContext the core
+		    // hands the callback (Action<IntPtr> dropped it, so the action never saw its context).
+		    NativeDelegates.ActivityActionDelegate? actionWrapper = null;
 
 		    if (null != action)
 		    {
-			    actionPtr = Marshal.GetFunctionPointerForDelegate<Action<IntPtr>>(action);
+			    actionWrapper = UnsafeUtils.WrapActivityAction(action);
 		    }
+
+		    IntPtr actionPtr = null != actionWrapper
+			    ? Marshal.GetFunctionPointerForDelegate<NativeDelegates.ActivityActionDelegate>(actionWrapper)
+			    : IntPtr.Zero;
 
 		    // 2. Create the activity via the native API.
 		    Activity? activity = Activity.TakeHandle(
@@ -133,12 +142,12 @@ namespace BinaryNinja
 			    )
 		    );
 
-		    // 3. Root the action delegate on the instance for the Activity's lifetime; otherwise the
-		    // function pointer handed to the core would dangle once Create returns and the caller's
-		    // delegate is collected (see m_action).
-		    if (null != activity && null != action)
+		    // 3. Root the wrapper (not the user delegate) on the instance for the Activity's lifetime;
+		    // the wrapper holds the user callback via its context, and its function pointer is what the
+		    // core invokes (see m_action).
+		    if (null != activity && null != actionWrapper)
 		    {
-			    activity.m_action = action;
+			    activity.m_action = actionWrapper;
 		    }
 
 		    return activity;
@@ -153,25 +162,35 @@ namespace BinaryNinja
 	    /// <returns>A new owned Activity, or null on failure.</returns>
 	    public static Activity? CreateWithEligibility(
 		    string configuration ,
-		    Action<IntPtr>? action = null ,
-		    Action<IntPtr>? eligibilityHandler = null
+		    ActivityAction? action = null ,
+		    ActivityEligibility? eligibilityHandler = null
 	    )
 	    {
-		    // 1. Marshal the action delegate to a function pointer if provided.
-		    IntPtr actionPtr = IntPtr.Zero;
+		    // 1. Wrap the action into the native (ctxt, analysisContext) callback shape.
+		    NativeDelegates.ActivityActionDelegate? actionWrapper = null;
 
 		    if (null != action)
 		    {
-			    actionPtr = Marshal.GetFunctionPointerForDelegate<Action<IntPtr>>(action);
+			    actionWrapper = UnsafeUtils.WrapActivityAction(action);
 		    }
 
-		    // 2. Marshal the eligibility handler delegate to a function pointer if provided.
-		    IntPtr eligibilityPtr = IntPtr.Zero;
+		    IntPtr actionPtr = null != actionWrapper
+			    ? Marshal.GetFunctionPointerForDelegate<NativeDelegates.ActivityActionDelegate>(actionWrapper)
+			    : IntPtr.Zero;
+
+		    // 2. Wrap the eligibility handler into the native (ctxt, activity, analysisContext) -> bool
+		    // callback shape. Action<IntPtr> dropped both handles and returned garbage bool, so the
+		    // handler never received its arguments and eligibility was effectively random.
+		    NativeDelegates.ActivityEligibilityDelegate? eligibilityWrapper = null;
 
 		    if (null != eligibilityHandler)
 		    {
-			    eligibilityPtr = Marshal.GetFunctionPointerForDelegate<Action<IntPtr>>(eligibilityHandler);
+			    eligibilityWrapper = UnsafeUtils.WrapActivityEligibility(eligibilityHandler);
 		    }
+
+		    IntPtr eligibilityPtr = null != eligibilityWrapper
+			    ? Marshal.GetFunctionPointerForDelegate<NativeDelegates.ActivityEligibilityDelegate>(eligibilityWrapper)
+			    : IntPtr.Zero;
 
 		    // 3. Create the activity with eligibility via the native API.
 		    Activity? activity = Activity.TakeHandle(
@@ -183,14 +202,14 @@ namespace BinaryNinja
 			    )
 		    );
 
-		    // 4. Root both delegates on the instance for the Activity's lifetime; otherwise the
-		    // function pointers handed to the core would dangle once CreateWithEligibility returns
-		    // and the caller's delegates are collected (see m_action / m_eligibilityHandler).
+		    // 4. Root both wrappers on the instance for the Activity's lifetime; the wrappers hold the
+		    // user callbacks via their contexts, and their function pointers are what the core invokes
+		    // (see m_action / m_eligibilityHandler).
 		    if (null != activity)
 		    {
-			    activity.m_action = action;
+			    activity.m_action = actionWrapper;
 
-			    activity.m_eligibilityHandler = eligibilityHandler;
+			    activity.m_eligibilityHandler = eligibilityWrapper;
 		    }
 
 		    return activity;
