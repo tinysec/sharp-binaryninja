@@ -166,51 +166,51 @@ namespace BinaryNinja
 		    }
 	    }
 	    
-	    public BinaryNinja.CallingConvention DefaultCallingConvention
+	    public BinaryNinja.CallingConvention? DefaultCallingConvention
 	    {
 		    get
 		    {
-			    return BinaryNinja.CallingConvention.MustTakeHandle(
+			    return BinaryNinja.CallingConvention.TakeHandle(
 				    NativeMethods.BNGetPlatformDefaultCallingConvention(this.handle)
 			    );
 		    }
 	    }
 	    
-	    public BinaryNinja.CallingConvention CdeclCallingConvention
+	    public BinaryNinja.CallingConvention? CdeclCallingConvention
 	    {
 		    get
 		    {
-			    return BinaryNinja.CallingConvention.MustTakeHandle(
+			    return BinaryNinja.CallingConvention.TakeHandle(
 				    NativeMethods.BNGetPlatformCdeclCallingConvention(this.handle)
 			    );
 		    }
 	    }
 	    
-	    public BinaryNinja.CallingConvention StdcallCallingConvention
+	    public BinaryNinja.CallingConvention? StdcallCallingConvention
 	    {
 		    get
 		    {
-			    return BinaryNinja.CallingConvention.MustTakeHandle(
+			    return BinaryNinja.CallingConvention.TakeHandle(
 				    NativeMethods.BNGetPlatformStdcallCallingConvention(this.handle)
 			    );
 		    }
 	    }
 
-	    public BinaryNinja.CallingConvention FastcallCallingConvention
+	    public BinaryNinja.CallingConvention? FastcallCallingConvention
 	    {
 		    get
 		    {
-			    return BinaryNinja.CallingConvention.MustTakeHandle(
+			    return BinaryNinja.CallingConvention.TakeHandle(
 				    NativeMethods.BNGetPlatformFastcallCallingConvention(this.handle)
 			    );
 		    }
 	    }
 	    
-	    public BinaryNinja.CallingConvention SystemCallConvention
+	    public BinaryNinja.CallingConvention? SystemCallConvention
 	    {
 		    get
 		    {
-			    return BinaryNinja.CallingConvention.MustTakeHandle(
+			    return BinaryNinja.CallingConvention.TakeHandle(
 				    NativeMethods.BNGetPlatformSystemCallConvention(this.handle)
 			    );
 		    }
