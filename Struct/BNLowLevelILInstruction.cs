@@ -90,7 +90,7 @@ namespace BinaryNinja
 			{ LowLevelILOperation.LLIL_SET_REG_STACK_REL, 3 },       // dstRegStack, rel, src
 			{ LowLevelILOperation.LLIL_REG_STACK_PUSH, 2 },          // regStack, src
 
-			{ LowLevelILOperation.LLIL_ASSERT, 1 },                  // cond
+			{ LowLevelILOperation.LLIL_ASSERT, 2 },  // sourceRegister, constraint
 			{ LowLevelILOperation.LLIL_FORCE_VER, 1 },               // var/version
 
 			{ LowLevelILOperation.LLIL_LOAD, 2 },                    // size, addr
@@ -112,7 +112,7 @@ namespace BinaryNinja
 			{ LowLevelILOperation.LLIL_FLOAT_CONST, 2 },             // size, fpBits
 
 			{ LowLevelILOperation.LLIL_FLAG, 1 },                    // flag
-			{ LowLevelILOperation.LLIL_FLAG_BIT, 1 },                // flagBit
+			{ LowLevelILOperation.LLIL_FLAG_BIT, 2 },  // sourceFlag, bitIndex
 
 			{ LowLevelILOperation.LLIL_ADD, 3 },                     // size, left, right
 			{ LowLevelILOperation.LLIL_ADC, 3 },                     // size, left, right
@@ -156,7 +156,7 @@ namespace BinaryNinja
 
 			{ LowLevelILOperation.LLIL_IF, 3 },                      // cond, true, false (blocks)
 			{ LowLevelILOperation.LLIL_GOTO, 1 },                    // target block
-			{ LowLevelILOperation.LLIL_FLAG_COND, 1 },               // cond
+			{ LowLevelILOperation.LLIL_FLAG_COND, 2 },  // flagCondition, semanticFlagClass
 			{ LowLevelILOperation.LLIL_FLAG_GROUP, 1 },              // group
 
 			{ LowLevelILOperation.LLIL_CMP_E, 3 },                   // size, left, right
@@ -176,7 +176,7 @@ namespace BinaryNinja
 			{ LowLevelILOperation.LLIL_SYSCALL, 1 },                 // params(list)
 			{ LowLevelILOperation.LLIL_BP, 0 },                      // breakpoint
 			{ LowLevelILOperation.LLIL_TRAP, 1 },                    // code
-			{ LowLevelILOperation.LLIL_INTRINSIC, 3 },               // intrinsicId, params(list), outputs(list)
+			{ LowLevelILOperation.LLIL_INTRINSIC, 4 },  // outputRegisterOrFlagList(+1), intrinsic, parameterExprs
 			{ LowLevelILOperation.LLIL_UNDEF, 0 },                   // undefined
 			{ LowLevelILOperation.LLIL_UNIMPL, 0 },                  // unimplemented
 			{ LowLevelILOperation.LLIL_UNIMPL_MEM, 1 },              // addr
@@ -205,42 +205,42 @@ namespace BinaryNinja
 			{ LowLevelILOperation.LLIL_FCMP_UO, 3 },                 // size, left, right
 
 			{ LowLevelILOperation.LLIL_SET_REG_SSA, 3 },             // dstReg, version, src
-			{ LowLevelILOperation.LLIL_SET_REG_SSA_PARTIAL, 3 },     // dstReg, version, src
+			{ LowLevelILOperation.LLIL_SET_REG_SSA_PARTIAL, 4 },  // destSSARegister(var,version), partialRegister, sourceExpr
 			{ LowLevelILOperation.LLIL_SET_REG_SPLIT_SSA, 4 },       // dstHi, verHi, dstLo, verLo, src
 			{ LowLevelILOperation.LLIL_SET_REG_STACK_REL_SSA, 4 },   // regStack, version, rel, src
 			{ LowLevelILOperation.LLIL_SET_REG_STACK_ABS_SSA, 3 },   // regStack, index, src
 			{ LowLevelILOperation.LLIL_REG_SPLIT_DEST_SSA, 4 },      // regHi, verHi, regLo, verLo
 			{ LowLevelILOperation.LLIL_REG_STACK_DEST_SSA, 3 },      // regStack, index, size
 			{ LowLevelILOperation.LLIL_REG_SSA, 2 },                 // reg, version
-			{ LowLevelILOperation.LLIL_REG_SSA_PARTIAL, 2 },         // reg, version
+			{ LowLevelILOperation.LLIL_REG_SSA_PARTIAL, 3 },  // sourceSSARegister(var,version), partialRegister
 			{ LowLevelILOperation.LLIL_REG_SPLIT_SSA, 4 },           // regHi, verHi, regLo, verLo
-			{ LowLevelILOperation.LLIL_REG_STACK_REL_SSA, 3 },       // regStack, version, rel
-			{ LowLevelILOperation.LLIL_REG_STACK_ABS_SSA, 2 },       // regStack, index
+			{ LowLevelILOperation.LLIL_REG_STACK_REL_SSA, 4 },  // sourceSSARegisterStack(var,version), sourceExpr, topSSARegister
+			{ LowLevelILOperation.LLIL_REG_STACK_ABS_SSA, 3 },  // sourceSSARegisterStack(var,version), sourceRegister
 			{ LowLevelILOperation.LLIL_REG_STACK_FREE_REL_SSA, 3 },  // regStack, version, rel
 			{ LowLevelILOperation.LLIL_REG_STACK_FREE_ABS_SSA, 2 },  // regStack, index
 			{ LowLevelILOperation.LLIL_SET_FLAG_SSA, 3 },            // flag, version, src
-			{ LowLevelILOperation.LLIL_ASSERT_SSA, 2 },              // cond, memVer/regVer
-			{ LowLevelILOperation.LLIL_FORCE_VER_SSA, 2 },           // var, newVersion
+			{ LowLevelILOperation.LLIL_ASSERT_SSA, 3 },  // sourceSSARegister(var,version), constraint
+			{ LowLevelILOperation.LLIL_FORCE_VER_SSA, 4 },  // destSSARegister(var,version), sourceSSARegister(var,version)
 			{ LowLevelILOperation.LLIL_FLAG_SSA, 2 },                // flag, version
-			{ LowLevelILOperation.LLIL_FLAG_BIT_SSA, 2 },            // flagBit, version
+			{ LowLevelILOperation.LLIL_FLAG_BIT_SSA, 3 },  // sourceSSAFlag(var,version), bitIndex
 
 			{ LowLevelILOperation.LLIL_CALL_SSA, 4 },                // dest, params(list), outputs(list), srcMem
 			{ LowLevelILOperation.LLIL_SYSCALL_SSA, 3 },             // params(list), outputs(list), srcMem
-			{ LowLevelILOperation.LLIL_TAILCALL_SSA, 3 },            // dest, params(list), srcMem
+			{ LowLevelILOperation.LLIL_TAILCALL_SSA, 4 },  // outputSSARegisters, destExpr, stackSSARegister, parameterExprs
 			{ LowLevelILOperation.LLIL_CALL_PARAM, 2 },              // paramLoc, src
-			{ LowLevelILOperation.LLIL_CALL_STACK_SSA, 2 },          // stackVersionIn, stackVersionOut
+			{ LowLevelILOperation.LLIL_CALL_STACK_SSA, 3 },  // stackSSARegister(var,version), prevMemoryVersion
 			{ LowLevelILOperation.LLIL_CALL_OUTPUT_SSA, 3 },         // outputLoc, srcExpr, dstMem
 			{ LowLevelILOperation.LLIL_SEPARATE_PARAM_LIST_SSA, 2 }, // intParams(list), floatParams(list)
 			{ LowLevelILOperation.LLIL_SHARED_PARAM_SLOT_SSA, 2 },   // slot, size
 			{ LowLevelILOperation.LLIL_MEMORY_INTRINSIC_OUTPUT_SSA, 3 }, // dest, size, dstMem
 			{ LowLevelILOperation.LLIL_LOAD_SSA, 2 },                // addr, srcMem
-			{ LowLevelILOperation.LLIL_STORE_SSA, 3 },               // addr, value, dstMem
+			{ LowLevelILOperation.LLIL_STORE_SSA, 4 },  // destExpr, destMemoryVersion, sourceMemoryVersion, sourceExpr
 			{ LowLevelILOperation.LLIL_INTRINSIC_SSA, 4 },           // intrinsicId, params(list), outputs(list), srcMem
 			{ LowLevelILOperation.LLIL_MEMORY_INTRINSIC_SSA, 4 },    // dest, src, size, dstMem
 
-			{ LowLevelILOperation.LLIL_REG_PHI, 1 },                 // regVersions(list)
-			{ LowLevelILOperation.LLIL_REG_STACK_PHI, 1 },           // regStackVersions(list)
-			{ LowLevelILOperation.LLIL_FLAG_PHI, 1 },                // flagVersions(list)
+			{ LowLevelILOperation.LLIL_REG_PHI, 3 },  // destSSARegister(var,version), sourceSSARegisters(list)
+			{ LowLevelILOperation.LLIL_REG_STACK_PHI, 3 },  // destSSARegisterStack(var,version), sourceSSARegisterStacks(list)
+			{ LowLevelILOperation.LLIL_FLAG_PHI, 3 },  // destSSAFlag(var,version), sourceSSAFlags(list)
 			{ LowLevelILOperation.LLIL_MEM_PHI, 1 },                 // memVersions(list)
 
 			{ LowLevelILOperation.LLIL_ABS, 1 },                     // src
