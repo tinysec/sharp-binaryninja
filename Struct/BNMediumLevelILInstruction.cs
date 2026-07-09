@@ -129,9 +129,9 @@ namespace BinaryNinja
         	{ MediumLevelILOperation.MLIL_LOW_PART, 2 }, // value, toSize
         	{ MediumLevelILOperation.MLIL_JUMP, 1 },
         	{ MediumLevelILOperation.MLIL_JUMP_TO, 2 }, // target, switchVar
-        	{ MediumLevelILOperation.MLIL_RET_HINT, 0 },
+        	{ MediumLevelILOperation.MLIL_RET_HINT, 1 },  // dest(expr)@0
         	{ MediumLevelILOperation.MLIL_CALL, 3 }, // dest, params(list), outputs(list)
-        	{ MediumLevelILOperation.MLIL_CALL_UNTYPED, 3 }, // dest, params(list), outputs(list)
+        	{ MediumLevelILOperation.MLIL_CALL_UNTYPED, 4 }, // output(subexpr)@0, dest@1, params(subexpr)@2, stack@3
         	{ MediumLevelILOperation.MLIL_VAR_OUTPUT, 2 }, // outputLoc, sourceExpr
         	{ MediumLevelILOperation.MLIL_CALL_PARAM, 2 }, // paramLoc, sourceExpr
         	{ MediumLevelILOperation.MLIL_SEPARATE_PARAM_LIST, 2 }, // intParams(list), floatParams(list)
@@ -154,9 +154,9 @@ namespace BinaryNinja
         	{ MediumLevelILOperation.MLIL_BOOL_TO_INT, 1 },
         	{ MediumLevelILOperation.MLIL_ADD_OVERFLOW, 2 },
         	{ MediumLevelILOperation.MLIL_SYSCALL, 3 },  // output(varList), params(list)
-        	{ MediumLevelILOperation.MLIL_SYSCALL_UNTYPED, 2 }, // params(list), outputs(list)
+        	{ MediumLevelILOperation.MLIL_SYSCALL_UNTYPED, 3 }, // output(subexpr)@0, params(subexpr)@1, stack@2
         	{ MediumLevelILOperation.MLIL_TAILCALL, 4 },  // output(varList), dest, params(list)
-        	{ MediumLevelILOperation.MLIL_TAILCALL_UNTYPED, 2 }, // dest, params(list)
+        	{ MediumLevelILOperation.MLIL_TAILCALL_UNTYPED, 4 }, // output(subexpr)@0, dest@1, params(subexpr)@2, stack@3
         	{ MediumLevelILOperation.MLIL_INTRINSIC, 4 },  // output(varList), intrinsic, params(list)
         	{ MediumLevelILOperation.MLIL_FREE_VAR_SLOT, 1 }, // var
         	{ MediumLevelILOperation.MLIL_BP, 0 },
@@ -211,7 +211,7 @@ namespace BinaryNinja
         	{ MediumLevelILOperation.MLIL_LOAD_SSA, 2 }, // addr, srcMem
         	{ MediumLevelILOperation.MLIL_LOAD_STRUCT_SSA, 3 }, // addr, offset, srcMem
         	{ MediumLevelILOperation.MLIL_STORE_SSA, 4 },  // destExpr, destMemoryVersion, sourceMemoryVersion, sourceExpr
-        	{ MediumLevelILOperation.MLIL_STORE_STRUCT_SSA, 4 }, // addr, offset, value, dstMem
+        	{ MediumLevelILOperation.MLIL_STORE_STRUCT_SSA, 5 }, // dest@0, offset@1, dest_memory@2, src_memory@3, src@4
         	{ MediumLevelILOperation.MLIL_INTRINSIC_SSA, 4 }, // intrinsicId, params(list), outputs(list), srcMem
         	{ MediumLevelILOperation.MLIL_MEMORY_INTRINSIC_SSA, 5 },  // output, destMemory, intrinsic, params(list), srcMemory
         	{ MediumLevelILOperation.MLIL_FREE_VAR_SLOT_SSA, 3 },  // destSSAVariable(var,version), prev
@@ -1025,10 +1025,14 @@ namespace BinaryNinja
 		public T[] GetOperandAsIntegerArray<T>(OperandIndex operand)
 			where T : unmanaged
 		{
+			// BNMediumLevelILGetOperandList takes the operand INDEX (not the value at that slot):
+			// the core walks the operation's operand layout to locate the list, so passing the
+			// slot value -- as this method did before -- read an unrelated number and returned a
+			// garbage list. Mirrors GetOperandAsIntegerMap below.
 			IntPtr arrayPointer = NativeMethods.BNMediumLevelILGetOperandList(
 				this.ILFunction.DangerousGetHandle() ,
 				this.ExpressionIndex ,
-				this.RawOperands[(ulong)operand] ,
+				(ulong)operand ,
 				out ulong arrayLength
 			);
 
@@ -1084,7 +1088,17 @@ namespace BinaryNinja
 		{
 			return BitConverter.UInt64BitsToDouble(this.RawOperands[(ulong)operand]);
 		}
-		
+
+		/// <summary>
+		/// Reads one raw operand slot as a signed integer, mirroring the integer operands exposed by
+		/// Python MediumLevelILInstruction detailed_operands (e.g. StructField.offset,
+		/// StoreSsa.dest_memory, JumpTo.targets).
+		/// </summary>
+		public long GetOperandAsInteger(OperandIndex operand)
+		{
+			return (long)this.RawOperands[(ulong)operand];
+		}
+
 		public RegisterValue GetOperandAsConstantData(
 			OperandIndex operand1 ,
 			OperandIndex operand2
@@ -1450,7 +1464,178 @@ namespace BinaryNinja
 				return this.ILFunction.GetHighLevelILInstruction(this.InstructionIndex);
 			}
 		}
-		
+
+		/// <summary>
+		/// The named, typed operands of this instruction, mirroring Python
+		/// MediumLevelILInstruction.detailed_operands (mediumlevelil.py:495). Each entry pairs the
+		/// operand name (e.g. "left", "src", "dest"), its value, its kind, and the Python type
+		/// string. Operations with no operands return an empty list. This is the foundation for
+		/// <see cref="Operands"/> and <see cref="Traverse{T}"/>.
+		///
+		/// See MediumLevelILDetailedOperandsTable for the known gap: the derived (sub-instruction)
+		/// operands of the call/syscall/intrinsic family are omitted because they cannot be served by
+		/// a flat raw-slot reader.
+		/// </summary>
+		public virtual IList<ILOperand> DetailedOperands
+		{
+			get
+			{
+				if (false == MediumLevelILDetailedOperandsTable.Table.TryGetValue(
+						this.Operation, out ILOperandDescriptor[]? descriptors))
+				{
+					return new List<ILOperand>();
+				}
+
+				List<ILOperand> result = new List<ILOperand>(descriptors.Length);
+
+				foreach (ILOperandDescriptor descriptor in descriptors)
+				{
+					object? value = this.ReadDetailedOperandByKind(descriptor);
+					result.Add(new ILOperand(
+						descriptor.Name, value, descriptor.Kind, descriptor.TypeName));
+				}
+
+				return result;
+			}
+		}
+
+		/// <summary>
+		/// Reads one operand by its descriptor. SSA variables and constant data each occupy two raw
+		/// slots: the identifier/state at <see cref="ILOperandDescriptor.RawIndex"/> and the
+		/// version/value at <see cref="ILOperandDescriptor.SecondaryRawIndex"/> (which defaults to
+		/// RawIndex + 1 when not set explicitly).
+		/// </summary>
+		private object? ReadDetailedOperandByKind(ILOperandDescriptor descriptor)
+		{
+			OperandIndex index = (OperandIndex)(ulong)descriptor.RawIndex;
+
+			int secondary = descriptor.SecondaryRawIndex < 0
+				? descriptor.RawIndex + 1
+				: descriptor.SecondaryRawIndex;
+			OperandIndex secondaryIndex = (OperandIndex)(ulong)secondary;
+
+			switch (descriptor.Kind)
+			{
+				case ILOperandKind.Expression:
+					return this.GetOperandAsExpression(index);
+
+				case ILOperandKind.ExpressionList:
+					return this.GetOperandAsExpressionList(index);
+
+				case ILOperandKind.Integer:
+					return this.GetOperandAsInteger(index);
+
+				case ILOperandKind.IntegerList:
+					return this.GetOperandAsIntegerArray<long>(index);
+
+				case ILOperandKind.Variable:
+					return this.GetOperandAsVariable(index);
+
+				case ILOperandKind.VariableList:
+					return this.GetOperandAsVariableList(index);
+
+				case ILOperandKind.SSAVariable:
+					return this.GetOperandAsSSAVariable(index, secondaryIndex);
+
+				case ILOperandKind.SSAVariableList:
+					return this.GetOperandAsSSAVariableList(index);
+
+				case ILOperandKind.Float:
+					return this.GetOperandAsDouble(index);
+
+				case ILOperandKind.ConstantData:
+					return this.GetOperandAsConstantData(index, secondaryIndex);
+
+				case ILOperandKind.Intrinsic:
+					return this.GetOperandAsIntrinsic(index);
+
+				default:
+					return null;
+			}
+		}
+
+		/// <summary>
+		/// The operand values of this instruction (the value component of
+		/// <see cref="DetailedOperands"/>), mirroring Python MediumLevelILInstruction.operands
+		/// (mediumlevelil.py:486). Prefer the named accessors (Source, Left, Condition, ...) when the
+		/// operand kind is known at the call site.
+		/// </summary>
+		public IList<object?> Operands
+		{
+			get
+			{
+				IList<ILOperand> detailed = this.DetailedOperands;
+				List<object?> result = new List<object?>(detailed.Count);
+
+				foreach (ILOperand operand in detailed)
+				{
+					result.Add(operand.Value);
+				}
+
+				return result;
+			}
+		}
+
+		/// <summary>
+		/// Depth-first traversal of this instruction's operand tree, mirroring Python
+		/// MediumLevelILInstruction.traverse (mediumlevelil.py:511). The callback is invoked on this
+		/// node and every reachable sub-instruction; each non-null result is yielded. Pass a named
+		/// method (method group) as the callback.
+		///
+		/// Python's MLIL traverse descends into every detailed operand unconditionally -- unlike
+		/// HighLevelIL it has no blacklist, because MLIL branch targets are instruction/label indices
+		/// rather than sub-instructions, so no operand leaves the enclosing instruction's scope. The
+		/// <paramref name="shallow"/> parameter is kept for signature parity with
+		/// <see cref="HighLevelILInstruction.Traverse{T}"/>; MLIL has no blacklisted names, so it has
+		/// no effect here.
+		/// </summary>
+		/// <typeparam name="T">The result type; constrained to a reference type so null signals
+		/// "do not yield".</typeparam>
+		public IEnumerable<T> Traverse<T>(
+			Func<MediumLevelILInstruction, T?> callback, bool shallow = true) where T : class
+		{
+			T? root = callback(this);
+
+			if (null != root)
+			{
+				yield return root;
+			}
+
+			foreach (ILOperand operand in this.DetailedOperands)
+			{
+				if (shallow && MediumLevelILInstruction.ShallowTraversalBlacklist.Contains(operand.Name))
+				{
+					continue;
+				}
+
+				if (operand.Value is MediumLevelILInstruction subInstruction)
+				{
+					foreach (T nested in subInstruction.Traverse<T>(callback, shallow))
+					{
+						yield return nested;
+					}
+				}
+				else if (operand.Value is MediumLevelILInstruction[] subList)
+				{
+					foreach (MediumLevelILInstruction item in subList)
+					{
+						foreach (T nested in item.Traverse<T>(callback, shallow))
+						{
+							yield return nested;
+						}
+					}
+				}
+			}
+		}
+
+		// Operand names to skip during shallow traversal. Empty for MLIL: Python's
+		// MediumLevelILInstruction.traverse (mediumlevelil.py:511) has no blacklist, because MLIL
+		// branch targets are indices/labels, not sub-instructions. Kept as the extension point so
+		// the signature matches HighLevelILInstruction.Traverse and a future operand that should be
+		// skipped can be added in one place.
+		private static readonly HashSet<string> ShallowTraversalBlacklist =
+			new HashSet<string>();
+
 	}
-	
+
 }
