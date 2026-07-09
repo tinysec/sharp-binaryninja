@@ -7157,8 +7157,64 @@ namespace BinaryNinja
 		    NativeMethods.BNShowWorkflowReportForBinaryView(this.handle , name);
 	    }
 
-	    // TODO: RegisterDataNotification requires BNBinaryDataNotification callback delegate infrastructure.
-	    // TODO: UnregisterDataNotification requires BNBinaryDataNotification callback delegate infrastructure.
+	    // Per-view registration tracking. A notification registered on N views gets N independent
+	    // contexts (one struct + delegate set per registration), mirroring TypeArchive's per-archive map.
+	    private readonly Dictionary<BinaryDataNotification, UnsafeUtils.BinaryDataNotificationContext>
+		    m_dataNotifications = new Dictionary<BinaryDataNotification, UnsafeUtils.BinaryDataNotificationContext>();
+
+	    /// <summary>
+	    /// Registers a notification object to receive binary-data events from this view, mirroring Python
+	    /// <c>BinaryView.register_notification</c> (binaryview.py:5570). The notification must be
+	    /// unregistered (or this view released) to stop delivery. Registering the same instance again is
+	    /// a no-op (Python tolerates this; the core would otherwise emit a gratuitous notification_barrier).
+	    /// </summary>
+	    /// <param name="notification">The notification whose virtual methods receive the events.</param>
+	    public void RegisterDataNotification(BinaryDataNotification notification)
+	    {
+		    if (null == notification)
+		    {
+			    throw new ArgumentNullException(nameof(notification));
+		    }
+
+		    if (this.m_dataNotifications.ContainsKey(notification))
+		    {
+			    return;
+		    }
+
+		    // 1. Build the native callback struct (roots the 55 delegates + the context).
+		    UnsafeUtils.BinaryDataNotificationContext context =
+			    new UnsafeUtils.BinaryDataNotificationContext(notification);
+		    IntPtr nativePointer = context.BuildNative();
+
+		    // 2. Register with the core, then keep the context rooted so the delegates outlive the
+		    // registration.
+		    NativeMethods.BNRegisterDataNotification(this.handle, nativePointer);
+		    this.m_dataNotifications[notification] = context;
+	    }
+
+	    /// <summary>
+	    /// Unregisters a previously-registered notification, mirroring Python
+	    /// <c>BinaryView.unregister_notification</c> (binaryview.py:5588). Frees the native callback
+	    /// struct and releases the rooted delegates. Unregistering an unknown notification is a no-op.
+	    /// </summary>
+	    /// <param name="notification">The notification to unregister.</param>
+	    public void UnregisterDataNotification(BinaryDataNotification notification)
+	    {
+		    if (null == notification)
+		    {
+			    throw new ArgumentNullException(nameof(notification));
+		    }
+
+		    if (!this.m_dataNotifications.TryGetValue(
+				    notification, out UnsafeUtils.BinaryDataNotificationContext? context))
+		    {
+			    return;
+		    }
+
+		    NativeMethods.BNUnregisterDataNotification(this.handle, context.NativeStruct);
+		    context.FreeNative();
+		    this.m_dataNotifications.Remove(notification);
+	    }
 
 	    /// <summary>
 	    /// Gets the analysis type that corresponds to the given named type reference.
