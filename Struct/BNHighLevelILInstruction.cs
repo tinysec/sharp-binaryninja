@@ -1754,22 +1754,22 @@ namespace BinaryNinja
 		/// Operations with no operands return an empty list. This is the foundation for
 		/// <see cref="Operands"/> and <see cref="Traverse{T}"/>.
 		/// </summary>
-		public virtual IList<HighLevelILOperand> DetailedOperands
+		public virtual IList<ILOperand> DetailedOperands
 		{
 			get
 			{
 				if (false == HighLevelILDetailedOperandsTable.Table.TryGetValue(
-						this.Operation, out HighLevelILOperandDescriptor[]? descriptors))
+						this.Operation, out ILOperandDescriptor[]? descriptors))
 				{
-					return new List<HighLevelILOperand>();
+					return new List<ILOperand>();
 				}
 
-				List<HighLevelILOperand> result = new List<HighLevelILOperand>(descriptors.Length);
+				List<ILOperand> result = new List<ILOperand>(descriptors.Length);
 
-				foreach (HighLevelILOperandDescriptor descriptor in descriptors)
+				foreach (ILOperandDescriptor descriptor in descriptors)
 				{
-					object? value = this.ReadDetailedOperandByKind(descriptor.Kind, descriptor.RawIndex);
-					result.Add(new HighLevelILOperand(
+					object? value = this.ReadDetailedOperandByKind(descriptor);
+					result.Add(new ILOperand(
 						descriptor.Name, value, descriptor.Kind, descriptor.TypeName));
 				}
 
@@ -1778,49 +1778,56 @@ namespace BinaryNinja
 		}
 
 		/// <summary>
-		/// Reads one operand by its descriptor kind. An SSA variable occupies two raw slots -- the
-		/// variable identifier at RawIndex and its version at RawIndex + 1.
+		/// Reads one operand by its descriptor. SSA variables and constant data each occupy two raw
+		/// slots: the identifier/state at <see cref="ILOperandDescriptor.RawIndex"/> and the
+		/// version/value at <see cref="ILOperandDescriptor.SecondaryRawIndex"/> (which defaults to
+		/// RawIndex + 1 when not set explicitly).
 		/// </summary>
-		private object? ReadDetailedOperandByKind(HighLevelILOperandKind kind, int rawIndex)
+		private object? ReadDetailedOperandByKind(ILOperandDescriptor descriptor)
 		{
-			OperandIndex index = (OperandIndex)(ulong)rawIndex;
+			OperandIndex index = (OperandIndex)(ulong)descriptor.RawIndex;
 
-			switch (kind)
+			int secondary = descriptor.SecondaryRawIndex < 0
+				? descriptor.RawIndex + 1
+				: descriptor.SecondaryRawIndex;
+			OperandIndex secondaryIndex = (OperandIndex)(ulong)secondary;
+
+			switch (descriptor.Kind)
 			{
-				case HighLevelILOperandKind.Expression:
+				case ILOperandKind.Expression:
 					return this.GetOperandAsExpression(index);
 
-				case HighLevelILOperandKind.ExpressionList:
+				case ILOperandKind.ExpressionList:
 					return this.GetOperandAsExpressionList(index);
 
-				case HighLevelILOperandKind.Integer:
+				case ILOperandKind.Integer:
 					return this.GetOperandAsInteger(index);
 
-				case HighLevelILOperandKind.IntegerList:
+				case ILOperandKind.IntegerList:
 					return this.GetOperandAsIntegerArray<long>(index);
 
-				case HighLevelILOperandKind.Variable:
+				case ILOperandKind.Variable:
 					return this.GetOperandAsVariable(index);
 
-				case HighLevelILOperandKind.VariableList:
+				case ILOperandKind.VariableList:
 					return this.GetOperandAsVariableList(index);
 
-				case HighLevelILOperandKind.SSAVariable:
-					return this.GetOperandAsSSAVariable(index, (OperandIndex)(ulong)(rawIndex + 1));
+				case ILOperandKind.SSAVariable:
+					return this.GetOperandAsSSAVariable(index, secondaryIndex);
 
-				case HighLevelILOperandKind.SSAVariableList:
+				case ILOperandKind.SSAVariableList:
 					return this.GetOperandAsSSAVariableList(index);
 
-				case HighLevelILOperandKind.Float:
+				case ILOperandKind.Float:
 					return this.GetOperandAsDouble(index);
 
-				case HighLevelILOperandKind.GotoLabel:
+				case ILOperandKind.GotoLabel:
 					return this.GetOperandAsLabel(index);
 
-				case HighLevelILOperandKind.ConstantData:
-					return this.GetOperandAsConstantData(index, (OperandIndex)(ulong)(rawIndex + 1));
+				case ILOperandKind.ConstantData:
+					return this.GetOperandAsConstantData(index, secondaryIndex);
 
-				case HighLevelILOperandKind.Intrinsic:
+				case ILOperandKind.Intrinsic:
 					return this.GetOperandAsIntrinsic(index);
 
 				default:
@@ -1838,10 +1845,10 @@ namespace BinaryNinja
 		{
 			get
 			{
-				IList<HighLevelILOperand> detailed = this.DetailedOperands;
+				IList<ILOperand> detailed = this.DetailedOperands;
 				List<object?> result = new List<object?>(detailed.Count);
 
-				foreach (HighLevelILOperand operand in detailed)
+				foreach (ILOperand operand in detailed)
 				{
 					result.Add(operand.Value);
 				}
@@ -1870,7 +1877,7 @@ namespace BinaryNinja
 				yield return root;
 			}
 
-			foreach (HighLevelILOperand operand in this.DetailedOperands)
+			foreach (ILOperand operand in this.DetailedOperands)
 			{
 				if (shallow && HighLevelILInstruction.ShallowTraversalBlacklist.Contains(operand.Name))
 				{

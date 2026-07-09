@@ -1,0 +1,177 @@
+using System.Collections.Generic;
+
+namespace BinaryNinja
+{
+	// Static table driving MediumLevelILInstruction.DetailedOperands. Maps each
+	// MediumLevelILOperation to its named operand descriptors (name, kind, raw operand index,
+	// Python type name). Generated from the official Python
+	// MediumLevelILInstruction.detailed_operands overrides (mediumlevelil.py) by reading each
+	// property's actual _get_*(N) raw index -- NOT by accumulating slot widths -- because the
+	// core applies an "advance = 0" rule when an operand is derived from a nested
+	// sub-instruction (mediumlevelilinstruction.cpp), which desynchronises the accumulated index
+	// from the real one. Ops absent from the table return an empty DetailedOperands list.
+	//
+	// KNOWN PARITY GAP -- derived (sub-instruction) operands omitted. ~10 call/syscall/intrinsic
+	// ops (CALL, CALL_UNTYPED, SYSCALL_*, TAILCALL_*, INTRINSIC_*, MEMORY_INTRINSIC_SSA, and
+	// their *_SSA forms) list an output/params/output_dest_memory operand whose VALUE is reached
+	// by reading a CallOutput/CallParam sub-instruction expression and then unwrapping it (e.g.
+	// MediumLevelILCallUntyped.params = self._get_expr(2).src). BNMediumLevelILGetOperandList does
+	// not flatten across the parent->sub boundary, so these operands cannot be served by the flat
+	// raw-slot readers this table dispatches. They are OMITTED here; the flat-readable operands
+	// (dest, stack, intrinsic, src_memory, ...) ARE included. Closing this gap needs bespoke
+	// sub-instruction navigation per op -- tracked as a follow-up, not silently dropped.
+	//
+	// VERSION NOTE. This table matches the INSTALLED core (5.3.9757 / python api revision
+	// aa25bfc): 140 operations. The C# MediumLevelILOperation enum was generated against a newer
+	// binaryninja-api and has 11 members the installed core never emits (MLIL_ABS, MLIL_BSWAP,
+	// MLIL_CLS, MLIL_CLZ, MLIL_CTZ, MLIL_MAXS, MLIL_MAXU, MLIL_MINS, MLIL_MINU, MLIL_POPCNT,
+	// MLIL_RBIT); those have no row and return an empty DetailedOperands list. The one rename
+	// (installed core MLIL_CALL_OUTPUT == C# MLIL_VAR_OUTPUT) is handled below.
+	internal static class MediumLevelILDetailedOperandsTable
+	{
+		internal static readonly Dictionary<MediumLevelILOperation, ILOperandDescriptor[]> Table =
+			new Dictionary<MediumLevelILOperation, ILOperandDescriptor[]>
+			{
+			{ MediumLevelILOperation.MLIL_NOP, new ILOperandDescriptor[] {  } },
+			{ MediumLevelILOperation.MLIL_NORET, new ILOperandDescriptor[] {  } },
+			{ MediumLevelILOperation.MLIL_BP, new ILOperandDescriptor[] {  } },
+			{ MediumLevelILOperation.MLIL_UNDEF, new ILOperandDescriptor[] {  } },
+			{ MediumLevelILOperation.MLIL_UNIMPL, new ILOperandDescriptor[] {  } },
+			{ MediumLevelILOperation.MLIL_LOAD, new ILOperandDescriptor[] { new ILOperandDescriptor("src", ILOperandKind.Expression, 0, "MediumLevelILInstruction") } },
+			{ MediumLevelILOperation.MLIL_VAR, new ILOperandDescriptor[] { new ILOperandDescriptor("var", ILOperandKind.Variable, 0, "Variable") } },
+			{ MediumLevelILOperation.MLIL_ADDRESS_OF, new ILOperandDescriptor[] { new ILOperandDescriptor("src", ILOperandKind.Variable, 0, "Variable") } },
+			{ MediumLevelILOperation.MLIL_CONST, new ILOperandDescriptor[] { new ILOperandDescriptor("constant", ILOperandKind.Integer, 0, "int") } },
+			{ MediumLevelILOperation.MLIL_CONST_PTR, new ILOperandDescriptor[] { new ILOperandDescriptor("constant", ILOperandKind.Integer, 0, "int") } },
+			{ MediumLevelILOperation.MLIL_FLOAT_CONST, new ILOperandDescriptor[] { new ILOperandDescriptor("constant", ILOperandKind.Float, 0, "float") } },
+			{ MediumLevelILOperation.MLIL_IMPORT, new ILOperandDescriptor[] { new ILOperandDescriptor("constant", ILOperandKind.Integer, 0, "int") } },
+			{ MediumLevelILOperation.MLIL_CONST_DATA, new ILOperandDescriptor[] { new ILOperandDescriptor("constant", ILOperandKind.ConstantData, 0, "ConstantData") } },
+			{ MediumLevelILOperation.MLIL_SET_VAR, new ILOperandDescriptor[] { new ILOperandDescriptor("dest", ILOperandKind.Variable, 0, "Variable"), new ILOperandDescriptor("src", ILOperandKind.Expression, 1, "MediumLevelILInstruction") } },
+			{ MediumLevelILOperation.MLIL_LOAD_STRUCT, new ILOperandDescriptor[] { new ILOperandDescriptor("src", ILOperandKind.Expression, 0, "MediumLevelILInstruction"), new ILOperandDescriptor("offset", ILOperandKind.Integer, 1, "int") } },
+			{ MediumLevelILOperation.MLIL_STORE, new ILOperandDescriptor[] { new ILOperandDescriptor("dest", ILOperandKind.Expression, 0, "MediumLevelILInstruction"), new ILOperandDescriptor("src", ILOperandKind.Expression, 1, "MediumLevelILInstruction") } },
+			{ MediumLevelILOperation.MLIL_VAR_FIELD, new ILOperandDescriptor[] { new ILOperandDescriptor("src", ILOperandKind.Variable, 0, "Variable"), new ILOperandDescriptor("offset", ILOperandKind.Integer, 1, "int") } },
+			{ MediumLevelILOperation.MLIL_VAR_SPLIT, new ILOperandDescriptor[] { new ILOperandDescriptor("high", ILOperandKind.Variable, 0, "Variable"), new ILOperandDescriptor("low", ILOperandKind.Variable, 1, "Variable") } },
+			{ MediumLevelILOperation.MLIL_ADDRESS_OF_FIELD, new ILOperandDescriptor[] { new ILOperandDescriptor("src", ILOperandKind.Variable, 0, "Variable"), new ILOperandDescriptor("offset", ILOperandKind.Integer, 1, "int") } },
+			{ MediumLevelILOperation.MLIL_EXTERN_PTR, new ILOperandDescriptor[] { new ILOperandDescriptor("constant", ILOperandKind.Integer, 0, "int"), new ILOperandDescriptor("offset", ILOperandKind.Integer, 1, "int") } },
+			{ MediumLevelILOperation.MLIL_ADD, new ILOperandDescriptor[] { new ILOperandDescriptor("left", ILOperandKind.Expression, 0, "MediumLevelILInstruction"), new ILOperandDescriptor("right", ILOperandKind.Expression, 1, "MediumLevelILInstruction") } },
+			{ MediumLevelILOperation.MLIL_SUB, new ILOperandDescriptor[] { new ILOperandDescriptor("left", ILOperandKind.Expression, 0, "MediumLevelILInstruction"), new ILOperandDescriptor("right", ILOperandKind.Expression, 1, "MediumLevelILInstruction") } },
+			{ MediumLevelILOperation.MLIL_AND, new ILOperandDescriptor[] { new ILOperandDescriptor("left", ILOperandKind.Expression, 0, "MediumLevelILInstruction"), new ILOperandDescriptor("right", ILOperandKind.Expression, 1, "MediumLevelILInstruction") } },
+			{ MediumLevelILOperation.MLIL_OR, new ILOperandDescriptor[] { new ILOperandDescriptor("left", ILOperandKind.Expression, 0, "MediumLevelILInstruction"), new ILOperandDescriptor("right", ILOperandKind.Expression, 1, "MediumLevelILInstruction") } },
+			{ MediumLevelILOperation.MLIL_XOR, new ILOperandDescriptor[] { new ILOperandDescriptor("left", ILOperandKind.Expression, 0, "MediumLevelILInstruction"), new ILOperandDescriptor("right", ILOperandKind.Expression, 1, "MediumLevelILInstruction") } },
+			{ MediumLevelILOperation.MLIL_LSL, new ILOperandDescriptor[] { new ILOperandDescriptor("left", ILOperandKind.Expression, 0, "MediumLevelILInstruction"), new ILOperandDescriptor("right", ILOperandKind.Expression, 1, "MediumLevelILInstruction") } },
+			{ MediumLevelILOperation.MLIL_LSR, new ILOperandDescriptor[] { new ILOperandDescriptor("left", ILOperandKind.Expression, 0, "MediumLevelILInstruction"), new ILOperandDescriptor("right", ILOperandKind.Expression, 1, "MediumLevelILInstruction") } },
+			{ MediumLevelILOperation.MLIL_ASR, new ILOperandDescriptor[] { new ILOperandDescriptor("left", ILOperandKind.Expression, 0, "MediumLevelILInstruction"), new ILOperandDescriptor("right", ILOperandKind.Expression, 1, "MediumLevelILInstruction") } },
+			{ MediumLevelILOperation.MLIL_ROL, new ILOperandDescriptor[] { new ILOperandDescriptor("left", ILOperandKind.Expression, 0, "MediumLevelILInstruction"), new ILOperandDescriptor("right", ILOperandKind.Expression, 1, "MediumLevelILInstruction") } },
+			{ MediumLevelILOperation.MLIL_ROR, new ILOperandDescriptor[] { new ILOperandDescriptor("left", ILOperandKind.Expression, 0, "MediumLevelILInstruction"), new ILOperandDescriptor("right", ILOperandKind.Expression, 1, "MediumLevelILInstruction") } },
+			{ MediumLevelILOperation.MLIL_MUL, new ILOperandDescriptor[] { new ILOperandDescriptor("left", ILOperandKind.Expression, 0, "MediumLevelILInstruction"), new ILOperandDescriptor("right", ILOperandKind.Expression, 1, "MediumLevelILInstruction") } },
+			{ MediumLevelILOperation.MLIL_MULU_DP, new ILOperandDescriptor[] { new ILOperandDescriptor("left", ILOperandKind.Expression, 0, "MediumLevelILInstruction"), new ILOperandDescriptor("right", ILOperandKind.Expression, 1, "MediumLevelILInstruction") } },
+			{ MediumLevelILOperation.MLIL_MULS_DP, new ILOperandDescriptor[] { new ILOperandDescriptor("left", ILOperandKind.Expression, 0, "MediumLevelILInstruction"), new ILOperandDescriptor("right", ILOperandKind.Expression, 1, "MediumLevelILInstruction") } },
+			{ MediumLevelILOperation.MLIL_DIVU, new ILOperandDescriptor[] { new ILOperandDescriptor("left", ILOperandKind.Expression, 0, "MediumLevelILInstruction"), new ILOperandDescriptor("right", ILOperandKind.Expression, 1, "MediumLevelILInstruction") } },
+			{ MediumLevelILOperation.MLIL_DIVU_DP, new ILOperandDescriptor[] { new ILOperandDescriptor("left", ILOperandKind.Expression, 0, "MediumLevelILInstruction"), new ILOperandDescriptor("right", ILOperandKind.Expression, 1, "MediumLevelILInstruction") } },
+			{ MediumLevelILOperation.MLIL_DIVS, new ILOperandDescriptor[] { new ILOperandDescriptor("left", ILOperandKind.Expression, 0, "MediumLevelILInstruction"), new ILOperandDescriptor("right", ILOperandKind.Expression, 1, "MediumLevelILInstruction") } },
+			{ MediumLevelILOperation.MLIL_DIVS_DP, new ILOperandDescriptor[] { new ILOperandDescriptor("left", ILOperandKind.Expression, 0, "MediumLevelILInstruction"), new ILOperandDescriptor("right", ILOperandKind.Expression, 1, "MediumLevelILInstruction") } },
+			{ MediumLevelILOperation.MLIL_MODU, new ILOperandDescriptor[] { new ILOperandDescriptor("left", ILOperandKind.Expression, 0, "MediumLevelILInstruction"), new ILOperandDescriptor("right", ILOperandKind.Expression, 1, "MediumLevelILInstruction") } },
+			{ MediumLevelILOperation.MLIL_MODU_DP, new ILOperandDescriptor[] { new ILOperandDescriptor("left", ILOperandKind.Expression, 0, "MediumLevelILInstruction"), new ILOperandDescriptor("right", ILOperandKind.Expression, 1, "MediumLevelILInstruction") } },
+			{ MediumLevelILOperation.MLIL_MODS, new ILOperandDescriptor[] { new ILOperandDescriptor("left", ILOperandKind.Expression, 0, "MediumLevelILInstruction"), new ILOperandDescriptor("right", ILOperandKind.Expression, 1, "MediumLevelILInstruction") } },
+			{ MediumLevelILOperation.MLIL_MODS_DP, new ILOperandDescriptor[] { new ILOperandDescriptor("left", ILOperandKind.Expression, 0, "MediumLevelILInstruction"), new ILOperandDescriptor("right", ILOperandKind.Expression, 1, "MediumLevelILInstruction") } },
+			{ MediumLevelILOperation.MLIL_NEG, new ILOperandDescriptor[] { new ILOperandDescriptor("src", ILOperandKind.Expression, 0, "MediumLevelILInstruction") } },
+			{ MediumLevelILOperation.MLIL_NOT, new ILOperandDescriptor[] { new ILOperandDescriptor("src", ILOperandKind.Expression, 0, "MediumLevelILInstruction") } },
+			{ MediumLevelILOperation.MLIL_SX, new ILOperandDescriptor[] { new ILOperandDescriptor("src", ILOperandKind.Expression, 0, "MediumLevelILInstruction") } },
+			{ MediumLevelILOperation.MLIL_ZX, new ILOperandDescriptor[] { new ILOperandDescriptor("src", ILOperandKind.Expression, 0, "MediumLevelILInstruction") } },
+			{ MediumLevelILOperation.MLIL_LOW_PART, new ILOperandDescriptor[] { new ILOperandDescriptor("src", ILOperandKind.Expression, 0, "MediumLevelILInstruction") } },
+			{ MediumLevelILOperation.MLIL_JUMP, new ILOperandDescriptor[] { new ILOperandDescriptor("dest", ILOperandKind.Expression, 0, "MediumLevelILInstruction") } },
+			{ MediumLevelILOperation.MLIL_RET_HINT, new ILOperandDescriptor[] { new ILOperandDescriptor("dest", ILOperandKind.Expression, 0, "MediumLevelILInstruction") } },
+			{ MediumLevelILOperation.MLIL_VAR_OUTPUT, new ILOperandDescriptor[] { new ILOperandDescriptor("dest", ILOperandKind.VariableList, 0, "List[Variable]") } },
+			{ MediumLevelILOperation.MLIL_CALL_PARAM, new ILOperandDescriptor[] { new ILOperandDescriptor("src", ILOperandKind.ExpressionList, 0, "List[MediumLevelILInstruction]") } },
+			{ MediumLevelILOperation.MLIL_SEPARATE_PARAM_LIST, new ILOperandDescriptor[] { new ILOperandDescriptor("params", ILOperandKind.ExpressionList, 0, "List[MediumLevelILInstruction]") } },
+			{ MediumLevelILOperation.MLIL_SHARED_PARAM_SLOT, new ILOperandDescriptor[] { new ILOperandDescriptor("params", ILOperandKind.ExpressionList, 0, "List[MediumLevelILInstruction]") } },
+			{ MediumLevelILOperation.MLIL_RET, new ILOperandDescriptor[] { new ILOperandDescriptor("src", ILOperandKind.ExpressionList, 0, "List[MediumLevelILInstruction]") } },
+			{ MediumLevelILOperation.MLIL_GOTO, new ILOperandDescriptor[] { new ILOperandDescriptor("dest", ILOperandKind.Integer, 0, "InstructionIndex") } },
+			{ MediumLevelILOperation.MLIL_BOOL_TO_INT, new ILOperandDescriptor[] { new ILOperandDescriptor("src", ILOperandKind.Expression, 0, "MediumLevelILInstruction") } },
+			{ MediumLevelILOperation.MLIL_FREE_VAR_SLOT, new ILOperandDescriptor[] { new ILOperandDescriptor("dest", ILOperandKind.Variable, 0, "Variable") } },
+			{ MediumLevelILOperation.MLIL_TRAP, new ILOperandDescriptor[] { new ILOperandDescriptor("vector", ILOperandKind.Integer, 0, "int") } },
+			{ MediumLevelILOperation.MLIL_FREE_VAR_SLOT_SSA, new ILOperandDescriptor[] { new ILOperandDescriptor("dest", ILOperandKind.SSAVariable, 0, "SSAVariable"), new ILOperandDescriptor("prev", ILOperandKind.SSAVariable, 0, 2, "SSAVariable") } },
+			{ MediumLevelILOperation.MLIL_UNIMPL_MEM, new ILOperandDescriptor[] { new ILOperandDescriptor("src", ILOperandKind.Expression, 0, "MediumLevelILInstruction") } },
+			{ MediumLevelILOperation.MLIL_FSQRT, new ILOperandDescriptor[] { new ILOperandDescriptor("src", ILOperandKind.Expression, 0, "MediumLevelILInstruction") } },
+			{ MediumLevelILOperation.MLIL_FNEG, new ILOperandDescriptor[] { new ILOperandDescriptor("src", ILOperandKind.Expression, 0, "MediumLevelILInstruction") } },
+			{ MediumLevelILOperation.MLIL_FABS, new ILOperandDescriptor[] { new ILOperandDescriptor("src", ILOperandKind.Expression, 0, "MediumLevelILInstruction") } },
+			{ MediumLevelILOperation.MLIL_FLOAT_TO_INT, new ILOperandDescriptor[] { new ILOperandDescriptor("src", ILOperandKind.Expression, 0, "MediumLevelILInstruction") } },
+			{ MediumLevelILOperation.MLIL_INT_TO_FLOAT, new ILOperandDescriptor[] { new ILOperandDescriptor("src", ILOperandKind.Expression, 0, "MediumLevelILInstruction") } },
+			{ MediumLevelILOperation.MLIL_FLOAT_CONV, new ILOperandDescriptor[] { new ILOperandDescriptor("src", ILOperandKind.Expression, 0, "MediumLevelILInstruction") } },
+			{ MediumLevelILOperation.MLIL_ROUND_TO_INT, new ILOperandDescriptor[] { new ILOperandDescriptor("src", ILOperandKind.Expression, 0, "MediumLevelILInstruction") } },
+			{ MediumLevelILOperation.MLIL_FLOOR, new ILOperandDescriptor[] { new ILOperandDescriptor("src", ILOperandKind.Expression, 0, "MediumLevelILInstruction") } },
+			{ MediumLevelILOperation.MLIL_CEIL, new ILOperandDescriptor[] { new ILOperandDescriptor("src", ILOperandKind.Expression, 0, "MediumLevelILInstruction") } },
+			{ MediumLevelILOperation.MLIL_FTRUNC, new ILOperandDescriptor[] { new ILOperandDescriptor("src", ILOperandKind.Expression, 0, "MediumLevelILInstruction") } },
+			{ MediumLevelILOperation.MLIL_VAR_SSA, new ILOperandDescriptor[] { new ILOperandDescriptor("var", ILOperandKind.SSAVariable, 0, "SSAVariable") } },
+			{ MediumLevelILOperation.MLIL_VAR_ALIASED, new ILOperandDescriptor[] { new ILOperandDescriptor("src", ILOperandKind.SSAVariable, 0, "SSAVariable") } },
+			{ MediumLevelILOperation.MLIL_CMP_E, new ILOperandDescriptor[] { new ILOperandDescriptor("left", ILOperandKind.Expression, 0, "MediumLevelILInstruction"), new ILOperandDescriptor("right", ILOperandKind.Expression, 1, "MediumLevelILInstruction") } },
+			{ MediumLevelILOperation.MLIL_CMP_NE, new ILOperandDescriptor[] { new ILOperandDescriptor("left", ILOperandKind.Expression, 0, "MediumLevelILInstruction"), new ILOperandDescriptor("right", ILOperandKind.Expression, 1, "MediumLevelILInstruction") } },
+			{ MediumLevelILOperation.MLIL_CMP_SLT, new ILOperandDescriptor[] { new ILOperandDescriptor("left", ILOperandKind.Expression, 0, "MediumLevelILInstruction"), new ILOperandDescriptor("right", ILOperandKind.Expression, 1, "MediumLevelILInstruction") } },
+			{ MediumLevelILOperation.MLIL_CMP_ULT, new ILOperandDescriptor[] { new ILOperandDescriptor("left", ILOperandKind.Expression, 0, "MediumLevelILInstruction"), new ILOperandDescriptor("right", ILOperandKind.Expression, 1, "MediumLevelILInstruction") } },
+			{ MediumLevelILOperation.MLIL_CMP_SLE, new ILOperandDescriptor[] { new ILOperandDescriptor("left", ILOperandKind.Expression, 0, "MediumLevelILInstruction"), new ILOperandDescriptor("right", ILOperandKind.Expression, 1, "MediumLevelILInstruction") } },
+			{ MediumLevelILOperation.MLIL_CMP_ULE, new ILOperandDescriptor[] { new ILOperandDescriptor("left", ILOperandKind.Expression, 0, "MediumLevelILInstruction"), new ILOperandDescriptor("right", ILOperandKind.Expression, 1, "MediumLevelILInstruction") } },
+			{ MediumLevelILOperation.MLIL_CMP_SGE, new ILOperandDescriptor[] { new ILOperandDescriptor("left", ILOperandKind.Expression, 0, "MediumLevelILInstruction"), new ILOperandDescriptor("right", ILOperandKind.Expression, 1, "MediumLevelILInstruction") } },
+			{ MediumLevelILOperation.MLIL_CMP_UGE, new ILOperandDescriptor[] { new ILOperandDescriptor("left", ILOperandKind.Expression, 0, "MediumLevelILInstruction"), new ILOperandDescriptor("right", ILOperandKind.Expression, 1, "MediumLevelILInstruction") } },
+			{ MediumLevelILOperation.MLIL_CMP_SGT, new ILOperandDescriptor[] { new ILOperandDescriptor("left", ILOperandKind.Expression, 0, "MediumLevelILInstruction"), new ILOperandDescriptor("right", ILOperandKind.Expression, 1, "MediumLevelILInstruction") } },
+			{ MediumLevelILOperation.MLIL_CMP_UGT, new ILOperandDescriptor[] { new ILOperandDescriptor("left", ILOperandKind.Expression, 0, "MediumLevelILInstruction"), new ILOperandDescriptor("right", ILOperandKind.Expression, 1, "MediumLevelILInstruction") } },
+			{ MediumLevelILOperation.MLIL_TEST_BIT, new ILOperandDescriptor[] { new ILOperandDescriptor("left", ILOperandKind.Expression, 0, "MediumLevelILInstruction"), new ILOperandDescriptor("right", ILOperandKind.Expression, 1, "MediumLevelILInstruction") } },
+			{ MediumLevelILOperation.MLIL_ADD_OVERFLOW, new ILOperandDescriptor[] { new ILOperandDescriptor("left", ILOperandKind.Expression, 0, "MediumLevelILInstruction"), new ILOperandDescriptor("right", ILOperandKind.Expression, 1, "MediumLevelILInstruction") } },
+			{ MediumLevelILOperation.MLIL_SYSCALL, new ILOperandDescriptor[] { new ILOperandDescriptor("output", ILOperandKind.VariableList, 0, "List[Variable]"), new ILOperandDescriptor("params", ILOperandKind.ExpressionList, 2, "List[MediumLevelILInstruction]") } },
+			{ MediumLevelILOperation.MLIL_VAR_SSA_FIELD, new ILOperandDescriptor[] { new ILOperandDescriptor("src", ILOperandKind.SSAVariable, 0, "SSAVariable"), new ILOperandDescriptor("offset", ILOperandKind.Integer, 2, "int") } },
+			{ MediumLevelILOperation.MLIL_VAR_ALIASED_FIELD, new ILOperandDescriptor[] { new ILOperandDescriptor("src", ILOperandKind.SSAVariable, 0, "SSAVariable"), new ILOperandDescriptor("offset", ILOperandKind.Integer, 2, "int") } },
+			{ MediumLevelILOperation.MLIL_VAR_SPLIT_SSA, new ILOperandDescriptor[] { new ILOperandDescriptor("high", ILOperandKind.SSAVariable, 0, "SSAVariable"), new ILOperandDescriptor("low", ILOperandKind.SSAVariable, 2, "SSAVariable") } },
+			{ MediumLevelILOperation.MLIL_CALL_OUTPUT_SSA, new ILOperandDescriptor[] { new ILOperandDescriptor("dest_memory", ILOperandKind.Integer, 0, "int"), new ILOperandDescriptor("dest", ILOperandKind.SSAVariableList, 1, "List[SSAVariable]") } },
+			{ MediumLevelILOperation.MLIL_CALL_PARAM_SSA, new ILOperandDescriptor[] { new ILOperandDescriptor("src_memory", ILOperandKind.Integer, 0, "int"), new ILOperandDescriptor("src", ILOperandKind.ExpressionList, 1, "List[MediumLevelILInstruction]") } },
+			{ MediumLevelILOperation.MLIL_LOAD_SSA, new ILOperandDescriptor[] { new ILOperandDescriptor("src", ILOperandKind.Expression, 0, "MediumLevelILInstruction"), new ILOperandDescriptor("src_memory", ILOperandKind.Integer, 1, "int") } },
+			{ MediumLevelILOperation.MLIL_VAR_PHI, new ILOperandDescriptor[] { new ILOperandDescriptor("dest", ILOperandKind.SSAVariable, 0, "SSAVariable"), new ILOperandDescriptor("src", ILOperandKind.SSAVariableList, 2, "List[SSAVariable]") } },
+			{ MediumLevelILOperation.MLIL_MEM_PHI, new ILOperandDescriptor[] { new ILOperandDescriptor("dest_memory", ILOperandKind.Integer, 0, "int"), new ILOperandDescriptor("src_memory", ILOperandKind.IntegerList, 1, "List[int]") } },
+			{ MediumLevelILOperation.MLIL_SET_VAR_SSA, new ILOperandDescriptor[] { new ILOperandDescriptor("dest", ILOperandKind.SSAVariable, 0, "SSAVariable"), new ILOperandDescriptor("src", ILOperandKind.Expression, 2, "MediumLevelILInstruction") } },
+			{ MediumLevelILOperation.MLIL_FCMP_E, new ILOperandDescriptor[] { new ILOperandDescriptor("left", ILOperandKind.Expression, 0, "MediumLevelILInstruction"), new ILOperandDescriptor("right", ILOperandKind.Expression, 1, "MediumLevelILInstruction") } },
+			{ MediumLevelILOperation.MLIL_FCMP_NE, new ILOperandDescriptor[] { new ILOperandDescriptor("left", ILOperandKind.Expression, 0, "MediumLevelILInstruction"), new ILOperandDescriptor("right", ILOperandKind.Expression, 1, "MediumLevelILInstruction") } },
+			{ MediumLevelILOperation.MLIL_FCMP_LT, new ILOperandDescriptor[] { new ILOperandDescriptor("left", ILOperandKind.Expression, 0, "MediumLevelILInstruction"), new ILOperandDescriptor("right", ILOperandKind.Expression, 1, "MediumLevelILInstruction") } },
+			{ MediumLevelILOperation.MLIL_FCMP_LE, new ILOperandDescriptor[] { new ILOperandDescriptor("left", ILOperandKind.Expression, 0, "MediumLevelILInstruction"), new ILOperandDescriptor("right", ILOperandKind.Expression, 1, "MediumLevelILInstruction") } },
+			{ MediumLevelILOperation.MLIL_FCMP_GE, new ILOperandDescriptor[] { new ILOperandDescriptor("left", ILOperandKind.Expression, 0, "MediumLevelILInstruction"), new ILOperandDescriptor("right", ILOperandKind.Expression, 1, "MediumLevelILInstruction") } },
+			{ MediumLevelILOperation.MLIL_FCMP_GT, new ILOperandDescriptor[] { new ILOperandDescriptor("left", ILOperandKind.Expression, 0, "MediumLevelILInstruction"), new ILOperandDescriptor("right", ILOperandKind.Expression, 1, "MediumLevelILInstruction") } },
+			{ MediumLevelILOperation.MLIL_FCMP_O, new ILOperandDescriptor[] { new ILOperandDescriptor("left", ILOperandKind.Expression, 0, "MediumLevelILInstruction"), new ILOperandDescriptor("right", ILOperandKind.Expression, 1, "MediumLevelILInstruction") } },
+			{ MediumLevelILOperation.MLIL_FCMP_UO, new ILOperandDescriptor[] { new ILOperandDescriptor("left", ILOperandKind.Expression, 0, "MediumLevelILInstruction"), new ILOperandDescriptor("right", ILOperandKind.Expression, 1, "MediumLevelILInstruction") } },
+			{ MediumLevelILOperation.MLIL_FADD, new ILOperandDescriptor[] { new ILOperandDescriptor("left", ILOperandKind.Expression, 0, "MediumLevelILInstruction"), new ILOperandDescriptor("right", ILOperandKind.Expression, 1, "MediumLevelILInstruction") } },
+			{ MediumLevelILOperation.MLIL_FSUB, new ILOperandDescriptor[] { new ILOperandDescriptor("left", ILOperandKind.Expression, 0, "MediumLevelILInstruction"), new ILOperandDescriptor("right", ILOperandKind.Expression, 1, "MediumLevelILInstruction") } },
+			{ MediumLevelILOperation.MLIL_FMUL, new ILOperandDescriptor[] { new ILOperandDescriptor("left", ILOperandKind.Expression, 0, "MediumLevelILInstruction"), new ILOperandDescriptor("right", ILOperandKind.Expression, 1, "MediumLevelILInstruction") } },
+			{ MediumLevelILOperation.MLIL_FDIV, new ILOperandDescriptor[] { new ILOperandDescriptor("left", ILOperandKind.Expression, 0, "MediumLevelILInstruction"), new ILOperandDescriptor("right", ILOperandKind.Expression, 1, "MediumLevelILInstruction") } },
+			{ MediumLevelILOperation.MLIL_JUMP_TO, new ILOperandDescriptor[] { new ILOperandDescriptor("dest", ILOperandKind.Expression, 0, "MediumLevelILInstruction"), new ILOperandDescriptor("targets", ILOperandKind.IntegerList, 1, "Dict[int, int]") } },
+			{ MediumLevelILOperation.MLIL_SET_VAR_ALIASED, new ILOperandDescriptor[] { new ILOperandDescriptor("dest", ILOperandKind.SSAVariable, 0, "SSAVariable"), new ILOperandDescriptor("prev", ILOperandKind.SSAVariable, 0, 2, "SSAVariable"), new ILOperandDescriptor("src", ILOperandKind.Expression, 3, "MediumLevelILInstruction") } },
+			{ MediumLevelILOperation.MLIL_SYSCALL_UNTYPED, new ILOperandDescriptor[] { new ILOperandDescriptor("stack", ILOperandKind.Expression, 2, "MediumLevelILInstruction") } },
+			{ MediumLevelILOperation.MLIL_TAILCALL, new ILOperandDescriptor[] { new ILOperandDescriptor("output", ILOperandKind.VariableList, 0, "List[Variable]"), new ILOperandDescriptor("dest", ILOperandKind.Expression, 2, "MediumLevelILInstruction"), new ILOperandDescriptor("params", ILOperandKind.ExpressionList, 3, "List[MediumLevelILInstruction]") } },
+			{ MediumLevelILOperation.MLIL_INTRINSIC, new ILOperandDescriptor[] { new ILOperandDescriptor("output", ILOperandKind.VariableList, 0, "List[Variable]"), new ILOperandDescriptor("intrinsic", ILOperandKind.Intrinsic, 2, "ILIntrinsic"), new ILOperandDescriptor("params", ILOperandKind.ExpressionList, 3, "List[MediumLevelILInstruction]") } },
+			{ MediumLevelILOperation.MLIL_INTRINSIC_SSA, new ILOperandDescriptor[] { new ILOperandDescriptor("output", ILOperandKind.SSAVariableList, 0, "List[SSAVariable]"), new ILOperandDescriptor("intrinsic", ILOperandKind.Intrinsic, 2, "ILIntrinsic"), new ILOperandDescriptor("params", ILOperandKind.ExpressionList, 3, "List[MediumLevelILInstruction]") } },
+			{ MediumLevelILOperation.MLIL_MEMORY_INTRINSIC_OUTPUT_SSA, new ILOperandDescriptor[] { new ILOperandDescriptor("dest_memory", ILOperandKind.Integer, 0, "int"), new ILOperandDescriptor("output", ILOperandKind.SSAVariableList, 1, "List[SSAVariable]") } },
+			{ MediumLevelILOperation.MLIL_MEMORY_INTRINSIC_SSA, new ILOperandDescriptor[] { new ILOperandDescriptor("intrinsic", ILOperandKind.Intrinsic, 1, "ILIntrinsic"), new ILOperandDescriptor("params", ILOperandKind.ExpressionList, 2, "List[MediumLevelILInstruction]"), new ILOperandDescriptor("src_memory", ILOperandKind.Integer, 4, "int") } },
+			{ MediumLevelILOperation.MLIL_SET_VAR_SSA_FIELD, new ILOperandDescriptor[] { new ILOperandDescriptor("dest", ILOperandKind.SSAVariable, 0, "SSAVariable"), new ILOperandDescriptor("prev", ILOperandKind.SSAVariable, 0, 2, "SSAVariable"), new ILOperandDescriptor("offset", ILOperandKind.Integer, 3, "int"), new ILOperandDescriptor("src", ILOperandKind.Expression, 4, "MediumLevelILInstruction") } },
+			{ MediumLevelILOperation.MLIL_SET_VAR_SPLIT_SSA, new ILOperandDescriptor[] { new ILOperandDescriptor("high", ILOperandKind.SSAVariable, 0, "SSAVariable"), new ILOperandDescriptor("low", ILOperandKind.SSAVariable, 2, "SSAVariable"), new ILOperandDescriptor("src", ILOperandKind.Expression, 4, "MediumLevelILInstruction") } },
+			{ MediumLevelILOperation.MLIL_SET_VAR_ALIASED_FIELD, new ILOperandDescriptor[] { new ILOperandDescriptor("dest", ILOperandKind.SSAVariable, 0, "SSAVariable"), new ILOperandDescriptor("prev", ILOperandKind.SSAVariable, 0, 2, "SSAVariable"), new ILOperandDescriptor("offset", ILOperandKind.Integer, 3, "int"), new ILOperandDescriptor("src", ILOperandKind.Expression, 4, "MediumLevelILInstruction") } },
+			{ MediumLevelILOperation.MLIL_SYSCALL_SSA, new ILOperandDescriptor[] { new ILOperandDescriptor("params", ILOperandKind.ExpressionList, 1, "List[MediumLevelILInstruction]"), new ILOperandDescriptor("src_memory", ILOperandKind.Integer, 3, "int") } },
+			{ MediumLevelILOperation.MLIL_SYSCALL_UNTYPED_SSA, new ILOperandDescriptor[] { new ILOperandDescriptor("stack", ILOperandKind.Expression, 2, "MediumLevelILInstruction") } },
+			{ MediumLevelILOperation.MLIL_LOAD_STRUCT_SSA, new ILOperandDescriptor[] { new ILOperandDescriptor("src", ILOperandKind.Expression, 0, "MediumLevelILInstruction"), new ILOperandDescriptor("offset", ILOperandKind.Integer, 1, "int"), new ILOperandDescriptor("src_memory", ILOperandKind.Integer, 2, "int") } },
+			{ MediumLevelILOperation.MLIL_SET_VAR_FIELD, new ILOperandDescriptor[] { new ILOperandDescriptor("dest", ILOperandKind.Variable, 0, "Variable"), new ILOperandDescriptor("offset", ILOperandKind.Integer, 1, "int"), new ILOperandDescriptor("src", ILOperandKind.Expression, 2, "MediumLevelILInstruction") } },
+			{ MediumLevelILOperation.MLIL_SET_VAR_SPLIT, new ILOperandDescriptor[] { new ILOperandDescriptor("high", ILOperandKind.Variable, 0, "Variable"), new ILOperandDescriptor("low", ILOperandKind.Variable, 1, "Variable"), new ILOperandDescriptor("src", ILOperandKind.Expression, 2, "MediumLevelILInstruction") } },
+			{ MediumLevelILOperation.MLIL_STORE_STRUCT, new ILOperandDescriptor[] { new ILOperandDescriptor("dest", ILOperandKind.Expression, 0, "MediumLevelILInstruction"), new ILOperandDescriptor("offset", ILOperandKind.Integer, 1, "int"), new ILOperandDescriptor("src", ILOperandKind.Expression, 2, "MediumLevelILInstruction") } },
+			{ MediumLevelILOperation.MLIL_ADC, new ILOperandDescriptor[] { new ILOperandDescriptor("left", ILOperandKind.Expression, 0, "MediumLevelILInstruction"), new ILOperandDescriptor("right", ILOperandKind.Expression, 1, "MediumLevelILInstruction"), new ILOperandDescriptor("carry", ILOperandKind.Expression, 2, "MediumLevelILInstruction") } },
+			{ MediumLevelILOperation.MLIL_SBB, new ILOperandDescriptor[] { new ILOperandDescriptor("left", ILOperandKind.Expression, 0, "MediumLevelILInstruction"), new ILOperandDescriptor("right", ILOperandKind.Expression, 1, "MediumLevelILInstruction"), new ILOperandDescriptor("carry", ILOperandKind.Expression, 2, "MediumLevelILInstruction") } },
+			{ MediumLevelILOperation.MLIL_RLC, new ILOperandDescriptor[] { new ILOperandDescriptor("left", ILOperandKind.Expression, 0, "MediumLevelILInstruction"), new ILOperandDescriptor("right", ILOperandKind.Expression, 1, "MediumLevelILInstruction"), new ILOperandDescriptor("carry", ILOperandKind.Expression, 2, "MediumLevelILInstruction") } },
+			{ MediumLevelILOperation.MLIL_RRC, new ILOperandDescriptor[] { new ILOperandDescriptor("left", ILOperandKind.Expression, 0, "MediumLevelILInstruction"), new ILOperandDescriptor("right", ILOperandKind.Expression, 1, "MediumLevelILInstruction"), new ILOperandDescriptor("carry", ILOperandKind.Expression, 2, "MediumLevelILInstruction") } },
+			{ MediumLevelILOperation.MLIL_TAILCALL_UNTYPED, new ILOperandDescriptor[] { new ILOperandDescriptor("dest", ILOperandKind.Expression, 1, "MediumLevelILInstruction"), new ILOperandDescriptor("stack", ILOperandKind.Expression, 3, "MediumLevelILInstruction") } },
+			{ MediumLevelILOperation.MLIL_CALL_SSA, new ILOperandDescriptor[] { new ILOperandDescriptor("dest", ILOperandKind.Expression, 1, "MediumLevelILInstruction"), new ILOperandDescriptor("params", ILOperandKind.ExpressionList, 2, "List[MediumLevelILInstruction]"), new ILOperandDescriptor("src_memory", ILOperandKind.Integer, 4, "int") } },
+			{ MediumLevelILOperation.MLIL_CALL_UNTYPED_SSA, new ILOperandDescriptor[] { new ILOperandDescriptor("dest", ILOperandKind.Expression, 1, "MediumLevelILInstruction"), new ILOperandDescriptor("stack", ILOperandKind.Expression, 3, "MediumLevelILInstruction") } },
+			{ MediumLevelILOperation.MLIL_TAILCALL_SSA, new ILOperandDescriptor[] { new ILOperandDescriptor("dest", ILOperandKind.Expression, 1, "MediumLevelILInstruction"), new ILOperandDescriptor("params", ILOperandKind.ExpressionList, 2, "List[MediumLevelILInstruction]"), new ILOperandDescriptor("src_memory", ILOperandKind.Integer, 4, "int") } },
+			{ MediumLevelILOperation.MLIL_TAILCALL_UNTYPED_SSA, new ILOperandDescriptor[] { new ILOperandDescriptor("dest", ILOperandKind.Expression, 1, "MediumLevelILInstruction"), new ILOperandDescriptor("stack", ILOperandKind.Expression, 3, "MediumLevelILInstruction") } },
+			{ MediumLevelILOperation.MLIL_CALL, new ILOperandDescriptor[] { new ILOperandDescriptor("output", ILOperandKind.VariableList, 0, "List[Variable]"), new ILOperandDescriptor("dest", ILOperandKind.Expression, 2, "MediumLevelILInstruction"), new ILOperandDescriptor("params", ILOperandKind.ExpressionList, 3, "List[MediumLevelILInstruction]") } },
+			{ MediumLevelILOperation.MLIL_IF, new ILOperandDescriptor[] { new ILOperandDescriptor("condition", ILOperandKind.Expression, 0, "MediumLevelILInstruction"), new ILOperandDescriptor("true", ILOperandKind.Integer, 1, "InstructionIndex"), new ILOperandDescriptor("false", ILOperandKind.Integer, 2, "InstructionIndex") } },
+			{ MediumLevelILOperation.MLIL_STORE_SSA, new ILOperandDescriptor[] { new ILOperandDescriptor("dest", ILOperandKind.Expression, 0, "MediumLevelILInstruction"), new ILOperandDescriptor("dest_memory", ILOperandKind.Integer, 1, "int"), new ILOperandDescriptor("src_memory", ILOperandKind.Integer, 2, "int"), new ILOperandDescriptor("src", ILOperandKind.Expression, 3, "MediumLevelILInstruction") } },
+			{ MediumLevelILOperation.MLIL_CALL_UNTYPED, new ILOperandDescriptor[] { new ILOperandDescriptor("dest", ILOperandKind.Expression, 1, "MediumLevelILInstruction"), new ILOperandDescriptor("stack", ILOperandKind.Expression, 3, "MediumLevelILInstruction") } },
+			{ MediumLevelILOperation.MLIL_STORE_STRUCT_SSA, new ILOperandDescriptor[] { new ILOperandDescriptor("dest", ILOperandKind.Expression, 0, "MediumLevelILInstruction"), new ILOperandDescriptor("offset", ILOperandKind.Integer, 1, "int"), new ILOperandDescriptor("dest_memory", ILOperandKind.Integer, 2, "int"), new ILOperandDescriptor("src_memory", ILOperandKind.Integer, 3, "int"), new ILOperandDescriptor("src", ILOperandKind.Expression, 4, "MediumLevelILInstruction") } },
+			{ MediumLevelILOperation.MLIL_ASSERT, new ILOperandDescriptor[] {  } },
+			{ MediumLevelILOperation.MLIL_ASSERT_SSA, new ILOperandDescriptor[] {  } },
+			{ MediumLevelILOperation.MLIL_FORCE_VER, new ILOperandDescriptor[] {  } },
+			{ MediumLevelILOperation.MLIL_FORCE_VER_SSA, new ILOperandDescriptor[] {  } },
+			};
+	}
+}
