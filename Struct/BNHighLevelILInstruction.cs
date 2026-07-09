@@ -1738,6 +1738,171 @@ namespace BinaryNinja
 			}
 		}
 
+		/// <summary>
+		/// Reads one raw operand slot as a signed integer, mirroring the integer operands exposed by
+		/// Python HighLevelILInstruction detailed_operands (e.g. StructField.offset, Const.constant).
+		/// </summary>
+		public long GetOperandAsInteger(OperandIndex operand)
+		{
+			return (long)this.RawOperands[(ulong)operand];
+		}
+
+		/// <summary>
+		/// The named, typed operands of this instruction, mirroring Python
+		/// HighLevelILInstruction.detailed_operands (highlevelil.py:795). Each entry pairs the operand
+		/// name (e.g. "left", "src", "condition"), its value, its kind, and the Python type string.
+		/// Operations with no operands return an empty list. This is the foundation for
+		/// <see cref="Operands"/> and <see cref="Traverse{T}"/>.
+		/// </summary>
+		public virtual IList<HighLevelILOperand> DetailedOperands
+		{
+			get
+			{
+				if (false == HighLevelILDetailedOperandsTable.Table.TryGetValue(
+						this.Operation, out HighLevelILOperandDescriptor[]? descriptors))
+				{
+					return new List<HighLevelILOperand>();
+				}
+
+				List<HighLevelILOperand> result = new List<HighLevelILOperand>(descriptors.Length);
+
+				foreach (HighLevelILOperandDescriptor descriptor in descriptors)
+				{
+					object? value = this.ReadDetailedOperandByKind(descriptor.Kind, descriptor.RawIndex);
+					result.Add(new HighLevelILOperand(
+						descriptor.Name, value, descriptor.Kind, descriptor.TypeName));
+				}
+
+				return result;
+			}
+		}
+
+		/// <summary>
+		/// Reads one operand by its descriptor kind. An SSA variable occupies two raw slots -- the
+		/// variable identifier at RawIndex and its version at RawIndex + 1.
+		/// </summary>
+		private object? ReadDetailedOperandByKind(HighLevelILOperandKind kind, int rawIndex)
+		{
+			OperandIndex index = (OperandIndex)(ulong)rawIndex;
+
+			switch (kind)
+			{
+				case HighLevelILOperandKind.Expression:
+					return this.GetOperandAsExpression(index);
+
+				case HighLevelILOperandKind.ExpressionList:
+					return this.GetOperandAsExpressionList(index);
+
+				case HighLevelILOperandKind.Integer:
+					return this.GetOperandAsInteger(index);
+
+				case HighLevelILOperandKind.IntegerList:
+					return this.GetOperandAsIntegerArray<long>(index);
+
+				case HighLevelILOperandKind.Variable:
+					return this.GetOperandAsVariable(index);
+
+				case HighLevelILOperandKind.VariableList:
+					return this.GetOperandAsVariableList(index);
+
+				case HighLevelILOperandKind.SSAVariable:
+					return this.GetOperandAsSSAVariable(index, (OperandIndex)(ulong)(rawIndex + 1));
+
+				case HighLevelILOperandKind.SSAVariableList:
+					return this.GetOperandAsSSAVariableList(index);
+
+				case HighLevelILOperandKind.Float:
+					return this.GetOperandAsDouble(index);
+
+				case HighLevelILOperandKind.GotoLabel:
+					return this.GetOperandAsLabel(index);
+
+				case HighLevelILOperandKind.ConstantData:
+					return this.GetOperandAsConstantData(index, (OperandIndex)(ulong)(rawIndex + 1));
+
+				case HighLevelILOperandKind.Intrinsic:
+					return this.GetOperandAsIntrinsic(index);
+
+				default:
+					return null;
+			}
+		}
+
+		/// <summary>
+		/// The operand values of this instruction (the value component of
+		/// <see cref="DetailedOperands"/>), mirroring Python HighLevelILInstruction.operands
+		/// (highlevelil.py:786). Prefer the named accessors (Source, Left, Condition, ...) when the
+		/// operand kind is known at the call site.
+		/// </summary>
+		public IList<object?> Operands
+		{
+			get
+			{
+				IList<HighLevelILOperand> detailed = this.DetailedOperands;
+				List<object?> result = new List<object?>(detailed.Count);
+
+				foreach (HighLevelILOperand operand in detailed)
+				{
+					result.Add(operand.Value);
+				}
+
+				return result;
+			}
+		}
+
+		/// <summary>
+		/// Depth-first traversal of this instruction's operand tree, mirroring Python
+		/// HighLevelILInstruction.traverse (highlevelil.py:802). The callback is invoked on this node
+		/// and every reachable sub-instruction; each non-null result is yielded. Pass a named method
+		/// (method group) as the callback. When <paramref name="shallow"/> is true (the default) the
+		/// block bodies, switch cases/defaults, and if true/false branches are not descended into,
+		/// matching Python's blacklisted operand names.
+		/// </summary>
+		/// <typeparam name="T">The result type; constrained to a reference type so null signals
+		/// "do not yield".</typeparam>
+		public IEnumerable<T> Traverse<T>(
+			Func<HighLevelILInstruction, T?> callback, bool shallow = true) where T : class
+		{
+			T? root = callback(this);
+
+			if (null != root)
+			{
+				yield return root;
+			}
+
+			foreach (HighLevelILOperand operand in this.DetailedOperands)
+			{
+				if (shallow && HighLevelILInstruction.ShallowTraversalBlacklist.Contains(operand.Name))
+				{
+					continue;
+				}
+
+				if (operand.Value is HighLevelILInstruction subInstruction)
+				{
+					foreach (T nested in subInstruction.Traverse<T>(callback, shallow))
+					{
+						yield return nested;
+					}
+				}
+				else if (operand.Value is HighLevelILInstruction[] subList)
+				{
+					foreach (HighLevelILInstruction item in subList)
+					{
+						foreach (T nested in item.Traverse<T>(callback, shallow))
+						{
+							yield return nested;
+						}
+					}
+				}
+			}
+		}
+
+		// Operand names Python skips during shallow traversal (highlevelil.py:826): descending into
+		// block bodies, switch cases/defaults, or if true/false branches would leave the enclosing
+		// instruction's scope. Allocated once and reused across traversals.
+		private static readonly HashSet<string> ShallowTraversalBlacklist =
+			new HashSet<string> { "true", "false", "body", "cases", "default" };
+
 
     }
 }

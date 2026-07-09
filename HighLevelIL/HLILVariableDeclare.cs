@@ -11,7 +11,7 @@ namespace BinaryNinja
 			
 		}
 		
-		/*
+		/// <summary>The declared variable (Python HighLevelILVarDeclare.var, highlevelil.py).</summary>
 		public HighLevelILVariable Variable
 		{
 			get
@@ -19,6 +19,5 @@ namespace BinaryNinja
 				return this.GetOperandAsVariable((OperandIndex)0);
 			}
 		}
-		*/
 	}
 }
