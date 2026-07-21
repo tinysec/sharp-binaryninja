@@ -3,7 +3,13 @@ using System;
 namespace BinaryNinja
 {
 	/// <summary>
-	/// BNMediumLevelILOperation
+	/// BNMediumLevelILOperation. Values are auto-numbered from declaration order,
+	/// so this ordering MUST match the installed Binary Ninja core (5.3.9757 /
+	/// python api revision aa25bfc) byte-for-byte. The installed core emits 140
+	/// operations; binding an instruction's native operation byte to this enum is
+	/// the foundation of <see cref="MediumLevelILInstruction.Operation"/>,
+	/// <see cref="MediumLevelILInstruction.FromExpressionIndex"/>, and the operand
+	/// tables.
 	/// </summary>
     public enum MediumLevelILOperation : byte
 	{
@@ -22,8 +28,6 @@ namespace BinaryNinja
 		MLIL_VAR_SPLIT,
 		MLIL_ADDRESS_OF,
 		MLIL_ADDRESS_OF_FIELD,
-		MLIL_PASS_BY_REF,
-		MLIL_RETURN_BY_REF,
 		MLIL_CONST,
 		MLIL_CONST_DATA,
 		MLIL_CONST_PTR,
@@ -65,12 +69,10 @@ namespace BinaryNinja
 		MLIL_RET_HINT,
 		MLIL_CALL,
 		MLIL_CALL_UNTYPED,
+		MLIL_CALL_OUTPUT,
 		MLIL_CALL_PARAM,
 		MLIL_SEPARATE_PARAM_LIST,
 		MLIL_SHARED_PARAM_SLOT,
-		MLIL_VAR_OUTPUT,
-		MLIL_VAR_OUTPUT_FIELD,
-		MLIL_STORE_OUTPUT,
 		MLIL_RET,
 		MLIL_NORET,
 		MLIL_IF,
@@ -141,10 +143,6 @@ namespace BinaryNinja
 		MLIL_TAILCALL_UNTYPED_SSA,
 		MLIL_CALL_PARAM_SSA,
 		MLIL_CALL_OUTPUT_SSA,
-		MLIL_VAR_OUTPUT_SSA,
-		MLIL_VAR_OUTPUT_SSA_FIELD,
-		MLIL_VAR_OUTPUT_ALIASED,
-		MLIL_VAR_OUTPUT_ALIASED_FIELD,
 		MLIL_MEMORY_INTRINSIC_OUTPUT_SSA,
 		MLIL_LOAD_SSA,
 		MLIL_LOAD_STRUCT_SSA,
@@ -154,18 +152,6 @@ namespace BinaryNinja
 		MLIL_MEMORY_INTRINSIC_SSA,
 		MLIL_FREE_VAR_SLOT_SSA,
 		MLIL_VAR_PHI,
-		MLIL_MEM_PHI,
-		MLIL_BLOCK_TO_EXPAND,
-		MLIL_BSWAP,
-		MLIL_POPCNT,
-		MLIL_CLZ,
-		MLIL_CTZ,
-		MLIL_RBIT,
-		MLIL_CLS,
-		MLIL_MINS,
-		MLIL_MAXS,
-		MLIL_MINU,
-		MLIL_MAXU,
-		MLIL_ABS
+		MLIL_MEM_PHI
 	}
 }
