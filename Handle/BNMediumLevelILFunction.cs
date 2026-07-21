@@ -2426,7 +2426,7 @@ namespace BinaryNinja
 	    )
 	    {
 		    return this.AddExpression(
-			    MediumLevelILOperation.MLIL_VAR_OUTPUT,
+			    MediumLevelILOperation.MLIL_CALL_OUTPUT,
 			    location,
 			    0,
 			    (ulong)outputs.Length,

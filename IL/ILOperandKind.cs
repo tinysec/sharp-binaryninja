@@ -46,6 +46,65 @@ namespace BinaryNinja
 		ConstantData,
 
 		/// <summary>An intrinsic reference (Python type "ILIntrinsic").</summary>
-		Intrinsic
+		Intrinsic,
+
+		// --- MediumLevelIL sub-instruction-derived operands ---
+		//
+		// The eight kinds below serve operands whose VALUE lives inside a nested sub-instruction
+		// expression (a CallOutput / CallParam / MemoryIntrinsicOutput wrapper) rather than in a
+		// flat raw slot of the enclosing instruction. They are read by fetching the sub-instruction
+		// at <see cref="ILOperandDescriptor.RawIndex"/> (GetOperandAsExpression) and returning one
+		// of its existing properties. Each kind names the sub-instruction class it casts to and the
+		// property it reads, so the dispatch in MediumLevelILInstruction.ReadDetailedOperandByKind
+		// stays a flat switch with one case per kind. HighLevelIL never produces these (its call
+		// operands are flat lists), so they carry no HighLevelIL reader.
+
+		/// <summary>
+		/// The output variables of a non-SSA call/syscall/tailcall, reached by reading the
+		/// MLILCallOutput sub-instruction's Destination (Python "List[Variable]").
+		/// </summary>
+		CallOutputVariables,
+
+		/// <summary>
+		/// The parameter expressions of a non-SSA call/syscall/tailcall, reached by reading the
+		/// MLILCallParam sub-instruction's Source (Python "List[MediumLevelILInstruction]").
+		/// </summary>
+		CallParamExpressions,
+
+		/// <summary>
+		/// The output SSA variables of an SSA call/syscall/tailcall, reached by reading the
+		/// MLILCallOutputSSA sub-instruction's Destination (Python "List[SSAVariable]").
+		/// </summary>
+		CallOutputSsaVariables,
+
+		/// <summary>
+		/// The output destination-memory version of an SSA call/syscall/tailcall, reached by
+		/// reading the MLILCallOutputSSA sub-instruction's DestinationMemory (Python "int").
+		/// </summary>
+		CallOutputSsaMemory,
+
+		/// <summary>
+		/// The parameter expressions of an untyped SSA call/syscall/tailcall, reached by reading
+		/// the MLILCallParamSSA sub-instruction's Source (Python "List[MediumLevelILInstruction]").
+		/// </summary>
+		CallParamSsaExpressions,
+
+		/// <summary>
+		/// The parameter source-memory version of an untyped SSA call/syscall, reached by reading
+		/// the MLILCallParamSSA sub-instruction's SourceMemory (Python "int").
+		/// </summary>
+		CallParamSsaMemory,
+
+		/// <summary>
+		/// The output SSA variables of MLIL_MEMORY_INTRINSIC_SSA, reached by reading the
+		/// MLILMemoryIntrinsicOutputSSA sub-instruction's Output (Python "List[SSAVariable]").
+		/// </summary>
+		MemoryIntrinsicOutputSsaVariables,
+
+		/// <summary>
+		/// The destination-memory version of MLIL_MEMORY_INTRINSIC_SSA, reached by reading the
+		/// MLILMemoryIntrinsicOutputSSA sub-instruction's DestinationMemory (Python "int").
+		/// </summary>
+		MemoryIntrinsicOutputSsaMemory
 	}
 }

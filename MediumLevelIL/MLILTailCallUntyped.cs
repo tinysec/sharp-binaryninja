@@ -1,3 +1,5 @@
+using System;
+
 namespace BinaryNinja
 {
 	public sealed class MLILTailCallUntyped : MediumLevelILInstruction
@@ -11,14 +13,25 @@ namespace BinaryNinja
 			
 		}
 		
+		// output and params are DERIVED: slots 0 and 2 hold MLILCallOutput / MLILCallParam
+		// sub-instruction expressions whose own dest / src hold the variable / expression lists
+		// (mirrors MediumLevelILTailcallUntyped in mediumlevelil.py and the sibling MLILCallUntyped
+		// / MLILSysCallUntyped wrappers). The earlier flat readers misread those slots as lists.
 		public MediumLevelILVariable[] Output
 		{
 			get
 			{
-				return this.GetOperandAsVariableList(0);
+				MLILCallOutput? instruction = this.GetOperandAsExpression(0) as MLILCallOutput;
+
+				if (null == instruction)
+				{
+					throw new Exception("must be MediumLevelILCallOutput");
+				}
+
+				return instruction.Destination;
 			}
 		}
-		
+
 		public MediumLevelILInstruction Dest
 		{
 			get
@@ -26,12 +39,19 @@ namespace BinaryNinja
 				return this.GetOperandAsExpression((OperandIndex)1);
 			}
 		}
-		
+
 		public MediumLevelILInstruction[] Parameters
 		{
 			get
 			{
-				return this.GetOperandAsExpressionList((OperandIndex)2);
+				MLILCallParam? instruction = this.GetOperandAsExpression((OperandIndex)2) as MLILCallParam;
+
+				if (null == instruction)
+				{
+					throw new Exception("must be MediumLevelILCallParam");
+				}
+
+				return instruction.Source;
 			}
 		}
 		

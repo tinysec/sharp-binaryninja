@@ -132,7 +132,7 @@ namespace BinaryNinja
         	{ MediumLevelILOperation.MLIL_RET_HINT, 1 },  // dest(expr)@0
         	{ MediumLevelILOperation.MLIL_CALL, 3 }, // dest, params(list), outputs(list)
         	{ MediumLevelILOperation.MLIL_CALL_UNTYPED, 4 }, // output(subexpr)@0, dest@1, params(subexpr)@2, stack@3
-        	{ MediumLevelILOperation.MLIL_VAR_OUTPUT, 2 }, // outputLoc, sourceExpr
+        	{ MediumLevelILOperation.MLIL_CALL_OUTPUT, 2 }, // outputLoc, sourceExpr
         	{ MediumLevelILOperation.MLIL_CALL_PARAM, 2 }, // paramLoc, sourceExpr
         	{ MediumLevelILOperation.MLIL_SEPARATE_PARAM_LIST, 2 }, // intParams(list), floatParams(list)
         	{ MediumLevelILOperation.MLIL_SHARED_PARAM_SLOT, 2 }, // slot, size
@@ -217,18 +217,6 @@ namespace BinaryNinja
         	{ MediumLevelILOperation.MLIL_FREE_VAR_SLOT_SSA, 3 },  // destSSAVariable(var,version), prev
         	{ MediumLevelILOperation.MLIL_VAR_PHI, 3 },  // destSSAVariable(var,version), sourceSSAVariables(list)
         	{ MediumLevelILOperation.MLIL_MEM_PHI, 2 },  // destMemoryVersion, sourceMemoryVersions(list)
-
-        	{ MediumLevelILOperation.MLIL_ABS, 1 },    // src
-        	{ MediumLevelILOperation.MLIL_BSWAP, 1 },  // src
-        	{ MediumLevelILOperation.MLIL_CLS, 1 },    // src
-        	{ MediumLevelILOperation.MLIL_CLZ, 1 },    // src
-        	{ MediumLevelILOperation.MLIL_CTZ, 1 },    // src
-        	{ MediumLevelILOperation.MLIL_POPCNT, 1 }, // src
-        	{ MediumLevelILOperation.MLIL_RBIT, 1 },   // src
-        	{ MediumLevelILOperation.MLIL_MAXS, 2 },   // left, right
-        	{ MediumLevelILOperation.MLIL_MAXU, 2 },   // left, right
-        	{ MediumLevelILOperation.MLIL_MINS, 2 },   // left, right
-        	{ MediumLevelILOperation.MLIL_MINU, 2 },   // left, right
 		};
 		
 		internal MediumLevelILInstruction(
@@ -520,7 +508,7 @@ namespace BinaryNinja
 				{
 					return new MLILCallUntyped(ilFunction ,  expressionIndex , native);
 				}
-				case MediumLevelILOperation.MLIL_VAR_OUTPUT:
+				case MediumLevelILOperation.MLIL_CALL_OUTPUT:
 				{
 					return new MLILCallOutput(ilFunction ,  expressionIndex , native);
 				}
@@ -855,23 +843,6 @@ namespace BinaryNinja
 				case MediumLevelILOperation.MLIL_MEM_PHI:
 				{
 					return new MLILMemoryPhi(ilFunction ,  expressionIndex , native);
-				}
-				case MediumLevelILOperation.MLIL_ABS:
-				case MediumLevelILOperation.MLIL_BSWAP:
-				case MediumLevelILOperation.MLIL_CLS:
-				case MediumLevelILOperation.MLIL_CLZ:
-				case MediumLevelILOperation.MLIL_CTZ:
-				case MediumLevelILOperation.MLIL_POPCNT:
-				case MediumLevelILOperation.MLIL_RBIT:
-				{
-					return new MLILGenericUnary(ilFunction , expressionIndex , native);
-				}
-				case MediumLevelILOperation.MLIL_MAXS:
-				case MediumLevelILOperation.MLIL_MAXU:
-				case MediumLevelILOperation.MLIL_MINS:
-				case MediumLevelILOperation.MLIL_MINU:
-				{
-					return new MLILGenericBinary(ilFunction , expressionIndex , native);
 				}
 				default:
 				{
@@ -1472,9 +1443,11 @@ namespace BinaryNinja
 		/// string. Operations with no operands return an empty list. This is the foundation for
 		/// <see cref="Operands"/> and <see cref="Traverse{T}"/>.
 		///
-		/// See MediumLevelILDetailedOperandsTable for the known gap: the derived (sub-instruction)
-		/// operands of the call/syscall/intrinsic family are omitted because they cannot be served by
-		/// a flat raw-slot reader.
+		/// See MediumLevelILDetailedOperandsTable: the call/syscall/intrinsic family's derived
+		/// operands (output / params / output_dest_memory / params_src_memory) live inside nested
+		/// CallOutput / CallParam / MemoryIntrinsicOutput sub-instructions and are served by the
+		/// eight ILOperandKind.CallOutput* / CallParam* / MemoryIntrinsicOutput* variants, which
+		/// this reader dispatches below.
 		/// </summary>
 		public virtual IList<ILOperand> DetailedOperands
 		{
@@ -1548,6 +1521,36 @@ namespace BinaryNinja
 
 				case ILOperandKind.Intrinsic:
 					return this.GetOperandAsIntrinsic(index);
+
+				// Sub-instruction-derived operands: the value lives inside a CallOutput / CallParam
+				// / MemoryIntrinsicOutput wrapper expression at RawIndex, not in a flat raw slot.
+				// GetOperandAsExpression returns the typed wrapper (FromExpressionIndex maps each
+				// opcode to its wrapper class); cast and read the named property, which itself calls
+				// the correct flat reader on the sub-instruction at its own slot.
+				case ILOperandKind.CallOutputVariables:
+					return ((MLILCallOutput)this.GetOperandAsExpression(index)).Destination;
+
+				case ILOperandKind.CallParamExpressions:
+					return ((MLILCallParam)this.GetOperandAsExpression(index)).Source;
+
+				case ILOperandKind.CallOutputSsaVariables:
+					return ((MLILCallOutputSSA)this.GetOperandAsExpression(index)).Destination;
+
+				case ILOperandKind.CallOutputSsaMemory:
+					return ((MLILCallOutputSSA)this.GetOperandAsExpression(index)).DestinationMemory;
+
+				case ILOperandKind.CallParamSsaExpressions:
+					return ((MLILCallParamSSA)this.GetOperandAsExpression(index)).Source;
+
+				case ILOperandKind.CallParamSsaMemory:
+					return ((MLILCallParamSSA)this.GetOperandAsExpression(index)).SourceMemory;
+
+				case ILOperandKind.MemoryIntrinsicOutputSsaVariables:
+					return ((MLILMemoryIntrinsicOutputSSA)this.GetOperandAsExpression(index)).Output;
+
+				case ILOperandKind.MemoryIntrinsicOutputSsaMemory:
+					return ((MLILMemoryIntrinsicOutputSSA)this.GetOperandAsExpression(index))
+						.DestinationMemory;
 
 				default:
 					return null;
