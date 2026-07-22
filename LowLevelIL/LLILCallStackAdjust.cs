@@ -20,20 +20,37 @@ namespace BinaryNinja
 				return this.GetOperandAsExpression((OperandIndex)0);
 			}
 		}
+
+		public LowLevelILInstruction Destination
+		{
+			get
+			{
+				return this.Dest;
+			}
+		}
 		
+		public long StackAdjustment
+		{
+			get
+			{
+				return unchecked((long)this.RawOperands[1]);
+			}
+		}
+
+		[System.Obsolete("Use StackAdjustment instead.")]
 		public ulong StackRdjustment
 		{
 			get
 			{
-				return this.RawOperands[1];
+				return unchecked((ulong)this.StackAdjustment);
 			}
 		}
 		
-		public IDictionary<RegisterStackIndex,ulong> RegisterStackAdjustments
+		public IDictionary<RegisterStackIndex,long> RegisterStackAdjustments
 		{
 			get
 			{
-				return this.GetOperandAsRegisterStackDict((OperandIndex)0);
+				return this.GetOperandAsRegisterStackDict((OperandIndex)2);
 			}
 		}
 	}

@@ -11,11 +11,20 @@ namespace BinaryNinja
 			
 		}
 
-		public ILRegister Destionation
+		public ILRegister Destination
 		{
 			get
 			{
 				return this.GetOperandAsRegister(0);
+			}
+		}
+
+		[System.Obsolete("Use Destination instead.")]
+		public ILRegister Destionation
+		{
+			get
+			{
+				return this.Destination;
 			}
 		}
 		
