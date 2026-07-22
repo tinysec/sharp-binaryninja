@@ -6863,14 +6863,30 @@ namespace BinaryNinja
 	    /// <param name="info">The relocation info describing the relocation parameters.</param>
 	    /// <param name="target">The target address of the relocation.</param>
 	    /// <param name="reloc">The address of the relocation entry.</param>
-	    internal void DefineRelocation(Architecture arch , BNRelocationInfo info , ulong target , ulong reloc)
+	    public void DefineRelocation(
+		    Architecture arch,
+		    RelocationInfo info,
+		    ulong target,
+		    ulong reloc
+	    )
 	    {
+		    if (null == arch)
+		    {
+			    throw new ArgumentNullException(nameof(arch));
+		    }
+
+		    if (null == info)
+		    {
+			    throw new ArgumentNullException(nameof(info));
+		    }
+
+		    BNRelocationInfo native = info.ToNative(default(BNRelocationInfo));
 		    using (ScopedAllocator allocator = new ScopedAllocator())
 		    {
 			    NativeMethods.BNDefineRelocation(
 				    this.handle ,
 				    arch.DangerousGetHandle() ,
-				    allocator.AllocStruct<BNRelocationInfo>(info) ,
+				    allocator.AllocStruct<BNRelocationInfo>(native) ,
 				    target ,
 				    reloc
 			    );
@@ -6884,18 +6900,50 @@ namespace BinaryNinja
 	    /// <param name="info">The relocation info describing the relocation parameters.</param>
 	    /// <param name="target">The target symbol of the relocation.</param>
 	    /// <param name="reloc">The address of the relocation entry.</param>
-	    internal void DefineSymbolRelocation(Architecture arch , BNRelocationInfo info , Symbol target , ulong reloc)
+	    public void DefineRelocation(
+		    Architecture arch,
+		    RelocationInfo info,
+		    Symbol target,
+		    ulong reloc
+	    )
 	    {
+		    if (null == arch)
+		    {
+			    throw new ArgumentNullException(nameof(arch));
+		    }
+
+		    if (null == info)
+		    {
+			    throw new ArgumentNullException(nameof(info));
+		    }
+
+		    if (null == target)
+		    {
+			    throw new ArgumentNullException(nameof(target));
+		    }
+
+		    BNRelocationInfo native = info.ToNative(default(BNRelocationInfo));
 		    using (ScopedAllocator allocator = new ScopedAllocator())
 		    {
 			    NativeMethods.BNDefineSymbolRelocation(
 				    this.handle ,
 				    arch.DangerousGetHandle() ,
-				    allocator.AllocStruct<BNRelocationInfo>(info) ,
+				    allocator.AllocStruct<BNRelocationInfo>(native) ,
 				    target.DangerousGetHandle() ,
 				    reloc
 			    );
 		    }
+	    }
+
+	    /// <summary>Defines a relocation with a symbol as the target.</summary>
+	    public void DefineSymbolRelocation(
+		    Architecture arch,
+		    RelocationInfo info,
+		    Symbol target,
+		    ulong reloc
+	    )
+	    {
+		    this.DefineRelocation(arch, info, target, reloc);
 	    }
 
 	    // ─── All type reference methods ──────────────────────────────────────────
