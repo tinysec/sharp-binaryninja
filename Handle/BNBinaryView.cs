@@ -9,6 +9,8 @@ namespace BinaryNinja
 {
 	public sealed class BinaryView : AbstractSafeHandle<BinaryView> , IEnumerable<Function>
 	{
+		private CustomFileAccessor? backingFileAccessor;
+
 		/// <summary>
 		/// Iterates the analysis functions in this view, so that
 		/// <c>foreach (Function function in view)</c> works. Mirrors Python's
@@ -107,6 +109,37 @@ namespace BinaryNinja
 					filename
 				)
 			);
+		}
+
+		/// <summary>Creates a raw binary view backed by a custom file accessor.</summary>
+		/// <param name="accessor">The accessor that supplies the file contents.</param>
+		/// <param name="file">Optional metadata to associate with the view.</param>
+		/// <returns>The raw view, or null when the core cannot create it.</returns>
+		public static BinaryView? FromFile(
+			CustomFileAccessor accessor,
+			FileMetadata? file = null
+		)
+		{
+			if (null == accessor)
+			{
+				throw new ArgumentNullException(nameof(accessor));
+			}
+
+			FileMetadata actualFile = file ?? new FileMetadata();
+			BNFileAccessor nativeAccessor = accessor.ToNative();
+			BinaryView? result = BinaryView.TakeHandle(
+				NativeMethods.BNCreateBinaryDataViewFromFile(
+					actualFile.DangerousGetHandle(),
+					in nativeAccessor
+				)
+			);
+			if (null != result)
+			{
+				result.backingFileAccessor = accessor;
+			}
+
+			GC.KeepAlive(accessor);
+			return result;
 		}
 
 		public static BinaryView? Create(FileMetadata file)
