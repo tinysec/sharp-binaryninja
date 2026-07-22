@@ -507,7 +507,9 @@ namespace BinaryNinja
 				}
 				case HighLevelILOperation.HLIL_LSL:
 				{
+					#pragma warning disable CS0618
 					return new HLILLogicalShiftLef(ilFunction, expressionIndex , native);
+					#pragma warning restore CS0618
 				}
 				case HighLevelILOperation.HLIL_LSR:
 				{
@@ -515,7 +517,9 @@ namespace BinaryNinja
 				}
 				case HighLevelILOperation.HLIL_ASR:
 				{
+					#pragma warning disable CS0618
 					return new HlilArithmeticShiftRight(ilFunction, expressionIndex , native);
+					#pragma warning restore CS0618
 				}
 				case HighLevelILOperation.HLIL_ROL:
 				{
@@ -572,7 +576,9 @@ namespace BinaryNinja
 				}
 				case HighLevelILOperation.HLIL_MODS:
 				{
+					#pragma warning disable CS0618
 					return new HlilModSigned(ilFunction, expressionIndex , native);
+					#pragma warning restore CS0618
 				}
 				case HighLevelILOperation.HLIL_MODS_DP:
 				{

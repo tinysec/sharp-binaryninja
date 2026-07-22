@@ -1,6 +1,6 @@
 namespace BinaryNinja
 {
-	public sealed class HLILBoolToInt : HighLevelILInstruction
+	public sealed class HLILBoolToInt : AbstractHighLevelILUnaryInstruction
 	{
 		internal HLILBoolToInt(
 			HighLevelILFunction ilFunction, 
@@ -11,12 +11,5 @@ namespace BinaryNinja
 			
 		}
 		
-		public HighLevelILInstruction Left
-		{
-			get
-			{
-				return this.GetOperandAsExpression(0);
-			}
-		}
 	}
 }

@@ -1,6 +1,7 @@
 namespace BinaryNinja
 {
-	public sealed class HlilArithmeticShiftRight : HighLevelILInstruction
+	[System.Obsolete("Use HLILArithmeticShiftRight instead.")]
+	public sealed class HlilArithmeticShiftRight : HLILArithmeticShiftRight
 	{
 		internal HlilArithmeticShiftRight(
 			HighLevelILFunction ilFunction, 
@@ -9,22 +10,6 @@ namespace BinaryNinja
 		) : base(ilFunction , expressionIndex, native)
 		{
 			
-		}
-		
-		public HighLevelILInstruction Left
-		{
-			get
-			{
-				return this.GetOperandAsExpression(0);
-			}
-		}
-		
-		public HighLevelILInstruction Right
-		{
-			get
-			{
-				return this.GetOperandAsExpression((OperandIndex)1);
-			}
 		}
 	}
 }
