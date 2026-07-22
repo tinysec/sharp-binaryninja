@@ -1125,16 +1125,16 @@ namespace BinaryNinja
 	    }
 	    
 	    public HighLevelILExpressionIndex EmitDoWhile(
-		    HighLevelILExpressionIndex condition,
 		    HighLevelILExpressionIndex loop,
+		    HighLevelILExpressionIndex condition,
 		    SourceLocation? location = null)
 	    {
 		    return this.AddExpression(
 			    HighLevelILOperation.HLIL_DO_WHILE ,
 			    location,
 			    0,
-			    (ulong)condition,
-			    (ulong)loop
+			    (ulong)loop,
+			    (ulong)condition
 		    );
 	    }
 	    
@@ -1156,6 +1156,7 @@ namespace BinaryNinja
 		    );
 	    }
 	    
+	    [System.Obsolete("Use EmitSwitch instead.")]
 	    public HighLevelILExpressionIndex EmitSwtich(
 		    HighLevelILExpressionIndex condition,
 		    HighLevelILExpressionIndex defaultExpr,
@@ -1319,6 +1320,7 @@ namespace BinaryNinja
 		    );
 	    }
 	    
+	    [System.Obsolete("Use the EmitAssignUnpack overload without a size.")]
 	    public HighLevelILExpressionIndex EmitAssignUnpack(
 		    ulong size,
 		    HighLevelILExpressionIndex[] output,
