@@ -80,6 +80,8 @@ namespace BinaryNinja
 
         public ulong Length { get; }
 
+        public CustomStringType? CustomType { get; }
+
         /// <summary>
         /// Constructs a value-only DerivedString with no location, mirroring Python
         /// <c>DerivedString(value=..., location=None, custom_type=None)</c> for the common case of
@@ -87,7 +89,24 @@ namespace BinaryNinja
         /// <see cref="HighLevelILFunction.SetDerivedStringReferenceForExpr"/>.
         /// </summary>
         public DerivedString(string value)
-            : this(value, false, 0, 0UL, 0UL)
+            : this(value, false, 0, 0UL, 0UL, null)
+        {
+        }
+
+        /// <summary>Constructs a derived string with an explicit source location and type.</summary>
+        public DerivedString(
+            string value,
+            DerivedStringLocationType locationType,
+            ulong address,
+            ulong length,
+            CustomStringType? customType = null)
+            : this(value, true, (int)locationType, address, length, customType)
+        {
+        }
+
+        /// <summary>Constructs a value-only derived string with an explicit custom type.</summary>
+        public DerivedString(string value, CustomStringType customType)
+            : this(value, false, 0, 0UL, 0UL, customType)
         {
         }
 
@@ -96,13 +115,15 @@ namespace BinaryNinja
             bool locationValid,
             int locationType,
             ulong addr,
-            ulong len)
+            ulong len,
+            CustomStringType? customType)
         {
             this.Value = value;
             this.LocationValid = locationValid;
             this.LocationType = (DerivedStringLocationType)locationType;
             this.Address = addr;
             this.Length = len;
+            this.CustomType = customType;
         }
 
         // Reads one BNDerivedString out of a by-value native array. Must run before the array
@@ -117,7 +138,8 @@ namespace BinaryNinja
                 raw.locationValid,
                 raw.location.locationType,
                 raw.location.addr,
-                raw.location.len
+                raw.location.len,
+                CustomStringType.FromHandle(raw.customType)
             );
         }
 
@@ -125,9 +147,9 @@ namespace BinaryNinja
         // (BNSetHighLevelILDerivedStringReferenceForExpr). The Value text is rebuilt as a fresh
         // BNStringRef* because this projection reads eagerly and does not retain the original core
         // handle. The caller owns that BNStringRef* and must free it (BNFreeStringRef) once the
-        // core has consumed the struct: core copies/add-refs the string, mirroring Python's
-        // owned=False borrow. custom_type is not surfaced by this read-only projection (Python
-        // CustomStringType handle is dropped), so it is left null.
+        // core has consumed the struct: core copies/add-refs the string for setter calls, while
+        // recognizer callbacks transfer the owned reference to the core caller. The custom type
+        // is a static core handle and is passed through without an additional reference.
         internal BNDerivedString ToNativeEx()
         {
             ulong byteCount = (ulong)Encoding.UTF8.GetByteCount(this.Value);
@@ -147,7 +169,9 @@ namespace BinaryNinja
                 native.location.len = this.Length;
             }
 
-            native.customType = IntPtr.Zero;
+            native.customType = null == this.CustomType
+                ? IntPtr.Zero
+                : this.CustomType.DangerousGetHandle();
 
             return native;
         }

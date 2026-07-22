@@ -35,7 +35,7 @@ namespace BinaryNinja
 		    long val   , 
 			
 			// BNDerivedString* out
-		    IntPtr @out  
+		    out BNDerivedString @out
 		);
 	}
 }
