@@ -12,14 +12,21 @@ namespace BinaryNinja
     /// </summary>
     public class FlowGraphLayoutRequest : AbstractSafeHandle<FlowGraphLayoutRequest>
     {
+        private NativeDelegates.BNCustomFlowGraphEvent? completionCallback;
+
         /// <summary>
         /// Initializes a new FlowGraphLayoutRequest wrapper around an existing native handle.
         /// </summary>
         /// <param name="handle">The native pointer to the BNFlowGraphLayoutRequest object.</param>
         /// <param name="owner">True if this wrapper owns the handle and should free it on dispose.</param>
-        internal FlowGraphLayoutRequest(IntPtr handle, bool owner)
+        internal FlowGraphLayoutRequest(
+            IntPtr handle,
+            bool owner,
+            NativeDelegates.BNCustomFlowGraphEvent? completionCallback = null
+        )
             : base(handle, owner)
         {
+            this.completionCallback = completionCallback;
         }
 
         /// <summary>
@@ -100,7 +107,8 @@ namespace BinaryNinja
         {
             if (!this.IsInvalid)
             {
-                // Free the native layout request and mark it invalid to prevent double-free.
+                NativeMethods.BNAbortFlowGraphLayoutRequest(this.handle);
+                this.completionCallback = null;
                 NativeMethods.BNFreeFlowGraphLayoutRequest(this.handle);
                 this.SetHandleAsInvalid();
             }
@@ -141,8 +149,8 @@ namespace BinaryNinja
         /// </summary>
         public void Abort()
         {
-            // Delegate to the native abort API.
             NativeMethods.BNAbortFlowGraphLayoutRequest(this.handle);
+            this.completionCallback = null;
         }
     }
 }

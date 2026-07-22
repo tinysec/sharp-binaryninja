@@ -1,59 +1,65 @@
 using System;
-using System.Collections.Generic;
 using System.Runtime.InteropServices;
-using Microsoft.Win32.SafeHandles;
 
 namespace BinaryNinja
 {
+	internal static partial class NativeDelegates
+	{
+		[UnmanagedFunctionPointer(System.Runtime.InteropServices.CallingConvention.Cdecl)]
+		internal delegate void BNCustomFlowGraphEvent(IntPtr context);
+
+		[UnmanagedFunctionPointer(System.Runtime.InteropServices.CallingConvention.Cdecl)]
+		internal delegate IntPtr BNCustomFlowGraphUpdate(IntPtr context);
+	}
+
 	[StructLayout(LayoutKind.Sequential)]
-	internal unsafe struct BNCustomFlowGraph 
+	internal struct BNCustomFlowGraph
 	{
 		/// <summary>
 		/// void* context
 		/// </summary>
-		public IntPtr context;
+		internal IntPtr context;
 		
 		/// <summary>
 		/// void** prepareForLayout
 		/// </summary>
-		public IntPtr prepareForLayout;
+		internal IntPtr prepareForLayout;
 		
 		/// <summary>
 		/// void** populateNodes
 		/// </summary>
-		public IntPtr populateNodes;
+		internal IntPtr populateNodes;
 		
 		/// <summary>
 		/// void** completeLayout
 		/// </summary>
-		public IntPtr completeLayout;
+		internal IntPtr completeLayout;
 		
 		/// <summary>
 		/// void** update
 		/// </summary>
-		public IntPtr update;
+		internal IntPtr update;
 		
 		/// <summary>
 		/// void** freeObject
 		/// </summary>
-		public IntPtr freeObject;
+		internal IntPtr freeObject;
 		
 		/// <summary>
 		/// void** externalRefTaken
 		/// </summary>
-		public IntPtr externalRefTaken;
+		internal IntPtr externalRefTaken;
 		
 		/// <summary>
 		/// void** externalRefReleased
 		/// </summary>
-		public IntPtr externalRefReleased;
+		internal IntPtr externalRefReleased;
 	}
 
-    public class CustomFlowGraph 
-    {
-		public CustomFlowGraph() 
-		{
-		    
-		}
-    }
+	/// <summary>
+	/// Retained for source compatibility. Custom graphs derive from FlowGraph directly.
+	/// </summary>
+	public class CustomFlowGraph
+	{
+	}
 }

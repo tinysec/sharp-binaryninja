@@ -10,6 +10,25 @@ namespace BinaryNinja
 	public abstract class AbstractFlowGraph<T_SELF> : AbstractSafeHandle<T_SELF>
 		where T_SELF: AbstractFlowGraph<T_SELF>
 	{
+		private static readonly NativeDelegates.BNCustomFlowGraphEvent
+			emptyLayoutCompletion =
+			AbstractFlowGraph<T_SELF>.IgnoreLayoutCompletion;
+
+		private sealed class LayoutCompletionContext
+		{
+			private readonly Action callback;
+
+			internal LayoutCompletionContext(Action callback)
+			{
+				this.callback = callback;
+			}
+
+			internal void Invoke(IntPtr context)
+			{
+				this.callback();
+			}
+		}
+
 		internal AbstractFlowGraph(IntPtr handle , bool owner) 
 			: base(handle , owner)
 	    {
@@ -417,28 +436,37 @@ namespace BinaryNinja
 	    
 	    public FlowGraphLayoutRequest StartLayout(Action? callback)
 	    {
-		    IntPtr argCallback = IntPtr.Zero;
-
-		    if (null != callback)
+		    NativeDelegates.BNCustomFlowGraphEvent callbackAdapter;
+		    if (null == callback)
 		    {
-			    Action<IntPtr> callbackAdapter = ( _ctx => { callback(); } );
-			    
-			    // Layout completes asynchronously after BNStartFlowGraphLayout returns, so the
-			    // completion callback fires after this method has exited. PinCallback roots the
-			    // adapter for the process lifetime; otherwise the local would be GC-eligible before
-			    // the layout worker invokes it and the callback would crash.
-			    argCallback = UnsafeUtils.PinCallback(callbackAdapter);
+			    callbackAdapter = AbstractFlowGraph<T_SELF>.emptyLayoutCompletion;
 		    }
+		    else
+		    {
+			    LayoutCompletionContext callbackContext =
+				    new LayoutCompletionContext(callback);
+			    callbackAdapter = callbackContext.Invoke;
+		    }
+
+		    // The request roots this delegate until completion or cancellation.
+		    IntPtr argCallback = Marshal.GetFunctionPointerForDelegate<
+			    NativeDelegates.BNCustomFlowGraphEvent
+		    >(callbackAdapter);
 		    
 		    return new FlowGraphLayoutRequest(
 			    NativeMethods.BNStartFlowGraphLayout(
 				    this.handle , 
 				    IntPtr.Zero ,
 				    argCallback
-				) ,
-			    true
+			    ) ,
+			    true,
+			    callbackAdapter
 		    );
 	    }
+
+		private static void IgnoreLayoutCompletion(IntPtr context)
+		{
+		}
 
 	    public bool IsNodeValid(FlowGraphNode node)
 	    {
@@ -447,12 +475,12 @@ namespace BinaryNinja
 	}
 	
 	// x
-	public sealed class FlowGraph : AbstractFlowGraph<FlowGraph>
+	public partial class FlowGraph : AbstractFlowGraph<FlowGraph>
 	{
 		public FlowGraph()
-			:this( NativeMethods.BNCreateFlowGraph() , true)
+			: base(IntPtr.Zero, true)
 		{
-			
+			this.InitializeCustomGraph();
 		}
 
 		internal FlowGraph(IntPtr handle , bool owner) 
@@ -469,7 +497,7 @@ namespace BinaryNinja
 			    return null;
 		    }
 		    
-		    return new FlowGraph(handle, true);
+		    return new CoreFlowGraph(handle, true);
 	    }
 	    
 	    internal static FlowGraph MustTakeHandle(IntPtr handle)
@@ -479,7 +507,7 @@ namespace BinaryNinja
 			    throw new ArgumentNullException(nameof(handle));
 		    }
 		    
-		    return new FlowGraph(handle, true);
+		    return new CoreFlowGraph(handle, true);
 	    }
 	    
 	    internal static FlowGraph? BorrowHandle(IntPtr handle)
@@ -489,7 +517,7 @@ namespace BinaryNinja
 			    return null;
 		    }
 		    
-		    return new FlowGraph(handle, false);
+		    return new CoreFlowGraph(handle, false);
 	    }
 	    
 	    internal static FlowGraph MustBorrowHandle(IntPtr handle)
@@ -499,17 +527,17 @@ namespace BinaryNinja
 			    throw new ArgumentNullException(nameof(handle));
 		    }
 
-		    return new FlowGraph(handle, false);
+		    return new CoreFlowGraph(handle, false);
 	    }
 
 	    /// <summary>
 	    /// Whether the flow graph has pending updates.
 	    /// </summary>
-	    public bool HasUpdates
+	    public virtual bool HasUpdates
 	    {
 		    get
 		    {
-			    return NativeMethods.BNFlowGraphHasUpdates(this.handle);
+			    return false;
 		    }
 	    }
 
@@ -769,11 +797,9 @@ namespace BinaryNinja
 	    /// Produces an updated copy of the graph when it has pending updates, or null.
 	    /// Mirrors Python CoreFlowGraph.update().
 	    /// </summary>
-	    public FlowGraph? Update()
+	    public virtual FlowGraph? Update()
 	    {
-		    return FlowGraph.TakeHandle(
-			    NativeMethods.BNUpdateFlowGraph(this.handle)
-		    );
+		    return null;
 	    }
 	}
 }

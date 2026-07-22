@@ -18,7 +18,7 @@ namespace BinaryNinja
 		internal static extern IntPtr BNCreateCustomFlowGraph(
 			
 			// BNCustomFlowGraph* callbacks
-		    IntPtr callbacks  
+		    in BNCustomFlowGraph callbacks
 		);
 	}
 }

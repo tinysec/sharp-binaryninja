@@ -645,7 +645,7 @@ namespace BinaryNinja
 
 		// Roots a callback delegate that the core stores as a raw function pointer for an
 		// unbounded lifetime (registered binary-view events, platform recognizers, plugin
-		// commands, flow-graph layout completion). Without this, an adapter delegate built for a
+		// commands). Without this, an adapter delegate built for a
 		// registration call would be GC-eligible the moment that method returns, and the next
 		// native callback would dereference freed memory (AccessViolation). The static list
 		// intentionally retains these for the process lifetime, matching the core's permanent
