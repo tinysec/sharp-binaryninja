@@ -1,6 +1,6 @@
 namespace BinaryNinja
 {
-	public sealed class HLILSignedGreaterEqual : HighLevelILInstruction
+	public sealed class HLILSignedGreaterEqual : AbstractHighLevelILBinaryInstruction
 	{
 		internal HLILSignedGreaterEqual(
 			HighLevelILFunction ilFunction, 
@@ -11,20 +11,5 @@ namespace BinaryNinja
 			
 		}
 		
-		public HighLevelILInstruction Left
-		{
-			get
-			{
-				return this.GetOperandAsExpression(0);
-			}
-		}
-		
-		public HighLevelILInstruction Right
-		{
-			get
-			{
-				return this.GetOperandAsExpression((OperandIndex)1);
-			}
-		}
 	}
 }

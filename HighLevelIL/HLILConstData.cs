@@ -1,6 +1,6 @@
 namespace BinaryNinja
 {
-	public sealed class HLILConstData : HighLevelILInstruction
+	public sealed class HLILConstData : AbstractHighLevelILConstDataInstruction
 	{
 		internal HLILConstData(
 			HighLevelILFunction ilFunction, 
@@ -9,14 +9,6 @@ namespace BinaryNinja
 		) : base(ilFunction , expressionIndex, native)
 		{
 			
-		}
-		
-		public RegisterValue Constant
-		{
-			get
-			{
-				return this.GetOperandAsConstantData(0 , (OperandIndex)1);
-			}
 		}
 	}
 }

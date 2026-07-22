@@ -1,6 +1,6 @@
 namespace BinaryNinja
 {
-	public sealed class HLILSubBorrow : HighLevelILInstruction
+	public sealed class HLILSubBorrow : AbstractHighLevelILCarryInstruction
 	{
 		internal HLILSubBorrow(
 			HighLevelILFunction ilFunction, 
@@ -11,28 +11,7 @@ namespace BinaryNinja
 			
 		}
 		
-		public HighLevelILInstruction Left
-		{
-			get
-			{
-				return this.GetOperandAsExpression(0);
-			}
-		}
 		
-		public HighLevelILInstruction Right
-		{
-			get
-			{
-				return this.GetOperandAsExpression((OperandIndex)1);
-			}
-		}
 		
-		public HighLevelILInstruction Carry
-		{
-			get
-			{
-				return this.GetOperandAsExpression((OperandIndex)2);
-			}
-		}
 	}
 }

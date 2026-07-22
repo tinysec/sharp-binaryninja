@@ -1,6 +1,6 @@
 namespace BinaryNinja
 {
-	public sealed class HLILDeref : HighLevelILInstruction
+	public sealed class HLILDeref : AbstractHighLevelILUnaryInstruction
 	{
 		internal HLILDeref(
 			HighLevelILFunction ilFunction, 
@@ -11,12 +11,5 @@ namespace BinaryNinja
 			
 		}
 		
-		public HighLevelILInstruction Source
-		{
-			get
-			{
-				return this.GetOperandAsExpression(0);
-			}
-		}
 	}
 }

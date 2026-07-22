@@ -1,6 +1,6 @@
 namespace BinaryNinja
 {
-	public class AbstractHighLevelILCarryInstruction : HighLevelILInstruction
+	public abstract class AbstractHighLevelILCarryInstruction : HighLevelILInstruction
 	{
 		internal AbstractHighLevelILCarryInstruction(
 			HighLevelILFunction ilFunction, 

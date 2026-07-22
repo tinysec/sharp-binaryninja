@@ -1,6 +1,6 @@
 namespace BinaryNinja
 {
-	public sealed class HLILMulUnsignedDoublePrecision : HighLevelILInstruction
+	public sealed class HLILMulUnsignedDoublePrecision : AbstractHighLevelILBinaryInstruction
 	{
 		internal HLILMulUnsignedDoublePrecision(
 			HighLevelILFunction ilFunction, 
@@ -11,20 +11,5 @@ namespace BinaryNinja
 			
 		}
 		
-		public HighLevelILInstruction Left
-		{
-			get
-			{
-				return this.GetOperandAsExpression(0);
-			}
-		}
-		
-		public HighLevelILInstruction Right
-		{
-			get
-			{
-				return this.GetOperandAsExpression((OperandIndex)1);
-			}
-		}
 	}
 }
