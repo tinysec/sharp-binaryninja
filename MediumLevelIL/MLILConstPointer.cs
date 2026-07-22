@@ -18,5 +18,24 @@ namespace BinaryNinja
 				return this.RawOperands[0];
 			}
 		}
+
+		public StringAnnotation? String
+		{
+			get
+			{
+				BinaryView? view = this.Function.SourceView;
+
+				if (null == view)
+				{
+					return null;
+				}
+
+				return view.CheckForStringAnnotationType(
+					this.Constant,
+					true,
+					true,
+					0);
+			}
+		}
 	}
 }
