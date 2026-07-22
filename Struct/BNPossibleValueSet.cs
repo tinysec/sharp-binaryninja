@@ -51,6 +51,14 @@ namespace BinaryNinja
 
     public sealed class PossibleValueSet : INativeWrapperEx<BNPossibleValueSet>
     {
+		private delegate BNPossibleValueSet BinaryOperation(
+			IntPtr left,
+			IntPtr right,
+			UIntPtr size
+		);
+
+		private delegate BNPossibleValueSet UnaryOperation(IntPtr value, UIntPtr size);
+
 		public RegisterValueType State { get; set; } = RegisterValueType.UndeterminedValue;
 		
 		public long Value { get; set; } = 0;
@@ -135,6 +143,150 @@ namespace BinaryNinja
 							(ulong)this.ValueSet.Length : (ulong)this.Table.Length)
 					),
 			};
+		}
+
+		private PossibleValueSet ApplyBinary(
+			PossibleValueSet other,
+			ulong size,
+			BinaryOperation operation
+		)
+		{
+			if (null == other)
+			{
+				throw new ArgumentNullException(nameof(other));
+			}
+
+			using (ScopedAllocator allocator = new ScopedAllocator())
+			{
+				IntPtr left = allocator.AllocStruct<BNPossibleValueSet>(this.ToNativeEx(allocator));
+				IntPtr right = allocator.AllocStruct<BNPossibleValueSet>(other.ToNativeEx(allocator));
+				BNPossibleValueSet result = operation(left, right, (UIntPtr)size);
+				return PossibleValueSet.TakeNative(result);
+			}
+		}
+
+		private PossibleValueSet ApplyUnary(ulong size, UnaryOperation operation)
+		{
+			using (ScopedAllocator allocator = new ScopedAllocator())
+			{
+				IntPtr value = allocator.AllocStruct<BNPossibleValueSet>(this.ToNativeEx(allocator));
+				BNPossibleValueSet result = operation(value, (UIntPtr)size);
+				return PossibleValueSet.TakeNative(result);
+			}
+		}
+
+		/// <summary>Computes the union with another possible value set.</summary>
+		public PossibleValueSet Union(PossibleValueSet other, ulong size)
+		{
+			return this.ApplyBinary(other, size, NativeMethods.BNPossibleValueSetUnion);
+		}
+
+		/// <summary>Computes the intersection with another possible value set.</summary>
+		public PossibleValueSet Intersection(PossibleValueSet other, ulong size)
+		{
+			return this.ApplyBinary(other, size, NativeMethods.BNPossibleValueSetIntersection);
+		}
+
+		/// <summary>Adds another possible value set.</summary>
+		public PossibleValueSet Add(PossibleValueSet other, ulong size)
+		{
+			return this.ApplyBinary(other, size, NativeMethods.BNPossibleValueSetAdd);
+		}
+
+		/// <summary>Subtracts another possible value set.</summary>
+		public PossibleValueSet Subtract(PossibleValueSet other, ulong size)
+		{
+			return this.ApplyBinary(other, size, NativeMethods.BNPossibleValueSetSubtract);
+		}
+
+		/// <summary>Multiplies by another possible value set.</summary>
+		public PossibleValueSet Multiply(PossibleValueSet other, ulong size)
+		{
+			return this.ApplyBinary(other, size, NativeMethods.BNPossibleValueSetMultiply);
+		}
+
+		/// <summary>Performs signed division by another possible value set.</summary>
+		public PossibleValueSet SignedDivide(PossibleValueSet other, ulong size)
+		{
+			return this.ApplyBinary(other, size, NativeMethods.BNPossibleValueSetSignedDivide);
+		}
+
+		/// <summary>Performs unsigned division by another possible value set.</summary>
+		public PossibleValueSet UnsignedDivide(PossibleValueSet other, ulong size)
+		{
+			return this.ApplyBinary(other, size, NativeMethods.BNPossibleValueSetUnsignedDivide);
+		}
+
+		/// <summary>Performs signed modulo with another possible value set.</summary>
+		public PossibleValueSet SignedMod(PossibleValueSet other, ulong size)
+		{
+			return this.ApplyBinary(other, size, NativeMethods.BNPossibleValueSetSignedMod);
+		}
+
+		/// <summary>Performs unsigned modulo with another possible value set.</summary>
+		public PossibleValueSet UnsignedMod(PossibleValueSet other, ulong size)
+		{
+			return this.ApplyBinary(other, size, NativeMethods.BNPossibleValueSetUnsignedMod);
+		}
+
+		/// <summary>Performs bitwise AND with another possible value set.</summary>
+		public PossibleValueSet And(PossibleValueSet other, ulong size)
+		{
+			return this.ApplyBinary(other, size, NativeMethods.BNPossibleValueSetAnd);
+		}
+
+		/// <summary>Performs bitwise OR with another possible value set.</summary>
+		public PossibleValueSet Or(PossibleValueSet other, ulong size)
+		{
+			return this.ApplyBinary(other, size, NativeMethods.BNPossibleValueSetOr);
+		}
+
+		/// <summary>Performs bitwise XOR with another possible value set.</summary>
+		public PossibleValueSet Xor(PossibleValueSet other, ulong size)
+		{
+			return this.ApplyBinary(other, size, NativeMethods.BNPossibleValueSetXor);
+		}
+
+		/// <summary>Shifts left by another possible value set.</summary>
+		public PossibleValueSet ShiftLeft(PossibleValueSet other, ulong size)
+		{
+			return this.ApplyBinary(other, size, NativeMethods.BNPossibleValueSetShiftLeft);
+		}
+
+		/// <summary>Performs a logical right shift by another possible value set.</summary>
+		public PossibleValueSet LogicalShiftRight(PossibleValueSet other, ulong size)
+		{
+			return this.ApplyBinary(other, size, NativeMethods.BNPossibleValueSetLogicalShiftRight);
+		}
+
+		/// <summary>Performs an arithmetic right shift by another possible value set.</summary>
+		public PossibleValueSet ArithShiftRight(PossibleValueSet other, ulong size)
+		{
+			return this.ApplyBinary(other, size, NativeMethods.BNPossibleValueSetArithShiftRight);
+		}
+
+		/// <summary>Rotates left by another possible value set.</summary>
+		public PossibleValueSet RotateLeft(PossibleValueSet other, ulong size)
+		{
+			return this.ApplyBinary(other, size, NativeMethods.BNPossibleValueSetRotateLeft);
+		}
+
+		/// <summary>Rotates right by another possible value set.</summary>
+		public PossibleValueSet RotateRight(PossibleValueSet other, ulong size)
+		{
+			return this.ApplyBinary(other, size, NativeMethods.BNPossibleValueSetRotateRight);
+		}
+
+		/// <summary>Negates this possible value set.</summary>
+		public PossibleValueSet Negate(ulong size)
+		{
+			return this.ApplyUnary(size, NativeMethods.BNPossibleValueSetNegate);
+		}
+
+		/// <summary>Performs bitwise NOT on this possible value set.</summary>
+		public PossibleValueSet Not(ulong size)
+		{
+			return this.ApplyUnary(size, NativeMethods.BNPossibleValueSetNot);
 		}
     }
 }
