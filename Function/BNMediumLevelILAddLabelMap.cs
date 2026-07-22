@@ -24,7 +24,7 @@ namespace BinaryNinja
 		    ulong[] values  , 
 			
 			// BNMediumLevelILLabel** labels
-			BNMediumLevelILLabel[] labels  , 
+			IntPtr[] labels  ,
 			
 			// uint64_t count
 		    ulong count  
