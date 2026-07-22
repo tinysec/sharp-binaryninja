@@ -10,6 +10,17 @@ namespace BinaryNinja
 		{
 			
 		}
-		
+
+		public StringAnnotation? String
+		{
+			get
+			{
+				return this.Function.View.CheckForStringAnnotationType(
+					this.Constant,
+					true,
+					true,
+					0);
+			}
+		}
 	}
 }

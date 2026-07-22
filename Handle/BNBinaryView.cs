@@ -3515,22 +3515,49 @@ namespace BinaryNinja
 			ulong childWidth  
 		)
 		{
-			bool ok = NativeMethods.BNCheckForStringAnnotationType(
-				this.handle ,
-				address ,
-				out IntPtr textPointer ,
-				out strType ,
-				allowShortStrings ,
-				allowLargeStrings ,
-				childWidth
-			);
+			StringAnnotation? annotation = this.CheckForStringAnnotationType(
+				address,
+				allowShortStrings,
+				allowLargeStrings,
+				childWidth);
 
-			if (!ok)
+			if (null == annotation)
 			{
+				strType = default;
 				return string.Empty;
 			}
 
-			return UnsafeUtils.TakeUtf8String(textPointer);
+			strType = annotation.Type;
+			return annotation.Value;
+		}
+
+		/// <summary>
+		/// Checks whether analysis recognizes a string annotation at an address. The nullable
+		/// result preserves both the decoded text and its detected string type.
+		/// </summary>
+		public StringAnnotation? CheckForStringAnnotationType(
+			ulong address,
+			bool allowShortStrings = false,
+			bool allowLargeStrings = false,
+			ulong childWidth = 0)
+		{
+			bool found = NativeMethods.BNCheckForStringAnnotationType(
+				this.handle,
+				address,
+				out IntPtr textPointer,
+				out StringType stringType,
+				allowShortStrings,
+				allowLargeStrings,
+				childWidth);
+
+			if (!found)
+			{
+				return null;
+			}
+
+			return new StringAnnotation(
+				UnsafeUtils.TakeUtf8String(textPointer),
+				stringType);
 		}
 
 		public bool CanAssemble(Architecture? arch = null)
