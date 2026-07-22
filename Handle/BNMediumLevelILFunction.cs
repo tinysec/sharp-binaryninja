@@ -2910,7 +2910,6 @@ namespace BinaryNinja
 	    }
 	    
 	    public MediumLevelILExpressionIndex EmitFreeVarSlot(
-		    ulong size,
 		    Variable variable,
 		    SourceLocation? location = null
 	    )
@@ -2918,9 +2917,23 @@ namespace BinaryNinja
 		    return this.AddExpression(
 			    MediumLevelILOperation.MLIL_FREE_VAR_SLOT,
 			    location,
-			    size,
+			    0,
 			    variable.Identifier
 		    );
+	    }
+
+	    /// <summary>
+	    /// Compatibility overload for the former signature whose size argument is not part of
+	    /// the official MLIL free-variable-slot operation.
+	    /// </summary>
+	    [Obsolete("Use the EmitFreeVarSlot overload without a size argument.")]
+	    public MediumLevelILExpressionIndex EmitFreeVarSlot(
+		    ulong size,
+		    Variable variable,
+		    SourceLocation? location = null
+	    )
+	    {
+		    return this.EmitFreeVarSlot(variable, location);
 	    }
 	    
 	    public MediumLevelILExpressionIndex EmitBreakpoint(

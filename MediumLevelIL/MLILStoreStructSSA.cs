@@ -47,7 +47,7 @@ namespace BinaryNinja
 		{
 			get
 			{
-				return this.GetOperandAsExpression((OperandIndex)1);
+				return this.GetOperandAsExpression((OperandIndex)4);
 			}
 		}
 	}
