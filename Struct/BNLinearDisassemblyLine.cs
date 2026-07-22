@@ -46,6 +46,24 @@ namespace BinaryNinja
 		{
 		    
 		}
+
+		public LinearDisassemblyLine(
+			LinearDisassemblyLineType type,
+			Function? function,
+			BasicBlock? block,
+			DisassemblyTextLine contents
+		)
+		{
+			if (null == contents)
+			{
+				throw new ArgumentNullException(nameof(contents));
+			}
+
+			this.Type = type;
+			this.Function = function;
+			this.Block = block;
+			this.Contents = contents;
+		}
 		
 		internal static LinearDisassemblyLine MustFromNativePointer(IntPtr pointer)
 		{
