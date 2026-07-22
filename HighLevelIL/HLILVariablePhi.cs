@@ -1,3 +1,5 @@
+using System.Collections.Generic;
+
 namespace BinaryNinja
 {
 	public sealed class HLILVariablePhi : HighLevelILInstruction
@@ -24,6 +26,20 @@ namespace BinaryNinja
 			get
 			{
 				return this.GetOperandAsSSAVariableList((OperandIndex)2);
+			}
+		}
+
+		/// <summary>
+		/// The destination SSA variable, mirroring Python HighLevelILVarPhi.vars_written
+		/// (highlevelil.py:1550).
+		/// </summary>
+		public override IList<IHighLevelILVariable> VarsWritten
+		{
+			get
+			{
+				List<IHighLevelILVariable> result = new List<IHighLevelILVariable>();
+				result.Add(this.Destination);
+				return result;
 			}
 		}
 	}

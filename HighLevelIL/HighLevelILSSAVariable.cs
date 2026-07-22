@@ -3,7 +3,8 @@ using System.Collections.Generic;
 
 namespace BinaryNinja
 {
-	public sealed class HighLevelILSSAVariable : AbstractSSAVariable<HighLevelILVariable>
+	public sealed class HighLevelILSSAVariable : AbstractSSAVariable<HighLevelILVariable>,
+		IHighLevelILVariable
 	{
 		public HighLevelILSSAVariable(HighLevelILVariable variable , ulong version) 
 			:base(variable, version)
