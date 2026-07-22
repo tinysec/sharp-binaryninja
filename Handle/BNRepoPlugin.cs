@@ -622,7 +622,7 @@ namespace BinaryNinja
                 BNVersionInfo raw = NativeMethods.BNPluginGetMaximumVersionInfo(this.handle);
 
                 // 2. Convert the native struct into a managed VersionInfo object.
-                return VersionInfo.FromNative(raw);
+                return VersionInfo.TakeNative(raw);
             }
         }
 
@@ -637,7 +637,7 @@ namespace BinaryNinja
                 BNVersionInfo raw = NativeMethods.BNPluginGetMinimumVersionInfo(this.handle);
 
                 // 2. Convert the native struct into a managed VersionInfo object.
-                return VersionInfo.FromNative(raw);
+                return VersionInfo.TakeNative(raw);
             }
         }
 

@@ -20,10 +20,10 @@ namespace BinaryNinja
 		internal static extern bool BNVersionLessThan(
 			
 			// BNVersionInfo smaller
-		    VersionInfo smaller  , 
+		    BNVersionInfo smaller,
 			
 			// BNVersionInfo larger
-		    VersionInfo larger  
+		    BNVersionInfo larger
 			
 		);
 	}
