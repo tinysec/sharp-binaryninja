@@ -81,183 +81,8 @@ namespace BinaryNinja
 
 		public LowLevelILExpressionIndex ExpressionIndex { get; } = 0;
 
-		private static Dictionary<LowLevelILOperation,int> OperationOperands = new Dictionary<LowLevelILOperation,int> {
-			{ LowLevelILOperation.LLIL_NOP, 0 },
+		private const int RawOperandCount = 4;
 
-			{ LowLevelILOperation.LLIL_SET_REG, 2 },                 // dstReg, src
-			{ LowLevelILOperation.LLIL_SET_REG_SPLIT, 3 },           // dstHi, dstLo, src
-			{ LowLevelILOperation.LLIL_SET_FLAG, 2 },                // flag, src
-			{ LowLevelILOperation.LLIL_SET_REG_STACK_REL, 3 },       // dstRegStack, rel, src
-			{ LowLevelILOperation.LLIL_REG_STACK_PUSH, 2 },          // regStack, src
-
-			{ LowLevelILOperation.LLIL_ASSERT, 2 },  // sourceRegister, constraint
-			{ LowLevelILOperation.LLIL_FORCE_VER, 1 },               // var/version
-
-			{ LowLevelILOperation.LLIL_LOAD, 2 },                    // size, addr
-			{ LowLevelILOperation.LLIL_STORE, 3 },                   // size, addr, value
-
-			{ LowLevelILOperation.LLIL_PUSH, 2 },                    // size, src
-			{ LowLevelILOperation.LLIL_POP, 1 },                     // size
-
-			{ LowLevelILOperation.LLIL_REG, 1 },                     // reg
-			{ LowLevelILOperation.LLIL_REG_SPLIT, 2 },               // regHi, regLo
-			{ LowLevelILOperation.LLIL_REG_STACK_REL, 2 },           // regStack, rel
-			{ LowLevelILOperation.LLIL_REG_STACK_POP, 2 },           // regStack, size
-			{ LowLevelILOperation.LLIL_REG_STACK_FREE_REG, 1 },      // reg
-			{ LowLevelILOperation.LLIL_REG_STACK_FREE_REL, 2 },      // regStack, rel
-
-			{ LowLevelILOperation.LLIL_CONST, 2 },                   // size, value
-			{ LowLevelILOperation.LLIL_CONST_PTR, 2 },               // size, addr
-			{ LowLevelILOperation.LLIL_EXTERN_PTR, 3 },              // size, base, offset
-			{ LowLevelILOperation.LLIL_FLOAT_CONST, 2 },             // size, fpBits
-
-			{ LowLevelILOperation.LLIL_FLAG, 1 },                    // flag
-			{ LowLevelILOperation.LLIL_FLAG_BIT, 2 },  // sourceFlag, bitIndex
-
-			{ LowLevelILOperation.LLIL_ADD, 3 },                     // size, left, right
-			{ LowLevelILOperation.LLIL_ADC, 3 },                     // size, left, right
-			{ LowLevelILOperation.LLIL_SUB, 3 },                     // size, left, right
-			{ LowLevelILOperation.LLIL_SBB, 3 },                     // size, left, right
-			{ LowLevelILOperation.LLIL_AND, 3 },                     // size, left, right
-			{ LowLevelILOperation.LLIL_OR, 3 },                      // size, left, right
-			{ LowLevelILOperation.LLIL_XOR, 3 },                     // size, left, right
-			{ LowLevelILOperation.LLIL_LSL, 3 },                     // size, left, right
-			{ LowLevelILOperation.LLIL_LSR, 3 },                     // size, left, right
-			{ LowLevelILOperation.LLIL_ASR, 3 },                     // size, left, right
-			{ LowLevelILOperation.LLIL_ROL, 3 },                     // size, left, right
-			{ LowLevelILOperation.LLIL_RLC, 3 },                     // size, left, right
-			{ LowLevelILOperation.LLIL_ROR, 3 },                     // size, left, right
-			{ LowLevelILOperation.LLIL_RRC, 3 },                     // size, left, right
-			{ LowLevelILOperation.LLIL_MUL, 3 },                     // size, left, right
-			{ LowLevelILOperation.LLIL_MULU_DP, 3 },                 // size, left, right
-			{ LowLevelILOperation.LLIL_MULS_DP, 3 },                 // size, left, right
-			{ LowLevelILOperation.LLIL_DIVU, 3 },                    // size, left, right
-			{ LowLevelILOperation.LLIL_DIVU_DP, 3 },                 // size, left, right
-			{ LowLevelILOperation.LLIL_DIVS, 3 },                    // size, left, right
-			{ LowLevelILOperation.LLIL_DIVS_DP, 3 },                 // size, left, right
-			{ LowLevelILOperation.LLIL_MODU, 3 },                    // size, left, right
-			{ LowLevelILOperation.LLIL_MODU_DP, 3 },                 // size, left, right
-			{ LowLevelILOperation.LLIL_MODS, 3 },                    // size, left, right
-			{ LowLevelILOperation.LLIL_MODS_DP, 3 },                 // size, left, right
-
-			{ LowLevelILOperation.LLIL_NEG, 2 },                     // size, src
-			{ LowLevelILOperation.LLIL_NOT, 2 },                     // size, src
-			{ LowLevelILOperation.LLIL_SX, 3 },                      // toSize, fromSize, src
-			{ LowLevelILOperation.LLIL_ZX, 3 },                      // toSize, fromSize, src
-			{ LowLevelILOperation.LLIL_LOW_PART, 2 },                // toSize, src
-
-			{ LowLevelILOperation.LLIL_JUMP, 1 },                    // dest
-			{ LowLevelILOperation.LLIL_JUMP_TO, 3 },                 // dest, table, targetReg
-			{ LowLevelILOperation.LLIL_CALL, 1 },                    // dest
-			{ LowLevelILOperation.LLIL_CALL_STACK_ADJUST, 4 },  // dest, adjust, regStackAdjustments(list)
-			{ LowLevelILOperation.LLIL_TAILCALL, 1 },                // dest
-			{ LowLevelILOperation.LLIL_RET, 1 },                     // src(list)
-			{ LowLevelILOperation.LLIL_NORET, 0 },                   // noreturn
-
-			{ LowLevelILOperation.LLIL_IF, 3 },                      // cond, true, false (blocks)
-			{ LowLevelILOperation.LLIL_GOTO, 1 },                    // target block
-			{ LowLevelILOperation.LLIL_FLAG_COND, 2 },  // flagCondition, semanticFlagClass
-			{ LowLevelILOperation.LLIL_FLAG_GROUP, 1 },              // group
-
-			{ LowLevelILOperation.LLIL_CMP_E, 3 },                   // size, left, right
-			{ LowLevelILOperation.LLIL_CMP_NE, 3 },                  // size, left, right
-			{ LowLevelILOperation.LLIL_CMP_SLT, 3 },                 // size, left, right
-			{ LowLevelILOperation.LLIL_CMP_ULT, 3 },                 // size, left, right
-			{ LowLevelILOperation.LLIL_CMP_SLE, 3 },                 // size, left, right
-			{ LowLevelILOperation.LLIL_CMP_ULE, 3 },                 // size, left, right
-			{ LowLevelILOperation.LLIL_CMP_SGE, 3 },                 // size, left, right
-			{ LowLevelILOperation.LLIL_CMP_UGE, 3 },                 // size, left, right
-			{ LowLevelILOperation.LLIL_CMP_SGT, 3 },                 // size, left, right
-			{ LowLevelILOperation.LLIL_CMP_UGT, 3 },                 // size, left, right
-			{ LowLevelILOperation.LLIL_TEST_BIT, 3 },                // size, left, right(bit)
-			{ LowLevelILOperation.LLIL_BOOL_TO_INT, 2 },             // size, src
-			{ LowLevelILOperation.LLIL_ADD_OVERFLOW, 3 },            // size, left, right
-
-			{ LowLevelILOperation.LLIL_SYSCALL, 0 },                   // syscall
-			{ LowLevelILOperation.LLIL_BP, 0 },                      // breakpoint
-			{ LowLevelILOperation.LLIL_TRAP, 1 },                    // code
-			{ LowLevelILOperation.LLIL_INTRINSIC, 4 },  // outputRegisterOrFlagList(+1), intrinsic, parameterExprs
-			{ LowLevelILOperation.LLIL_UNDEF, 0 },                   // undefined
-			{ LowLevelILOperation.LLIL_UNIMPL, 0 },                  // unimplemented
-			{ LowLevelILOperation.LLIL_UNIMPL_MEM, 1 },              // addr
-
-			{ LowLevelILOperation.LLIL_FADD, 3 },                    // size, left, right
-			{ LowLevelILOperation.LLIL_FSUB, 3 },                    // size, left, right
-			{ LowLevelILOperation.LLIL_FMUL, 3 },                    // size, left, right
-			{ LowLevelILOperation.LLIL_FDIV, 3 },                    // size, left, right
-			{ LowLevelILOperation.LLIL_FSQRT, 2 },                   // size, src
-			{ LowLevelILOperation.LLIL_FNEG, 2 },                    // size, src
-			{ LowLevelILOperation.LLIL_FABS, 2 },                    // size, src
-			{ LowLevelILOperation.LLIL_FLOAT_TO_INT, 3 },            // toSize, fromSize, src
-			{ LowLevelILOperation.LLIL_INT_TO_FLOAT, 3 },            // toSize, fromSize, src
-			{ LowLevelILOperation.LLIL_FLOAT_CONV, 3 },              // toSize, fromSize, src
-			{ LowLevelILOperation.LLIL_ROUND_TO_INT, 2 },            // size, src
-			{ LowLevelILOperation.LLIL_FLOOR, 2 },                   // size, src
-			{ LowLevelILOperation.LLIL_CEIL, 2 },                    // size, src
-			{ LowLevelILOperation.LLIL_FTRUNC, 2 },                  // size, src
-			{ LowLevelILOperation.LLIL_FCMP_E, 3 },                  // size, left, right
-			{ LowLevelILOperation.LLIL_FCMP_NE, 3 },                 // size, left, right
-			{ LowLevelILOperation.LLIL_FCMP_LT, 3 },                 // size, left, right
-			{ LowLevelILOperation.LLIL_FCMP_LE, 3 },                 // size, left, right
-			{ LowLevelILOperation.LLIL_FCMP_GE, 3 },                 // size, left, right
-			{ LowLevelILOperation.LLIL_FCMP_GT, 3 },                 // size, left, right
-			{ LowLevelILOperation.LLIL_FCMP_O, 3 },                  // size, left, right
-			{ LowLevelILOperation.LLIL_FCMP_UO, 3 },                 // size, left, right
-
-			{ LowLevelILOperation.LLIL_SET_REG_SSA, 3 },             // dstReg, version, src
-			{ LowLevelILOperation.LLIL_SET_REG_SSA_PARTIAL, 4 },  // destSSARegister(var,version), partialRegister, sourceExpr
-			{ LowLevelILOperation.LLIL_SET_REG_SPLIT_SSA, 4 },       // dstHi, verHi, dstLo, verLo, src
-			{ LowLevelILOperation.LLIL_SET_REG_STACK_REL_SSA, 4 },   // regStack, version, rel, src
-			{ LowLevelILOperation.LLIL_SET_REG_STACK_ABS_SSA, 3 },   // regStack, index, src
-			{ LowLevelILOperation.LLIL_REG_SPLIT_DEST_SSA, 4 },      // regHi, verHi, regLo, verLo
-			{ LowLevelILOperation.LLIL_REG_STACK_DEST_SSA, 3 },      // regStack, index, size
-			{ LowLevelILOperation.LLIL_REG_SSA, 2 },                 // reg, version
-			{ LowLevelILOperation.LLIL_REG_SSA_PARTIAL, 3 },  // sourceSSARegister(var,version), partialRegister
-			{ LowLevelILOperation.LLIL_REG_SPLIT_SSA, 4 },           // regHi, verHi, regLo, verLo
-			{ LowLevelILOperation.LLIL_REG_STACK_REL_SSA, 4 },  // sourceSSARegisterStack(var,version), sourceExpr, topSSARegister
-			{ LowLevelILOperation.LLIL_REG_STACK_ABS_SSA, 3 },  // sourceSSARegisterStack(var,version), sourceRegister
-			{ LowLevelILOperation.LLIL_REG_STACK_FREE_REL_SSA, 3 },  // regStack, version, rel
-			{ LowLevelILOperation.LLIL_REG_STACK_FREE_ABS_SSA, 2 },  // regStack, index
-			{ LowLevelILOperation.LLIL_SET_FLAG_SSA, 3 },            // flag, version, src
-			{ LowLevelILOperation.LLIL_ASSERT_SSA, 3 },  // sourceSSARegister(var,version), constraint
-			{ LowLevelILOperation.LLIL_FORCE_VER_SSA, 4 },  // destSSARegister(var,version), sourceSSARegister(var,version)
-			{ LowLevelILOperation.LLIL_FLAG_SSA, 2 },                // flag, version
-			{ LowLevelILOperation.LLIL_FLAG_BIT_SSA, 3 },  // sourceSSAFlag(var,version), bitIndex
-
-			{ LowLevelILOperation.LLIL_CALL_SSA, 4 },                // dest, params(list), outputs(list), srcMem
-			{ LowLevelILOperation.LLIL_SYSCALL_SSA, 3 },             // params(list), outputs(list), srcMem
-			{ LowLevelILOperation.LLIL_TAILCALL_SSA, 4 },  // outputSSARegisters, destExpr, stackSSARegister, parameterExprs
-			{ LowLevelILOperation.LLIL_CALL_PARAM, 2 },              // paramLoc, src
-			{ LowLevelILOperation.LLIL_CALL_STACK_SSA, 3 },  // stackSSARegister(var,version), prevMemoryVersion
-			{ LowLevelILOperation.LLIL_CALL_OUTPUT_SSA, 3 },         // outputLoc, srcExpr, dstMem
-			{ LowLevelILOperation.LLIL_SEPARATE_PARAM_LIST_SSA, 2 }, // intParams(list), floatParams(list)
-			{ LowLevelILOperation.LLIL_SHARED_PARAM_SLOT_SSA, 2 },   // slot, size
-			{ LowLevelILOperation.LLIL_MEMORY_INTRINSIC_OUTPUT_SSA, 3 }, // dest, size, dstMem
-			{ LowLevelILOperation.LLIL_LOAD_SSA, 2 },                // addr, srcMem
-			{ LowLevelILOperation.LLIL_STORE_SSA, 4 },  // destExpr, destMemoryVersion, sourceMemoryVersion, sourceExpr
-			{ LowLevelILOperation.LLIL_INTRINSIC_SSA, 4 },           // intrinsicId, params(list), outputs(list), srcMem
-			{ LowLevelILOperation.LLIL_MEMORY_INTRINSIC_SSA, 4 },    // dest, src, size, dstMem
-
-			{ LowLevelILOperation.LLIL_REG_PHI, 3 },  // destSSARegister(var,version), sourceSSARegisters(list)
-			{ LowLevelILOperation.LLIL_REG_STACK_PHI, 3 },  // destSSARegisterStack(var,version), sourceSSARegisterStacks(list)
-			{ LowLevelILOperation.LLIL_FLAG_PHI, 3 },  // destSSAFlag(var,version), sourceSSAFlags(list)
-			{ LowLevelILOperation.LLIL_MEM_PHI, 1 },                 // memVersions(list)
-
-			{ LowLevelILOperation.LLIL_ABS, 1 },                     // src
-			{ LowLevelILOperation.LLIL_BSWAP, 1 },                   // src
-			{ LowLevelILOperation.LLIL_CLS, 1 },                     // src
-			{ LowLevelILOperation.LLIL_CLZ, 1 },                     // src
-			{ LowLevelILOperation.LLIL_CTZ, 1 },                     // src
-			{ LowLevelILOperation.LLIL_POPCNT, 1 },                  // src
-			{ LowLevelILOperation.LLIL_RBIT, 1 },                    // src
-			{ LowLevelILOperation.LLIL_MAXS, 2 },                    // left, right
-			{ LowLevelILOperation.LLIL_MAXU, 2 },                    // left, right
-			{ LowLevelILOperation.LLIL_MINS, 2 },                    // left, right
-			{ LowLevelILOperation.LLIL_MINU, 2 },                    // left, right
-		};
-		
-	
-		
 		internal LowLevelILInstruction(
 			LowLevelILFunction function ,
 			LowLevelILExpressionIndex expressionIndex 
@@ -286,25 +111,13 @@ namespace BinaryNinja
 			this.Size = native.size ;
 			this.Address = native.address ;
 
-			LowLevelILInstruction.OperationOperands.TryGetValue(
-				this.Operation ,
-				out int operandCount
-			);
-		
-			if (0 == operandCount)
+			this.RawOperands = new ulong[LowLevelILInstruction.RawOperandCount];
+
+			for (int i = 0; i < LowLevelILInstruction.RawOperandCount; i++)
 			{
-				this.RawOperands = Array.Empty<ulong>();
-			}
-			else
-			{
-				this.RawOperands = new ulong[operandCount];
-					
-				for (int i = 0; i < operandCount; i++)
+				unsafe
 				{
-					unsafe
-					{
-						this.RawOperands[i] = native.operands[i] ;
-					}
+					this.RawOperands[i] = native.operands[i];
 				}
 			}
 			
@@ -325,16 +138,11 @@ namespace BinaryNinja
 				address = this.Address ,
 			};
 			
-			int count = Math.Min(this.RawOperands?.Length ?? 0, 5);
-
-			if (this.RawOperands?.Length >= count)
+			for (int i = 0; i < LowLevelILInstruction.RawOperandCount; i++)
 			{
-				for (int i = 0; i < count; i++)
+				unsafe
 				{
-					unsafe
-					{
-						native.operands[i] = this.RawOperands[i];
-					}
+					native.operands[i] = this.RawOperands[i];
 				}
 			}
 			
