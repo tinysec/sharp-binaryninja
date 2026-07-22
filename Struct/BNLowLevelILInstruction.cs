@@ -1215,7 +1215,7 @@ namespace BinaryNinja
 		public Intrinsic GetOperandAsIntrinsic(OperandIndex operand)
 		{
 			return new Intrinsic(
-				this.ILFunction.OwnerFunction.Architecture , 
+				this.ILFunction.Architecture,
 				(IntrinsicIndex)this.RawOperands[(ulong)operand]
 			);
 		}
@@ -1228,7 +1228,7 @@ namespace BinaryNinja
 		public SemanticFlagClass GetOperandAsSemanticFlagClass(OperandIndex operand)
 		{
 			return new SemanticFlagClass(
-				this.ILFunction.OwnerFunction.Architecture , 
+				this.ILFunction.Architecture,
 				(SemanticFlagClassIndex)this.RawOperands[(ulong)operand]
 			);
 		}
@@ -1236,7 +1236,7 @@ namespace BinaryNinja
 		public SemanticFlagGroup GetOperandAsSemanticFlagGroup(OperandIndex operand)
 		{
 			return new SemanticFlagGroup(
-				this.ILFunction.OwnerFunction.Architecture , 
+				this.ILFunction.Architecture,
 				(SemanticFlagGroupIndex)this.RawOperands[(ulong)operand]
 			);
 		}
@@ -1244,7 +1244,7 @@ namespace BinaryNinja
 		public ILFlag GetOperandAsFlag(OperandIndex operand)
 		{
 			return new ILFlag(
-				this.ILFunction.OwnerFunction.Architecture , 
+				this.ILFunction.Architecture,
 				(FlagIndex)this.RawOperands[(ulong)operand]
 			);
 		}
@@ -1284,7 +1284,7 @@ namespace BinaryNinja
 				ulong version = indexAndVersions[i + 1];
 				
 				ILFlag register = new ILFlag(
-					this.ILFunction.OwnerFunction.Architecture ,
+					this.ILFunction.Architecture,
 					index
 				);
 				
@@ -1299,7 +1299,7 @@ namespace BinaryNinja
 		public ILRegister GetOperandAsRegister(OperandIndex operand)
 		{
 			return new ILRegister(
-				this.ILFunction.OwnerFunction.Architecture , 
+				this.ILFunction.Architecture,
 				(RegisterIndex)this.RawOperands[(ulong)operand]
 			);
 		}
@@ -1339,7 +1339,7 @@ namespace BinaryNinja
 				ulong version = indexAndVersions[i + 1];
 				
 				ILRegister register = new ILRegister(
-					this.ILFunction.OwnerFunction.Architecture ,
+					this.ILFunction.Architecture,
 					index
 				);
 				
@@ -1354,7 +1354,7 @@ namespace BinaryNinja
 		public RegisterStack GetOperandAsRegisterStack(OperandIndex operand)
 		{
 			return new RegisterStack(
-				this.ILFunction.OwnerFunction.Architecture , 
+				this.ILFunction.Architecture,
 				(RegisterStackIndex)this.RawOperands[(ulong)operand]
 			);
 		}
@@ -1394,7 +1394,7 @@ namespace BinaryNinja
 				ulong version = indexAndVersions[i + 1];
 				
 				RegisterStack regStack = new RegisterStack(
-					this.ILFunction.OwnerFunction.Architecture ,
+					this.ILFunction.Architecture,
 					index
 				);
 				
@@ -1515,7 +1515,7 @@ namespace BinaryNinja
 				if (0 != ( value & ( 1UL << 32 ) ))
 				{
 					ILFlag flag = new ILFlag(
-						this.ILFunction.OwnerFunction.Architecture ,
+						this.ILFunction.Architecture ,
 						(FlagIndex)( value & 0xffffffff )
 					);
 					
@@ -1524,7 +1524,7 @@ namespace BinaryNinja
 				else
 				{
 					ILRegister register = new ILRegister(
-						this.ILFunction.OwnerFunction.Architecture ,
+						this.ILFunction.Architecture ,
 						(RegisterIndex)( value & 0xffffffff )
 					);
 					
@@ -1561,7 +1561,7 @@ namespace BinaryNinja
 				if (0 != ( paires[i] & ( 1UL << 32 ) ))
 				{
 					ILFlag flag = new ILFlag(
-						this.ILFunction.OwnerFunction.Architecture ,
+						this.ILFunction.Architecture ,
 						(FlagIndex)( paires[i] & 0xffffffff )
 					);
 
@@ -1572,7 +1572,7 @@ namespace BinaryNinja
 				else
 				{
 					ILRegister register = new ILRegister(
-						this.ILFunction.OwnerFunction.Architecture ,
+						this.ILFunction.Architecture ,
 						(RegisterIndex)( paires[i] & 0xffffffff )
 					);
 
@@ -1613,7 +1613,7 @@ namespace BinaryNinja
 		{
 			if (null == arch)
 			{
-				arch = this.ILFunction.OwnerFunction.Architecture;
+				arch = this.ILFunction.Architecture;
 			}
 
 			if (null == settings)
@@ -1658,17 +1658,21 @@ namespace BinaryNinja
 		{
 			if (null == arch)
 			{
-				arch = this.ILFunction.OwnerFunction.Architecture;
+				arch = this.ILFunction.Architecture;
 			}
 
 			if (null == settings)
 			{
 				settings = DisassemblySettings.DefaultLinear();
 			}
+
+			using Function? sourceFunction = this.ILFunction.SourceFunction;
 			
 			bool ok = NativeMethods.BNGetLowLevelILInstructionText(
 				this.ILFunction.DangerousGetHandle() ,
-				this.ILFunction.OwnerFunction.DangerousGetHandle(),
+				null == sourceFunction
+					? IntPtr.Zero
+					: sourceFunction.DangerousGetHandle(),
 				null == arch ? IntPtr.Zero : arch.DangerousGetHandle(),
 				this.InstructionIndex,
 				null == settings ? IntPtr.Zero : settings.DangerousGetHandle(),
