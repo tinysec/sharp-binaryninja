@@ -1446,9 +1446,6 @@ namespace BinaryNinja
 		// TODO: BNAppendSymbolQueue / BNProcessSymbolQueue — internal callback-based
 		//       symbol resolution pipeline. Requires managed delegate infrastructure.
 
-		// TODO: BNPerformCustomRequest / BNPerformDownloadRequest — on DownloadInstance,
-		//       requires callback context parameters for progress/completion notifications.
-
 		// NOTE: BNReadSnapshotDataWithProgress — implemented on Snapshot class as ReadDataWithProgress().
 
 		// TODO: BNComponentsNotEqual — skip, handled by AbstractSafeHandle operators (== and !=).

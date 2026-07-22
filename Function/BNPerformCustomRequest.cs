@@ -31,13 +31,13 @@ namespace BinaryNinja
 		    ulong headerCount  , 
 			
 			// const char** headerKeys
-		    string[] headerKeys  , 
+		    IntPtr headerKeys  ,
 			
 			// const char** headerValues
-		    string[] headerValues  , 
+		    IntPtr headerValues  ,
 			
 			// BNDownloadInstanceResponse** response
-		    IntPtr response  , 
+		    out IntPtr response  ,
 			
 			// BNDownloadInstanceInputOutputCallbacks* callbacks
 		    IntPtr callbacks  
