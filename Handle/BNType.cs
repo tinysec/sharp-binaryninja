@@ -100,6 +100,16 @@ namespace BinaryNinja
 				NativeMethods.BNDuplicateType(this.handle)
 			);
 		}
+
+		/// <summary>
+		/// Marks whether this type is expected to remain resident so the core can omit it from
+		/// memory-usage accounting. The type itself is returned for fluent use.
+		/// </summary>
+		public BinaryNinja.Type SetIgnored(bool ignored)
+		{
+			NativeMethods.BNTypeSetIgnored(this.handle, ignored);
+			return this;
+		}
 	
 	    
 	    public static string GetNameTypeString( NameType classFunctionType )
