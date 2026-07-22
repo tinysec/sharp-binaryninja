@@ -499,7 +499,9 @@ namespace BinaryNinja
 					    ? IntPtr.Zero
 					    : sourceFunction.DangerousGetHandle(),
 				    this.handle
-			    )
+			    ),
+			    false,
+			    arch
 		    );
 	    }
 
