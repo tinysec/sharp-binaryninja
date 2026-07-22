@@ -21,7 +21,7 @@ namespace BinaryNinja
 		    IntPtr file  , 
 			
 			// BNFileAccessor* accessor
-		    IntPtr accessor  
+		    in BNFileAccessor accessor
 		);
 	}
 }
