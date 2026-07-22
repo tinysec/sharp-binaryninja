@@ -64,6 +64,37 @@ namespace BinaryNinja
         }
 
         /// <summary>
+        /// Looks up a registered download provider by name.
+        /// </summary>
+        /// <param name="name">Registered provider name.</param>
+        /// <returns>The borrowed provider, or null when no provider has that name.</returns>
+        public static DownloadProvider? GetByName(string name)
+        {
+            if (null == name)
+            {
+                throw new ArgumentNullException(nameof(name));
+            }
+
+            return DownloadProvider.BorrowHandle(
+                NativeMethods.BNGetDownloadProviderByName(name));
+        }
+
+        /// <summary>
+        /// Gets every registered download provider.
+        /// </summary>
+        /// <returns>Borrowed provider wrappers whose lifetime is managed by the core.</returns>
+        public static unsafe DownloadProvider[] GetList()
+        {
+            ulong count = 0;
+            IntPtr providers = NativeMethods.BNGetDownloadProviderList((IntPtr)(&count));
+            return UnsafeUtils.TakeHandleArray<DownloadProvider>(
+                providers,
+                count,
+                DownloadProvider.MustBorrowHandle,
+                NativeMethods.BNFreeDownloadProviderList);
+        }
+
+        /// <summary>
         /// Gets the registered name that uniquely identifies this download provider.
         /// </summary>
         public string Name
