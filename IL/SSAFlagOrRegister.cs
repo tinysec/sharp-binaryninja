@@ -5,15 +5,25 @@ namespace BinaryNinja
 	public sealed class SSAFlagOrRegister  : IEquatable<SSAFlagOrRegister>,
 		IComparable<SSAFlagOrRegister>
 	{
-		internal FlagOrRegister FlagOrRegister { get; }
+		public FlagOrRegister FlagOrRegister { get; }
 		
 		public ulong Version { get; } = 0;
 
-		internal SSAFlagOrRegister(FlagOrRegister flagOrRegister , ulong version)
+		public SSAFlagOrRegister(FlagOrRegister flagOrRegister , ulong version)
 		{
 			this.FlagOrRegister = flagOrRegister;
 			
 			this.Version = version;
+		}
+
+		public SSAFlagOrRegister(LowLevelILSSARegister register)
+			: this(new FlagOrRegister(register.Register), register.Version)
+		{
+		}
+
+		public SSAFlagOrRegister(LowLevelILSSAFlag flag)
+			: this(new FlagOrRegister(flag.Flag), flag.Version)
+		{
 		}
 		
 		public override string ToString()

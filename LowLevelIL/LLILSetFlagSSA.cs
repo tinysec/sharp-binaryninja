@@ -11,7 +11,7 @@ namespace BinaryNinja
 			
 		}
 		
-		public LowLevelILSSAFlag Source
+		public LowLevelILSSAFlag Destination
 		{
 			get
 			{
@@ -19,7 +19,7 @@ namespace BinaryNinja
 			}
 		}
 		
-		public LowLevelILInstruction Destination
+		public LowLevelILInstruction Source
 		{
 			get
 			{

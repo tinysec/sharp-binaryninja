@@ -11,12 +11,20 @@ namespace BinaryNinja
 			
 		}
 		
+		public SSAFlagOrRegister[] Output
+		{
+			get
+			{
+				return this.GetOperandAsSSAFlagOrRegisterList(0);
+			}
+		}
+
+		[System.Obsolete("Use Output instead.")]
 		public SSAFlagOrRegister[] output
 		{
 			get
 			{
-				
-				return this.GetOperandAsSSAFlagOrRegisterList(0);
+				return this.Output;
 			}
 		}
 		

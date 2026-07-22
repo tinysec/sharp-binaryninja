@@ -11,11 +11,20 @@ namespace BinaryNinja
 			
 		}
 
-		public ILFlag Destionation
+		public ILFlag Destination
 		{
 			get
 			{
 				return this.GetOperandAsFlag(0);
+			}
+		}
+
+		[System.Obsolete("Use Destination instead.")]
+		public ILFlag Destionation
+		{
+			get
+			{
+				return this.Destination;
 			}
 		}
 		

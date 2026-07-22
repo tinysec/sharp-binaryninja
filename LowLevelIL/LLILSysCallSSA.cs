@@ -20,6 +20,16 @@ namespace BinaryNinja
 				return instruction!.Destination;
 			}
 		}
+
+		public ulong DestinationMemory
+		{
+			get
+			{
+				LLILCallOutputSSA? instruction = this.GetOperandAsExpression(0) as LLILCallOutputSSA;
+
+				return instruction!.DestinationMemory;
+			}
+		}
 		
 		public LLILCallStackSSA Stack
 		{
@@ -44,6 +54,14 @@ namespace BinaryNinja
 			get
 			{
 				return this.Stack.SourceMemory;
+			}
+		}
+
+		public ulong SourceMemory
+		{
+			get
+			{
+				return this.StackMemory;
 			}
 		}
 		

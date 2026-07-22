@@ -9,7 +9,7 @@ namespace BinaryNinja
 
 		public RegisterStackIndex Index { get; }
 
-		internal RegisterStack(Architecture arch , RegisterStackIndex index)
+		public RegisterStack(Architecture arch , RegisterStackIndex index)
 		{
 			this.Architecture = arch;
 			this.Index = index;

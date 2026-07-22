@@ -24,8 +24,7 @@ namespace BinaryNinja
 		{
 			get
 			{
-				
-				return this.GetOperandAsSSAFlagOrRegisterList(0);
+				return this.GetOperandAsSSAFlagOrRegisterList((OperandIndex)1);
 			}
 		}
 	}
