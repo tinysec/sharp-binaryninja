@@ -1437,9 +1437,6 @@ namespace BinaryNinja
 			return UnsafeUtils.TakeAnsiStringArray(ptr , count , NativeMethods.BNFreeStringList);
 		}
 
-		// TODO: BNRunProgressDialog — requires callback delegate (void** task, void* taskCtxt).
-		//       Needs managed delegate infrastructure for the progress callback.
-
 		// TODO: BNAppendSymbolQueue / BNProcessSymbolQueue — internal callback-based
 		//       symbol resolution pipeline. Requires managed delegate infrastructure.
 
