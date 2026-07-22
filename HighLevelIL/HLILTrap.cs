@@ -11,7 +11,15 @@ namespace BinaryNinja
 			
 		}
 		
-		public ulong Vector
+		public long Vector
+		{
+			get
+			{
+				return (long)this.RawOperands[0];
+			}
+		}
+
+		public ulong RawVector
 		{
 			get
 			{
