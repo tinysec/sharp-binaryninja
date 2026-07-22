@@ -22,7 +22,7 @@ namespace BinaryNinja
 		    IntPtr arch  , 
 			
 			// BNFunctionRecognizer* rec
-		    IntPtr rec  
+		    in BNFunctionRecognizer rec
 			
 		);
 	}

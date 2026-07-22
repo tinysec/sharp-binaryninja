@@ -19,7 +19,7 @@ namespace BinaryNinja
 		internal static extern void BNRegisterGlobalFunctionRecognizer(
 			
 			// BNFunctionRecognizer* rec
-		    IntPtr rec  
+		    in BNFunctionRecognizer rec
 			
 		);
 	}
