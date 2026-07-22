@@ -23,7 +23,7 @@ namespace BinaryNinja
 		    [MarshalAs(UnmanagedType.LPUTF8Str)] string title  , 
 			
 			// bool canCancel
-		    bool canCancel  , 
+		    [MarshalAs(UnmanagedType.I1)] bool canCancel  ,
 			
 			// void** task
 		    IntPtr task  , 
