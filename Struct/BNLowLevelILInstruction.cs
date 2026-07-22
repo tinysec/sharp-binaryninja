@@ -45,7 +45,7 @@ namespace BinaryNinja
 		internal ulong address;
 	}
 
-    public abstract class LowLevelILInstruction 
+    public abstract partial class LowLevelILInstruction
 	    : INativeWrapper<BNLowLevelILInstruction>,
 	    IEquatable<LowLevelILInstruction>,
 	    IComparable<LowLevelILInstruction>
