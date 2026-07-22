@@ -5884,6 +5884,11 @@ namespace BinaryNinja
 		    }
 	    }
 
+		public MemoryMap MemoryMap
+		{
+			get { return new MemoryMap(this); }
+		}
+
 	    public bool AddMemoryRegion(
 		    string name,
 		    ulong start,
