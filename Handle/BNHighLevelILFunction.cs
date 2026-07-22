@@ -5,7 +5,7 @@ using Microsoft.Win32.SafeHandles;
 
 namespace BinaryNinja
 {
-	public sealed class HighLevelILFunction : AbstractSafeHandle<HighLevelILFunction>
+	public sealed partial class HighLevelILFunction : AbstractSafeHandle<HighLevelILFunction>
 	{
 		private readonly bool isSSAForm;
 
@@ -441,32 +441,18 @@ namespace BinaryNinja
 
 	    public HighLevelILInstructionIndex? GetSSAInstructionIndex(HighLevelILInstructionIndex instruction)
 	    {
-		    HighLevelILInstructionIndex index = NativeMethods.BNGetHighLevelILSSAInstructionIndex(
+		    return NativeMethods.BNGetHighLevelILSSAInstructionIndex(
 			    this.handle ,
 			    instruction
 		    );
-
-		    if ((ulong)index >= this.ExpressionCount)
-		    {
-			    return null;
-		    }
-
-		    return index;
 	    }
 	    
 	    public HighLevelILInstructionIndex? GetNonSSAInstructionIndex(HighLevelILInstructionIndex instruction)
 	    {
-		    HighLevelILInstructionIndex index = NativeMethods.BNGetHighLevelILNonSSAInstructionIndex(
+		    return NativeMethods.BNGetHighLevelILNonSSAInstructionIndex(
 			    this.handle ,
 			    instruction
 		    );
-
-		    if ((ulong)index >= this.ExpressionCount)
-		    {
-			    return null;
-		    }
-
-		    return index;
 	    }
 
 	    public HighLevelILInstruction? GetSSAVariableDefinition(Variable variable , ulong version)

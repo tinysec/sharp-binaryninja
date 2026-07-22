@@ -60,6 +60,22 @@ namespace BinaryNinja
 				instruction
 			);
 		}
+
+		public ulong[] SSAVersions
+		{
+			get
+			{
+				IntPtr arrayPointer = NativeMethods.BNGetHighLevelILVariableSSAVersions(
+					this.ILFunction.DangerousGetHandle(),
+					this.ToNative(),
+					out ulong arrayLength);
+
+				return UnsafeUtils.TakeNumberArray<ulong>(
+					arrayPointer,
+					arrayLength,
+					NativeMethods.BNFreeILInstructionList);
+			}
+		}
 		
 		public HighLevelILInstruction[] Definitions
 		{
