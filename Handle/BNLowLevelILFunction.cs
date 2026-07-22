@@ -9,6 +9,7 @@ namespace BinaryNinja
 	public sealed partial class LowLevelILFunction : AbstractSafeHandle<LowLevelILFunction>
 	{
 		private readonly bool isSSAForm;
+		private readonly Architecture? architecture;
 
 		/// <summary>
 		/// Gets whether this function is in SSA form.
@@ -29,10 +30,14 @@ namespace BinaryNinja
 	    internal LowLevelILFunction(
 		    IntPtr handle ,
 		    bool owner ,
-		    bool ssa = false
+		    bool ssa = false,
+		    Architecture? architecture = null
 		) : base(handle , owner)
 	    {
 	       this.isSSAForm = ssa;
+	       this.architecture = null == architecture
+		       ? null
+		       : BinaryNinja.Architecture.MustFromHandle(architecture.DangerousGetHandle());
 	    }
 
 	    private static FunctionGraphType GetILForm(IntPtr functionHandle)
@@ -45,7 +50,8 @@ namespace BinaryNinja
 	    
 	    internal static LowLevelILFunction? NewFromHandle(
 		    IntPtr handle,
-		    bool ssa = false
+		    bool ssa = false,
+		    Architecture? architecture = null
 		)
 	    {
 		    if (handle == IntPtr.Zero)
@@ -56,13 +62,15 @@ namespace BinaryNinja
 		    return new LowLevelILFunction(
 			    NativeMethods.BNNewLowLevelILFunctionReference(handle) ,
 			    true,
-			    ssa
+			    ssa,
+			    architecture
 		    );
 	    }
 	    
 	    internal static LowLevelILFunction MustNewFromHandle(
 		    IntPtr handle,
-		    bool ssa = false
+		    bool ssa = false,
+		    Architecture? architecture = null
 		)
 	    {
 		    if (handle == IntPtr.Zero)
@@ -73,13 +81,15 @@ namespace BinaryNinja
 		    return new LowLevelILFunction(
 			    NativeMethods.BNNewLowLevelILFunctionReference(handle) ,
 			    true,
-			    ssa
+			    ssa,
+			    architecture
 		    );
 	    }
 	    
 	    internal static LowLevelILFunction? TakeHandle(
 		    IntPtr handle,
-		    bool ssa = false
+		    bool ssa = false,
+		    Architecture? architecture = null
 		)
 	    {
 		    if (handle == IntPtr.Zero)
@@ -87,12 +97,13 @@ namespace BinaryNinja
 			    return null;
 		    }
 		    
-		    return new LowLevelILFunction(handle, true, ssa);
+		    return new LowLevelILFunction(handle, true, ssa, architecture);
 	    }
 	    
 	    internal static LowLevelILFunction MustTakeHandle(
 		    IntPtr handle,
-		    bool ssa = false
+		    bool ssa = false,
+		    Architecture? architecture = null
 		)
 	    {
 		    if (handle == IntPtr.Zero)
@@ -100,12 +111,13 @@ namespace BinaryNinja
 			    throw new ArgumentNullException(nameof(handle));
 		    }
 		    
-		    return new LowLevelILFunction(handle, true, ssa);
+		    return new LowLevelILFunction(handle, true, ssa, architecture);
 	    }
 	    
 	    internal static LowLevelILFunction? BorrowHandle(
 		    IntPtr handle,
-		    bool ssa = false
+		    bool ssa = false,
+		    Architecture? architecture = null
 		)
 	    {
 		    if (handle == IntPtr.Zero)
@@ -113,12 +125,13 @@ namespace BinaryNinja
 			    return null;
 		    }
 		    
-		    return new LowLevelILFunction(handle, false, ssa);
+		    return new LowLevelILFunction(handle, false, ssa, architecture);
 	    }
 	    
 	    internal static LowLevelILFunction MustBorrowHandle(
 		    IntPtr handle,
-		    bool ssa = false
+		    bool ssa = false,
+		    Architecture? architecture = null
 		)
 	    {
 		    if (handle == IntPtr.Zero)
@@ -126,7 +139,7 @@ namespace BinaryNinja
 			    throw new ArgumentNullException(nameof(handle));
 		    }
 		    
-		    return new LowLevelILFunction(handle, false , ssa);
+		    return new LowLevelILFunction(handle, false, ssa, architecture);
 	    }
 	    
 	    protected override bool ReleaseHandle()
@@ -162,20 +175,36 @@ namespace BinaryNinja
             );
 
             // 3. Wrap as a new owned handle (non-SSA by default).
-            return LowLevelILFunction.MustTakeHandle(result);
+		    return LowLevelILFunction.MustTakeHandle(result, false, arch);
         }
 
         // ===================================================================
         // Instance properties and methods
         // ===================================================================
 
+	    public Function? SourceFunction
+	    {
+		    get
+		    {
+			    return Function.TakeHandle(
+				    NativeMethods.BNGetLowLevelILOwnerFunction(this.handle) 
+			    );
+		    }
+	    }
+
 	    public Function OwnerFunction
 	    {
 		    get
 		    {
-			    return Function.MustTakeHandle(
-				    NativeMethods.BNGetLowLevelILOwnerFunction(this.handle) 
-			    );
+			    Function? function = this.SourceFunction;
+
+			    if (null == function)
+			    {
+				    throw new InvalidOperationException(
+					    "Standalone low-level IL functions do not have an owner function.");
+			    }
+
+			    return function;
 		    }
 	    }
 
@@ -183,7 +212,19 @@ namespace BinaryNinja
 	    {
 		    get
 		    {
-			    return this.OwnerFunction.Architecture;
+			    if (null != this.architecture)
+			    {
+				    return this.architecture;
+			    }
+
+			    using Function? function = this.SourceFunction;
+			    if (null == function)
+			    {
+				    throw new InvalidOperationException(
+					    "The architecture is unavailable for this low-level IL function.");
+			    }
+
+			    return function.Architecture;
 		    }
 	    }
 	    
@@ -341,7 +382,7 @@ namespace BinaryNinja
 	    {
 		    if (null == arch)
 		    {
-			    arch = this.OwnerFunction.Architecture;
+			    arch = this.Architecture;
 		    }
 		    
 		    NativeMethods.BNLowLevelILSetCurrentAddress(
@@ -394,7 +435,8 @@ namespace BinaryNinja
 			    
 			    return LowLevelILFunction.MustTakeHandle(
 				    NativeMethods.BNGetLowLevelILSSAForm(this.handle),
-				    true
+				    true,
+				    this.Architecture
 			    );
 		    }
 	    }
@@ -407,7 +449,8 @@ namespace BinaryNinja
 			    {
 				    return LowLevelILFunction.MustTakeHandle(
 					    NativeMethods.BNGetLowLevelILNonSSAForm(this.handle),
-					    false
+					    false,
+					    this.Architecture
 				    );
 			    }
 			    else
@@ -443,24 +486,46 @@ namespace BinaryNinja
 	    {
 		    if (null == arch)
 		    {
-			    arch = this.OwnerFunction.Architecture;
+			    arch = this.Architecture;
 		    }
-		    
+
+		    using Function? sourceFunction = this.SourceFunction;
+
 		    return MediumLevelILFunction.MustTakeHandle(
 
 			    NativeMethods.BNCreateMediumLevelILFunction(
 				    null == arch ? IntPtr.Zero : arch.DangerousGetHandle() ,
-				    this.OwnerFunction.DangerousGetHandle() ,
+				    null == sourceFunction
+					    ? IntPtr.Zero
+					    : sourceFunction.DangerousGetHandle(),
 				    this.handle
 			    )
 		    );
+	    }
+
+	    public BinaryView? SourceView
+	    {
+		    get
+		    {
+			    using Function? function = this.SourceFunction;
+
+			    return null == function ? null : function.View;
+		    }
 	    }
 
 	    public BinaryView View
 	    {
 		    get
 		    {
-			    return this.OwnerFunction.View;
+			    BinaryView? view = this.SourceView;
+
+			    if (null == view)
+			    {
+				    throw new InvalidOperationException(
+					    "Standalone low-level IL functions do not have a binary view.");
+			    }
+
+			    return view;
 		    }
 	    }
 
@@ -506,7 +571,7 @@ namespace BinaryNinja
 
 			    foreach (RegisterIndex index in indexes)
 			    {
-				    targets.Add( new ILRegister(this.OwnerFunction.Architecture, index) );
+				    targets.Add( new ILRegister(this.Architecture, index) );
 			    }
 			    
 			    return targets.ToArray();
@@ -536,7 +601,7 @@ namespace BinaryNinja
 
 				    foreach (ulong version in versions)
 				    {
-					    ILRegister register = new ILRegister(this.OwnerFunction.Architecture, index);
+					    ILRegister register = new ILRegister(this.Architecture, index);
 					    
 					    targets.Add( 
 						    new LowLevelILSSARegister(this, register, version)
@@ -567,7 +632,7 @@ namespace BinaryNinja
 
 			    foreach (RegisterStackIndex index in indexes)
 			    {
-				    targets.Add( new RegisterStack(this.OwnerFunction.Architecture, index) );
+				    targets.Add( new RegisterStack(this.Architecture, index) );
 			    }
 			    
 			    return targets.ToArray();
@@ -597,7 +662,7 @@ namespace BinaryNinja
 
 				    foreach (ulong version in versions)
 				    {
-					    RegisterStack registerStack = new RegisterStack(this.OwnerFunction.Architecture, index);
+					    RegisterStack registerStack = new RegisterStack(this.Architecture, index);
 					    
 					    targets.Add( 
 						    new SSARegisterStack(registerStack, version)
@@ -628,7 +693,7 @@ namespace BinaryNinja
 
 			    foreach (FlagIndex index in indexes)
 			    {
-				    targets.Add( new ILFlag(this.OwnerFunction.Architecture, index) );
+				    targets.Add( new ILFlag(this.Architecture, index) );
 			    }
 			    
 			    return targets.ToArray();
@@ -658,7 +723,7 @@ namespace BinaryNinja
 
 				    foreach (ulong version in versions)
 				    {
-					    ILFlag flag = new ILFlag(this.OwnerFunction.Architecture, index);
+					    ILFlag flag = new ILFlag(this.Architecture, index);
 					    
 					    targets.Add( 
 						    new LowLevelILSSAFlag(this , flag, version)
@@ -987,6 +1052,11 @@ namespace BinaryNinja
 		    DisassemblySettings? settings = null
 		)
 	    {
+		    if (null == arch)
+		    {
+			    arch = this.Architecture;
+		    }
+
 		    NativeMethods.BNGetLowLevelILExprText(
 			    this.handle,
 			    null == arch ? IntPtr.Zero :  arch.DangerousGetHandle(),
@@ -1010,9 +1080,18 @@ namespace BinaryNinja
 		    DisassemblySettings? settings = null
 	    )
 	    {
+		    if (null == arch)
+		    {
+			    arch = this.Architecture;
+		    }
+
+		    using Function? sourceFunction = this.SourceFunction;
+
 		    NativeMethods.BNGetLowLevelILInstructionText(
 			    this.handle,
-			    this.OwnerFunction.DangerousGetHandle(),
+			    null == sourceFunction
+				    ? IntPtr.Zero
+				    : sourceFunction.DangerousGetHandle(),
 			    null == arch ? IntPtr.Zero :  arch.DangerousGetHandle(),
 			    instruction,
 			    null == settings ? IntPtr.Zero :  settings.DangerousGetHandle(),
