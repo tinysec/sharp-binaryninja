@@ -59,8 +59,19 @@ namespace BinaryNinja
 	    public ulong RawParent { get;  } = 0;
 		
 	    public OperandIndex SourceOperand { get;  } = 0;
-		
+
 	    public ulong Address { get;  } = 0;
+
+		/// <summary>
+		/// Gets a source-aware location suitable for IL translation builders.
+		/// </summary>
+		public SourceLocation Location
+		{
+			get
+			{
+				return SourceLocation.FromInstruction(this);
+			}
+		}
 	
 	    public ulong[] RawOperands { get;  } = Array.Empty<ulong>();
 	    

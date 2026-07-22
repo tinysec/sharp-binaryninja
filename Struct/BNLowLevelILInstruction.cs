@@ -409,7 +409,7 @@ namespace BinaryNinja
 		{
 			get
 			{
-				return new SourceLocation(this.Address , this.SourceOperand);
+				return SourceLocation.FromInstruction(this);
 			}
 		}
 		

@@ -9,7 +9,7 @@ using Microsoft.Win32.SafeHandles;
 
 namespace BinaryNinja
 {
-	public sealed class MediumLevelILFunction : AbstractSafeHandle<MediumLevelILFunction>
+	public sealed partial class MediumLevelILFunction : AbstractSafeHandle<MediumLevelILFunction>
 	{
 		private readonly bool isSSAForm;
 
@@ -541,6 +541,12 @@ namespace BinaryNinja
 
 	    public void PrepareToCopyFunction(MediumLevelILFunction source)
 	    {
+		    if (null == source)
+		    {
+			    throw new ArgumentNullException(nameof(source));
+		    }
+
+		    this.BeginTranslation(source);
 		    NativeMethods.BNPrepareToCopyMediumLevelILFunction(this.handle , source.DangerousGetHandle());
 	    }
 	    
@@ -759,18 +765,20 @@ namespace BinaryNinja
 		    {
 			    return null;
 		    }
+
+		    LowLevelILFunction llilSSA = llil.SSAForm;
 		    
 		    LowLevelILExpressionIndex lowExpr = NativeMethods.BNGetLowLevelILExprIndex(
 			    this.handle, 
 			    mediumExpr
 		    );
 
-		    if ((ulong)lowExpr >= llil.ExpressionCount)
+		    if ((ulong)lowExpr >= llilSSA.ExpressionCount)
 		    {
 			    return null;
 		    }
 
-		    return llil.GetExpression(lowExpr);
+		    return llilSSA.GetExpression(lowExpr);
 	    }
 	    
 	    public LowLevelILInstruction? GetLowLevelILInstruction(
@@ -783,18 +791,20 @@ namespace BinaryNinja
 		    {
 			    return null;
 		    }
+
+		    LowLevelILFunction llilSSA = llil.SSAForm;
 		    
 		    LowLevelILInstructionIndex lowInstr = NativeMethods.BNGetLowLevelILInstructionIndex(
 			    this.handle, 
 			    mediumInstr
 			);
 
-		    if ((ulong)lowInstr >= llil.InstructionCount)
+		    if ((ulong)lowInstr >= llilSSA.InstructionCount)
 		    {
 			    return null;
 		    }
 
-		    return llil.GetInstruction(lowInstr);
+		    return llilSSA.GetInstruction(lowInstr);
 	    }
 	    
 	    public LowLevelILInstruction[] GetLowLevelILExpressions(
@@ -807,6 +817,8 @@ namespace BinaryNinja
 		    {
 			    return Array.Empty<LowLevelILInstruction>();
 		    }
+
+		    LowLevelILFunction llilSSA = llil.SSAForm;
 		    
 		    IntPtr arrayPointer = NativeMethods.BNGetLowLevelILExprIndexes(
 			    this.handle, 
@@ -825,7 +837,7 @@ namespace BinaryNinja
 		    foreach (LowLevelILExpressionIndex lowExpr in lowExprs)
 		    {
 			    expressions.Add(
-				    llil.MustGetExpression(lowExpr)
+				    llilSSA.MustGetExpression(lowExpr)
 				);
 		    }
 		    
@@ -1102,9 +1114,15 @@ namespace BinaryNinja
 		    NativeMethods.BNSetMediumLevelILExprAttributes(this.handle , expr , attributes);
 	    }
 	    
-	    public MediumLevelILInstructionIndex AddInstruction(MediumLevelILExpressionIndex expr)
+	    public MediumLevelILInstructionIndex AddInstruction(
+		    MediumLevelILExpressionIndex expr,
+		    SourceLocation? location = null)
 	    {
-		    return NativeMethods.BNMediumLevelILAddInstruction(this.handle , expr);
+		    MediumLevelILInstructionIndex result =
+			    NativeMethods.BNMediumLevelILAddInstruction(this.handle , expr);
+		    this.RecordInstructionTranslation(result, location);
+
+		    return result;
 	    }
 	    
 	    public PossibleValueSet GetSSAVariablePossibleValues(
@@ -1555,6 +1573,7 @@ namespace BinaryNinja
 		    params ulong[] operands
 	    )
 	    {
+		    MediumLevelILExpressionIndex result;
 		    ulong a = 0;
 		    ulong b = 0;
 		    ulong c = 0;
@@ -1588,7 +1607,7 @@ namespace BinaryNinja
 		    
 		    if (null == location)
 		    {
-			    return NativeMethods.BNMediumLevelILAddExpr(
+			    result = NativeMethods.BNMediumLevelILAddExpr(
 				    this.handle ,
 				    operation,
 				    size ,
@@ -1601,7 +1620,7 @@ namespace BinaryNinja
 		    }
 		    else
 		    {
-			    return NativeMethods.BNMediumLevelILAddExprWithLocation(
+			    result = NativeMethods.BNMediumLevelILAddExprWithLocation(
 				    this.handle ,
 				    operation,
 				    location.Address,
@@ -1614,7 +1633,10 @@ namespace BinaryNinja
 				    e
 			    );
 		    }
-		     
+
+		    this.RecordExpressionTranslation(result, location);
+
+		    return result;
 	    }
 
 	    public MediumLevelILExpressionIndex EmitNop(SourceLocation? location = null)
