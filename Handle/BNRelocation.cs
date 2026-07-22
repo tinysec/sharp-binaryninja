@@ -160,66 +160,8 @@ namespace BinaryNinja
         {
             get
             {
-                // 1. Retrieve the native struct by value from the native function.
                 BNRelocationInfo native = NativeMethods.BNRelocationGetInfo(this.handle);
-
-                // 2. Map each native field to the managed RelocationInfo object.
-                RelocationInfo managed = new RelocationInfo();
-
-                // 2.1 Copy the relocation type enumeration value.
-                managed.Type = native.type;
-
-                // 2.2 Copy the PC-relative addressing flag.
-                managed.PcRelative = native.pcRelative;
-
-                // 2.3 Copy the base-relative addressing flag.
-                managed.BaseRelative = native.baseRelative;
-
-                // 2.4 Copy the base address used when base-relative is true.
-                managed.Base = native._base;
-
-                // 2.5 Copy the size of the patch in bytes.
-                managed.Size = native.size;
-
-                // 2.6 Copy the truncation size for partial-word relocations.
-                managed.TruncateSize = native.truncateSize;
-
-                // 2.7 Copy the native/architecture-specific relocation type code.
-                managed.NativeType = native.nativeType;
-
-                // 2.8 Copy the addend value (signed offset added to the relocated value).
-                managed.Addend = native.addend;
-
-                // 2.9 Copy the flag indicating whether the addend is signed.
-                managed.HasSign = native.hasSign;
-
-                // 2.10 Copy the flag indicating whether the addend is encoded implicitly.
-                managed.ImplicitAddend = native.implicitAddend;
-
-                // 2.11 Copy the flag indicating whether this is an external relocation.
-                managed.External = native.external;
-
-                // 2.12 Copy the index into the symbol table for this relocation.
-                managed.SymbolIndex = native.symbolIndex;
-
-                // 2.13 Copy the index of the section this relocation refers to.
-                managed.SectionIndex = native.sectionIndex;
-
-                // 2.14 Copy the virtual address of the location to patch.
-                managed.Address = native.address;
-
-                // 2.15 Copy the resolved target value (what will be written at Address).
-                managed.Target = native.target;
-
-                // 2.16 Copy the flag indicating whether this is a data relocation.
-                managed.DataRelocation = native.dataRelocation;
-
-                // 2.17 Prev/Next are chained native struct pointers; leave as null in managed form
-                //      since we only have a single struct copy (not a linked list of handles).
-                managed.Prev = null;
-                managed.Next = null;
-
-                return managed;
+                return RelocationInfo.FromNative(native);
             }
         }
 

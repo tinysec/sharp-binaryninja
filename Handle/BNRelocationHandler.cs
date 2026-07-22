@@ -1,253 +1,262 @@
 using System;
 using System.Collections.Generic;
-using System.Runtime.InteropServices;
-using Microsoft.Win32.SafeHandles;
 
 namespace BinaryNinja
 {
-    /// <summary>
-    /// Represents a relocation handler that applies architecture-specific relocations
-    /// during binary loading. Relocation handlers are typically registered by architecture
-    /// plugins to translate raw relocation entries into concrete address patches.
-    /// </summary>
-    public sealed class RelocationHandler : AbstractSafeHandle<RelocationHandler>
-    {
-        /// <summary>
-        /// Initializes a new RelocationHandler wrapper around an existing native handle.
-        /// </summary>
-        /// <param name="handle">The native pointer to the BNRelocationHandler object.</param>
-        /// <param name="owner">True if this wrapper owns the handle and should free it on dispose.</param>
-        internal RelocationHandler(IntPtr handle, bool owner)
-            : base(handle, owner)
-        {
-        }
+	/// <summary>
+	/// Applies architecture-specific relocations and describes their native metadata.
+	/// </summary>
+	public partial class RelocationHandler : AbstractSafeHandle<RelocationHandler>
+	{
+		/// <summary>Requests automatic coercion for an external relocation pointer.</summary>
+		public const ulong AutoCoerceExternPointer = 0xfffffffd;
 
-        /// <summary>
-        /// Creates an owned reference by incrementing the native reference count.
-        /// Returns null if the handle is zero.
-        /// </summary>
-        /// <param name="handle">The native BNRelocationHandler pointer.</param>
-        /// <returns>A new owned RelocationHandler, or null if the handle is zero.</returns>
-        internal static RelocationHandler? NewFromHandle(IntPtr handle)
-        {
-            if (handle == IntPtr.Zero)
-            {
-                return null;
-            }
+		private static readonly object registrationLock = new object();
 
-            return new RelocationHandler(
-                NativeMethods.BNNewRelocationHandlerReference(handle),
-                true
-            );
-        }
+		private static readonly List<RelocationHandler> registeredHandlers =
+			new List<RelocationHandler>();
 
-        /// <summary>
-        /// Creates an owned reference by incrementing the native reference count.
-        /// Throws if the handle is zero.
-        /// </summary>
-        /// <param name="handle">The native BNRelocationHandler pointer.</param>
-        /// <returns>A new owned RelocationHandler.</returns>
-        internal static RelocationHandler MustNewFromHandle(IntPtr handle)
-        {
-            if (handle == IntPtr.Zero)
-            {
-                throw new ArgumentNullException(nameof(handle));
-            }
+		private readonly bool custom;
+		private bool registered;
 
-            return new RelocationHandler(
-                NativeMethods.BNNewRelocationHandlerReference(handle),
-                true
-            );
-        }
+		internal RelocationHandler(IntPtr handle, bool owner)
+			: base(handle, owner)
+		{
+		}
 
-        /// <summary>
-        /// Takes ownership of an existing handle without incrementing the reference count.
-        /// Returns null if the handle is zero.
-        /// </summary>
-        /// <param name="handle">The native BNRelocationHandler pointer.</param>
-        /// <returns>A new owned RelocationHandler, or null if the handle is zero.</returns>
-        internal static RelocationHandler? TakeHandle(IntPtr handle)
-        {
-            if (handle == IntPtr.Zero)
-            {
-                return null;
-            }
+		/// <summary>Creates a custom relocation handler backed by managed callbacks.</summary>
+		protected RelocationHandler()
+			: base(true)
+		{
+			this.custom = true;
+			this.InitializeCustomCallbacks();
+		}
 
-            return new RelocationHandler(handle, true);
-        }
+		internal static RelocationHandler? NewFromHandle(IntPtr handle)
+		{
+			if (IntPtr.Zero == handle)
+			{
+				return null;
+			}
 
-        /// <summary>
-        /// Takes ownership of an existing handle without incrementing the reference count.
-        /// Throws if the handle is zero.
-        /// </summary>
-        /// <param name="handle">The native BNRelocationHandler pointer.</param>
-        /// <returns>A new owned RelocationHandler.</returns>
-        internal static RelocationHandler MustTakeHandle(IntPtr handle)
-        {
-            if (handle == IntPtr.Zero)
-            {
-                throw new ArgumentNullException(nameof(handle));
-            }
+			return new CoreRelocationHandler(
+				NativeMethods.BNNewRelocationHandlerReference(handle), true
+			);
+		}
 
-            return new RelocationHandler(handle, true);
-        }
+		internal static RelocationHandler MustNewFromHandle(IntPtr handle)
+		{
+			if (IntPtr.Zero == handle)
+			{
+				throw new ArgumentNullException(nameof(handle));
+			}
 
-        /// <summary>
-        /// Borrows a native handle without taking ownership. Returns null if the handle is zero.
-        /// </summary>
-        /// <param name="handle">The native BNRelocationHandler pointer.</param>
-        /// <returns>A new RelocationHandler that will not free the handle on dispose.</returns>
-        internal static RelocationHandler? BorrowHandle(IntPtr handle)
-        {
-            if (handle == IntPtr.Zero)
-            {
-                return null;
-            }
+			return new CoreRelocationHandler(
+				NativeMethods.BNNewRelocationHandlerReference(handle), true
+			);
+		}
 
-            return new RelocationHandler(handle, false);
-        }
+		internal static RelocationHandler? TakeHandle(IntPtr handle)
+		{
+			if (IntPtr.Zero == handle)
+			{
+				return null;
+			}
 
-        /// <summary>
-        /// Borrows a native handle without taking ownership. Throws if the handle is zero.
-        /// </summary>
-        /// <param name="handle">The native BNRelocationHandler pointer.</param>
-        /// <returns>A new RelocationHandler that will not free the handle on dispose.</returns>
-        internal static RelocationHandler MustBorrowHandle(IntPtr handle)
-        {
-            if (handle == IntPtr.Zero)
-            {
-                throw new ArgumentNullException(nameof(handle));
-            }
+			return new CoreRelocationHandler(handle, true);
+		}
 
-            return new RelocationHandler(handle, false);
-        }
+		internal static RelocationHandler MustTakeHandle(IntPtr handle)
+		{
+			if (IntPtr.Zero == handle)
+			{
+				throw new ArgumentNullException(nameof(handle));
+			}
 
-        /// <summary>
-        /// Releases the native BNRelocationHandler handle when this instance is disposed or finalized.
-        /// </summary>
-        /// <returns>True if the handle was successfully released.</returns>
-        protected override bool ReleaseHandle()
-        {
-            if (!this.IsInvalid)
-            {
-                // Free the native handler handle and mark it invalid to prevent double-free.
-                NativeMethods.BNFreeRelocationHandler(this.handle);
-                this.SetHandleAsInvalid();
-            }
+			return new CoreRelocationHandler(handle, true);
+		}
 
-            return true;
-        }
+		internal static RelocationHandler? BorrowHandle(IntPtr handle)
+		{
+			if (IntPtr.Zero == handle)
+			{
+				return null;
+			}
 
-        /// <summary>
-        /// Applies a relocation to a raw byte buffer at the location described by the relocation entry.
-        /// </summary>
-        /// <param name="view">The binary view providing context for the relocation.</param>
-        /// <param name="arch">The architecture defining the relocation format.</param>
-        /// <param name="reloc">The relocation entry describing what to patch and where.</param>
-        /// <param name="dest">Pointer to the destination byte buffer to be patched.</param>
-        /// <param name="len">Length in bytes of the destination buffer.</param>
-        /// <returns>True if the relocation was applied successfully; false on failure.</returns>
-        public bool ApplyRelocation(BinaryView view, Architecture arch, Relocation reloc, IntPtr dest, ulong len)
-        {
-            // 1. Validate required parameters before forwarding to the native API.
-            if (null == view)
-            {
-                throw new ArgumentNullException(nameof(view));
-            }
+			return new CoreRelocationHandler(handle, false);
+		}
 
-            if (null == arch)
-            {
-                throw new ArgumentNullException(nameof(arch));
-            }
+		internal static RelocationHandler MustBorrowHandle(IntPtr handle)
+		{
+			if (IntPtr.Zero == handle)
+			{
+				throw new ArgumentNullException(nameof(handle));
+			}
 
-            if (null == reloc)
-            {
-                throw new ArgumentNullException(nameof(reloc));
-            }
+			return new CoreRelocationHandler(handle, false);
+		}
 
-            // 2. Delegate to the native relocation application API.
-            return NativeMethods.BNRelocationHandlerApplyRelocation(
-                this.handle,
-                view.DangerousGetHandle(),
-                arch.DangerousGetHandle(),
-                reloc.DangerousGetHandle(),
-                dest,
-                len
-            );
-        }
+		internal static void RootForRegistration(RelocationHandler handler)
+		{
+			if (null == handler)
+			{
+				throw new ArgumentNullException(nameof(handler));
+			}
 
-        /// <summary>
-        /// Applies a relocation using this handler's default implementation,
-        /// bypassing any custom override. Useful when a custom handler wants to
-        /// fall back to the base behavior for specific relocation types.
-        /// </summary>
-        /// <param name="view">The binary view providing context for the relocation.</param>
-        /// <param name="arch">The architecture defining the relocation format.</param>
-        /// <param name="reloc">The relocation entry describing what to patch and where.</param>
-        /// <param name="dest">Pointer to the destination byte buffer to be patched.</param>
-        /// <param name="len">Length in bytes of the destination buffer.</param>
-        /// <returns>True if the relocation was applied successfully; false on failure.</returns>
-        public bool DefaultApplyRelocation(BinaryView view, Architecture arch, Relocation reloc, IntPtr dest, ulong len)
-        {
-            // 1. Validate required parameters before forwarding to the native API.
-            if (null == view)
-            {
-                throw new ArgumentNullException(nameof(view));
-            }
+			if (!handler.custom)
+			{
+				return;
+			}
 
-            if (null == arch)
-            {
-                throw new ArgumentNullException(nameof(arch));
-            }
+			lock (RelocationHandler.registrationLock)
+			{
+				if (!handler.registered)
+				{
+					handler.registered = true;
+					RelocationHandler.registeredHandlers.Add(handler);
+				}
+			}
+		}
 
-            if (null == reloc)
-            {
-                throw new ArgumentNullException(nameof(reloc));
-            }
+		protected override bool ReleaseHandle()
+		{
+			if (!this.IsInvalid && !this.registered)
+			{
+				NativeMethods.BNFreeRelocationHandler(this.handle);
+				this.SetHandleAsInvalid();
+			}
 
-            // 2. Delegate to the native default relocation application API.
-            return NativeMethods.BNRelocationHandlerDefaultApplyRelocation(
-                this.handle,
-                view.DangerousGetHandle(),
-                arch.DangerousGetHandle(),
-                reloc.DangerousGetHandle(),
-                dest,
-                len
-            );
-        }
+			return true;
+		}
 
-        /// <summary>
-        /// Computes the operand value for an external relocation at the given address.
-        /// This is used during lifting to represent the relocated target as an IL operand.
-        /// </summary>
-        /// <param name="data">Pointer to the raw bytes at the relocation site.</param>
-        /// <param name="addr">The virtual address of the relocation site.</param>
-        /// <param name="length">Number of bytes at the relocation site.</param>
-        /// <param name="il">The low-level IL function being lifted into.</param>
-        /// <param name="relocation">The relocation entry describing the external reference.</param>
-        /// <returns>The computed operand value for use in the IL expression.</returns>
-        public ulong GetOperandForExternalRelocation(IntPtr data, ulong addr, ulong length, LowLevelILFunction il, Relocation relocation)
-        {
-            // 1. Validate the required handle parameters.
-            if (null == il)
-            {
-                throw new ArgumentNullException(nameof(il));
-            }
+		/// <summary>Updates native relocation metadata before relocations are defined.</summary>
+		/// <param name="view">The binary view containing the relocations.</param>
+		/// <param name="architecture">The architecture interpreting the relocations.</param>
+		/// <param name="result">The metadata records to inspect and update in place.</param>
+		/// <returns>True when the metadata was recognized and updated.</returns>
+		public virtual bool GetRelocationInfo(
+			BinaryView view,
+			Architecture architecture,
+			RelocationInfo[] result
+		)
+		{
+			return false;
+		}
 
-            if (null == relocation)
-            {
-                throw new ArgumentNullException(nameof(relocation));
-            }
+		/// <summary>Applies one relocation to a destination buffer.</summary>
+		public virtual bool ApplyRelocation(
+			BinaryView view,
+			Architecture architecture,
+			Relocation relocation,
+			IntPtr destination,
+			ulong length
+		)
+		{
+			return this.DefaultApplyRelocation(
+				view, architecture, relocation, destination, length
+			);
+		}
 
-            // 2. Forward all parameters to the native operand computation API.
-            return NativeMethods.BNRelocationHandlerGetOperandForExternalRelocation(
-                this.handle,
-                data,
-                addr,
-                length,
-                il.DangerousGetHandle(),
-                relocation.DangerousGetHandle()
-            );
-        }
-    }
+		/// <summary>Applies one relocation using the core default implementation.</summary>
+		public bool DefaultApplyRelocation(
+			BinaryView view,
+			Architecture architecture,
+			Relocation relocation,
+			IntPtr destination,
+			ulong length
+		)
+		{
+			RelocationHandler.ValidateRelocationArguments(
+				view, architecture, relocation
+			);
+			return NativeMethods.BNRelocationHandlerDefaultApplyRelocation(
+				this.handle,
+				view.DangerousGetHandle(),
+				architecture.DangerousGetHandle(),
+				relocation.DangerousGetHandle(),
+				destination,
+				length
+			);
+		}
+
+		/// <summary>Gets the LLIL operand for an external relocation.</summary>
+		public virtual ulong GetOperandForExternalRelocation(
+			IntPtr data,
+			ulong address,
+			ulong length,
+			LowLevelILFunction lowLevelIl,
+			Relocation relocation
+		)
+		{
+			return RelocationHandler.AutoCoerceExternPointer;
+		}
+
+		private static void ValidateRelocationArguments(
+			BinaryView view,
+			Architecture architecture,
+			Relocation relocation
+		)
+		{
+			if (null == view)
+			{
+				throw new ArgumentNullException(nameof(view));
+			}
+
+			if (null == architecture)
+			{
+				throw new ArgumentNullException(nameof(architecture));
+			}
+
+			if (null == relocation)
+			{
+				throw new ArgumentNullException(nameof(relocation));
+			}
+		}
+
+		private static void ValidateRelocationInfoArguments(
+			BinaryView view,
+			Architecture architecture,
+			RelocationInfo[] result
+		)
+		{
+			if (null == view)
+			{
+				throw new ArgumentNullException(nameof(view));
+			}
+
+			if (null == architecture)
+			{
+				throw new ArgumentNullException(nameof(architecture));
+			}
+
+			if (null == result)
+			{
+				throw new ArgumentNullException(nameof(result));
+			}
+
+			foreach (RelocationInfo info in result)
+			{
+				if (null == info)
+				{
+					throw new ArgumentException(
+						"Relocation metadata cannot contain null values.",
+						nameof(result)
+					);
+				}
+			}
+		}
+
+		private static BNRelocationInfo[] CreateNativeRelocationInfo(
+			RelocationInfo[] result
+		)
+		{
+			BNRelocationInfo[] nativeResult = new BNRelocationInfo[result.Length];
+			for (int i = 0; i < result.Length; i++)
+			{
+				nativeResult[i] = result[i].ToNative(default(BNRelocationInfo));
+			}
+
+			return nativeResult;
+		}
+	}
 }

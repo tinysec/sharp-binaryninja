@@ -89,9 +89,9 @@ namespace BinaryNinja
 		[MarshalAs(UnmanagedType.I1)] public bool dataRelocation;
 		
 		/// <summary>
-		/// uint8_t[8] relocationDataCache
+		/// uint8_t relocationDataCache[8]
 		/// </summary>
-		public IntPtr relocationDataCache;
+		public fixed byte relocationDataCache[8];
 		
 		/// <summary>
 		/// BNRelocationInfo* prev
@@ -147,6 +147,64 @@ namespace BinaryNinja
 		public RelocationInfo() 
 		{
 		    
+		}
+
+		internal static unsafe RelocationInfo FromNative(BNRelocationInfo native)
+		{
+			byte[] cache = new byte[8];
+			for (int i = 0; i < cache.Length; i++)
+			{
+				cache[i] = native.relocationDataCache[i];
+			}
+
+			return new RelocationInfo()
+			{
+				Type = native.type,
+				PcRelative = native.pcRelative,
+				BaseRelative = native.baseRelative,
+				Base = native._base,
+				Size = native.size,
+				TruncateSize = native.truncateSize,
+				NativeType = native.nativeType,
+				Addend = native.addend,
+				HasSign = native.hasSign,
+				ImplicitAddend = native.implicitAddend,
+				External = native.external,
+				SymbolIndex = native.symbolIndex,
+				SectionIndex = native.sectionIndex,
+				Address = native.address,
+				Target = native.target,
+				DataRelocation = native.dataRelocation,
+				RelocationDataCache = cache
+			};
+		}
+
+		internal unsafe BNRelocationInfo ToNative(BNRelocationInfo template)
+		{
+			template.type = this.Type;
+			template.pcRelative = this.PcRelative;
+			template.baseRelative = this.BaseRelative;
+			template._base = this.Base;
+			template.size = this.Size;
+			template.truncateSize = this.TruncateSize;
+			template.nativeType = this.NativeType;
+			template.addend = this.Addend;
+			template.hasSign = this.HasSign;
+			template.implicitAddend = this.ImplicitAddend;
+			template.external = this.External;
+			template.symbolIndex = this.SymbolIndex;
+			template.sectionIndex = this.SectionIndex;
+			template.address = this.Address;
+			template.target = this.Target;
+			template.dataRelocation = this.DataRelocation;
+			byte[] cache = this.RelocationDataCache ?? Array.Empty<byte>();
+			for (int i = 0; i < 8; i++)
+			{
+				template.relocationDataCache[i] =
+					i < cache.Length ? cache[i] : (byte)0;
+			}
+
+			return template;
 		}
     }
 }

@@ -965,9 +965,15 @@ namespace BinaryNinja
 	    /// <param name="handler">The relocation handler to register.</param>
 	    public void RegisterRelocationHandler(string viewName, RelocationHandler handler)
 	    {
+		    if (null == handler)
+		    {
+			    throw new ArgumentNullException(nameof(handler));
+		    }
+
 		    NativeMethods.BNArchitectureRegisterRelocationHandler(
 			    this.handle, viewName, handler.DangerousGetHandle()
 		    );
+		    RelocationHandler.RootForRegistration(handler);
 	    }
 
 	    /// <summary>

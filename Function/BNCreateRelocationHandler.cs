@@ -16,9 +16,7 @@ namespace BinaryNinja
             EntryPoint = "BNCreateRelocationHandler"
         )]
 		internal static extern IntPtr BNCreateRelocationHandler(
-			
-			// BNCustomRelocationHandler* handler
-		    IntPtr handler  
+			in BNCustomRelocationHandler handler
 		);
 	}
 }
