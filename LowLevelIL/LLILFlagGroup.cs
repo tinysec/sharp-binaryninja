@@ -18,5 +18,13 @@ namespace BinaryNinja
 				return this.GetOperandAsSemanticFlagGroup(0);
 			}
 		}
+
+		public SemanticFlagGroup SemanticGroup
+		{
+			get
+			{
+				return this.SemanticFlagGroup;
+			}
+		}
 	}
 }

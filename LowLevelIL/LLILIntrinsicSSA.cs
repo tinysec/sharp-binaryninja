@@ -45,6 +45,14 @@ namespace BinaryNinja
 				return instruction!;
 			}
 		}
+
+		public LLILCallParameter Param
+		{
+			get
+			{
+				return this.Parameter;
+			}
+		}
 		
 		public LowLevelILInstruction[] Parameters
 		{

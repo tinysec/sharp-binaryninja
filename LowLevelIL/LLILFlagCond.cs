@@ -26,5 +26,13 @@ namespace BinaryNinja
 				return this.GetOperandAsSemanticFlagClass((OperandIndex)1);
 			}
 		}
+
+		public SemanticFlagClass SemanticClass
+		{
+			get
+			{
+				return this.SemanticFlagClass;
+			}
+		}
 	}
 }
