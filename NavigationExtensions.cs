@@ -516,6 +516,55 @@ namespace BinaryNinja
             }
         }
 
+		/// <summary>
+		/// Returns code references associated with an analyzed derived string.
+		/// </summary>
+		public static ReferenceSource[] GetDerivedStringCodeReferences(
+			this BinaryView view,
+			DerivedString derivedString,
+			ulong? maxItems = null
+		)
+		{
+			if (null == view)
+			{
+				throw new ArgumentNullException(nameof(view));
+			}
+
+			if (null == derivedString)
+			{
+				throw new ArgumentNullException(nameof(derivedString));
+			}
+
+			BNDerivedString native = derivedString.ToNativeEx();
+			try
+			{
+				using (ScopedAllocator allocator = new ScopedAllocator())
+				{
+					IntPtr references = NativeMethods.BNGetDerivedStringCodeReferences(
+						view.DangerousGetHandle(),
+						allocator.AllocStruct(native),
+						out UIntPtr countValue,
+						maxItems.HasValue,
+						new UIntPtr(maxItems.GetValueOrDefault())
+					);
+
+					return UnsafeUtils.TakeStructArrayEx<BNReferenceSource, ReferenceSource>(
+						references,
+						countValue.ToUInt64(),
+						ReferenceSource.FromNative,
+						NativeMethods.BNFreeCodeReferences
+					);
+				}
+			}
+			finally
+			{
+				if (IntPtr.Zero != native.value)
+				{
+					NativeMethods.BNFreeStringRef(native.value);
+				}
+			}
+		}
+
         // Adapts BNFreeDerivedStringList (which takes a UIntPtr count) to the
         // Action<IntPtr, ulong> signature TakeStructArrayEx expects. Named method, not a
         // lambda, per the project's C# style rules.
