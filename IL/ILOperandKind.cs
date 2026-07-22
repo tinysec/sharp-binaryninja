@@ -108,6 +108,69 @@ namespace BinaryNinja
 		/// The destination-memory version of MLIL_MEMORY_INTRINSIC_SSA, reached by reading the
 		/// MLILMemoryIntrinsicOutputSSA sub-instruction's DestinationMemory (Python "int").
 		/// </summary>
-		MemoryIntrinsicOutputSsaMemory
+		MemoryIntrinsicOutputSsaMemory,
+
+		// --- LowLevelIL operands ---
+		// These values remain after the older MLIL kinds to preserve their public numeric values.
+
+		/// <summary>An architecture register (Python type "ILRegister").</summary>
+		Register,
+
+		/// <summary>An architecture flag (Python type "ILFlag").</summary>
+		Flag,
+
+		/// <summary>An architecture register stack (Python type "ILRegisterStack").</summary>
+		RegisterStack,
+
+		/// <summary>An SSA register occupying two raw slots (Python type "SSARegister").</summary>
+		SSARegister,
+
+		/// <summary>An SSA flag occupying two raw slots (Python type "SSAFlag").</summary>
+		SSAFlag,
+
+		/// <summary>An SSA register stack occupying two raw slots.</summary>
+		SSARegisterStack,
+
+		/// <summary>A low-level flag condition.</summary>
+		FlagCondition,
+
+		/// <summary>An architecture semantic flag class.</summary>
+		SemanticFlagClass,
+
+		/// <summary>An architecture semantic flag group.</summary>
+		SemanticFlagGroup,
+
+		/// <summary>A jump-table target map.</summary>
+		TargetMap,
+
+		/// <summary>Register-stack adjustments associated with a call.</summary>
+		RegisterStackAdjustments,
+
+		/// <summary>A list containing architecture registers and flags.</summary>
+		RegisterOrFlagList,
+
+		/// <summary>A list of SSA registers.</summary>
+		SSARegisterList,
+
+		/// <summary>A list of SSA flags.</summary>
+		SSAFlagList,
+
+		/// <summary>A list of SSA register stacks.</summary>
+		SSARegisterStackList,
+
+		/// <summary>A list containing SSA registers and SSA flags.</summary>
+		SSARegisterOrFlagList,
+
+		// LowLevelIL values derived from nested call and intrinsic wrapper expressions.
+		LLILCallOutputSsaRegisters,
+		LLILCallStackSsaRegister,
+		LLILCallStackSsaMemory,
+		LLILCallParamExpressions,
+		LLILMemoryIntrinsicOutputSsaRegisters,
+		LLILMemoryIntrinsicOutputSsaMemory,
+
+		// LLIL_ADD_OVERFLOW stores its left expression in the native flags field.
+		LLILAddOverflowLeft,
+		LLILAddOverflowRight
 	}
 }
