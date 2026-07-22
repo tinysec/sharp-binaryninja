@@ -13,7 +13,7 @@ namespace BinaryNinja
 		}
 		
 		public ArrayType(BinaryNinja.Type type) 
-			: base( type.DangerousGetHandle() , true)
+			: base(BinaryNinja.Type.NewReferenceHandle(type), true)
 		{
 			
 		}

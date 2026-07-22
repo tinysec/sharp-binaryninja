@@ -54,6 +54,7 @@ namespace BinaryNinja
 			return new BNRegisterSetWithConfidence()
 			{
 				regs = allocator.AllocIntegerArray<uint>(this.Registers),
+				count = (ulong)this.Registers.Length,
 				confidence = this.Confidence
 			};
 		}

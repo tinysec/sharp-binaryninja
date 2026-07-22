@@ -79,6 +79,19 @@ namespace BinaryNinja
 		    
 		    return new BinaryNinja.Type(handle, false);
 	    }
+
+	    /// <summary>
+	    /// Acquires an independent native reference for a typed managed view of an existing type.
+	    /// </summary>
+	    internal static IntPtr NewReferenceHandle(BinaryNinja.Type type)
+	    {
+		    if (null == type)
+		    {
+			    throw new ArgumentNullException(nameof(type));
+		    }
+
+		    return NativeMethods.BNNewTypeReference(type.DangerousGetHandle());
+	    }
 	
 	    
 	    public static string GetNameTypeString( NameType classFunctionType )

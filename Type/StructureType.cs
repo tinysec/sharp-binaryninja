@@ -10,7 +10,7 @@ namespace BinaryNinja
 		}
 		
 		public StructureType(BinaryNinja.Type type) 
-			: base(NativeMethods.BNNewTypeReference(type.DangerousGetHandle()), true)
+			: base(BinaryNinja.Type.NewReferenceHandle(type), true)
 		{
 			
 		}

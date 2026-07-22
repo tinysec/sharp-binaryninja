@@ -8,7 +8,12 @@ namespace BinaryNinja
     internal static partial class NativeMethods
     {
 	    /// <summary>
-		/// BNType* BNCreateFunctionType(BNReturnValue* returnValue, BNCallingConventionWithConfidence* callingConvention, BNFunctionParameter* @params, uint64_t paramCount, BNBoolWithConfidence* varArg, BNBoolWithConfidence* canReturn, BNOffsetWithConfidence* stackAdjust, uint32_t* regStackAdjustRegs, BNOffsetWithConfidence* regStackAdjustValues, uint64_t regStackAdjustCount, BNNameType ft, BNBoolWithConfidence* pure)
+		/// BNType* BNCreateFunctionType(BNTypeWithConfidence* returnValue,
+		/// BNCallingConventionWithConfidence* callingConvention, BNFunctionParameter* params,
+		/// size_t paramCount, BNBoolWithConfidence* varArg, BNBoolWithConfidence* canReturn,
+		/// BNOffsetWithConfidence* stackAdjust, uint32_t* regStackAdjustRegs,
+		/// BNOffsetWithConfidence* regStackAdjustValues, size_t regStackAdjustCount,
+		/// BNRegisterSetWithConfidence* returnRegs, BNNameType ft, BNBoolWithConfidence* pure)
 		/// </summary>
 		[DllImport(
             "binaryninjacore", 
@@ -17,8 +22,8 @@ namespace BinaryNinja
         )]
 		internal static extern IntPtr BNCreateFunctionType(
 			
-			// BNReturnValue* returnValue
-		    in BNReturnValue returnValue  ,
+			// BNTypeWithConfidence* returnValue
+		    in BNTypeWithConfidence returnValue  ,
 			
 			// BNCallingConventionWithConfidence* callingConvention
 		    in BNCallingConventionWithConfidence callingConvention  , 
@@ -26,7 +31,7 @@ namespace BinaryNinja
 			// BNFunctionParameter* _params
 			BNFunctionParameter[] _params  , 
 			
-			// uint64_t paramCount
+			// size_t paramCount
 		    ulong paramCount  , 
 			
 			// BNBoolWithConfidence* varArg
@@ -44,8 +49,11 @@ namespace BinaryNinja
 			// BNOffsetWithConfidence* regStackAdjustValues
 		    BNOffsetWithConfidence[] regStackAdjustValues  , 
 			
-			// uint64_t regStackAdjustCount
+			// size_t regStackAdjustCount
 		    ulong regStackAdjustCount  , 
+
+			// BNRegisterSetWithConfidence* returnRegs
+		    in BNRegisterSetWithConfidence returnRegs  ,
 			
 			// BNNameType ft
 		    NameType ft  , 
