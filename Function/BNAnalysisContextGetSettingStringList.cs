@@ -26,7 +26,7 @@ namespace BinaryNinja
 		    [MarshalAs(UnmanagedType.LPUTF8Str)] string key   , 
 			
 			// size_t* count
-		    IntPtr count  
+		    out ulong count
 		);
 	}
 }
