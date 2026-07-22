@@ -1,12 +1,29 @@
 using System;
-using System.Collections.Generic;
 using System.Runtime.InteropServices;
-using Microsoft.Win32.SafeHandles;
 
 namespace BinaryNinja
 {
+	internal static partial class NativeDelegates
+	{
+		[UnmanagedFunctionPointer(System.Runtime.InteropServices.CallingConvention.Cdecl)]
+		internal delegate IntPtr BNLineFormatterFormatLines(
+			IntPtr context,
+			IntPtr inputLines,
+			ulong inputCount,
+			IntPtr settings,
+			IntPtr outputCount
+		);
+
+		[UnmanagedFunctionPointer(System.Runtime.InteropServices.CallingConvention.Cdecl)]
+		internal delegate void BNLineFormatterFreeLines(
+			IntPtr context,
+			IntPtr lines,
+			ulong count
+		);
+	}
+
 	[StructLayout(LayoutKind.Sequential)]
-	internal unsafe struct BNCustomLineFormatter 
+	internal struct BNCustomLineFormatter
 	{
 		/// <summary>
 		/// void* context
@@ -24,7 +41,7 @@ namespace BinaryNinja
 		public IntPtr freeLines;
 	}
 
-    public class CustomLineFormatter 
+	public class CustomLineFormatter
     {
 		public CustomLineFormatter() 
 		{

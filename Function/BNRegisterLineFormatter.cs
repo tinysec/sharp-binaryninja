@@ -22,7 +22,7 @@ namespace BinaryNinja
 		    [MarshalAs(UnmanagedType.LPUTF8Str)] string name  , 
 			
 			// BNCustomLineFormatter* callbacks
-		    IntPtr callbacks  
+		    in BNCustomLineFormatter callbacks
 			
 		);
 	}
