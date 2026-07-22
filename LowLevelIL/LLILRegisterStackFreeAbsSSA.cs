@@ -11,11 +11,30 @@ namespace BinaryNinja
 			
 		}
 		
-		public LowLevelILInstruction Stack
+		public LLILRegisterStackDestinationSSA Stack
 		{
 			get
 			{
-				return this.GetOperandAsExpression((OperandIndex)0);
+				LLILRegisterStackDestinationSSA? instruction =
+					this.GetOperandAsExpression((OperandIndex)0) as LLILRegisterStackDestinationSSA;
+
+				return instruction!;
+			}
+		}
+
+		public SSARegisterStack DestinationStack
+		{
+			get
+			{
+				return this.Stack.Destination;
+			}
+		}
+
+		public SSARegisterStack SourceStack
+		{
+			get
+			{
+				return this.Stack.Source;
 			}
 		}
 		

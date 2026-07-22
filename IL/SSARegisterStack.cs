@@ -5,11 +5,11 @@ namespace BinaryNinja
 	public sealed class SSARegisterStack :  IEquatable<SSARegisterStack>,
 		IComparable<SSARegisterStack>
 	{
-		internal RegisterStack RegisterStack { get; }
+		public RegisterStack RegisterStack { get; }
 		
 		public ulong Version { get;  } = 0;
 
-		internal SSARegisterStack(RegisterStack registerStack , ulong version)
+		public SSARegisterStack(RegisterStack registerStack , ulong version)
 		{
 			this.RegisterStack = registerStack;
 			this.Version = version;

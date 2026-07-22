@@ -9,12 +9,12 @@ namespace BinaryNinja
 		
 		public ILRegister? Register { get;  } = null;
 		
-		internal FlagOrRegister(ILFlag flag)
+		public FlagOrRegister(ILFlag flag)
 		{
 			this.Flag = flag;
 		}
 		
-		internal FlagOrRegister(ILRegister register)
+		public FlagOrRegister(ILRegister register)
 		{
 			this.Register = register;
 		}
@@ -39,6 +39,24 @@ namespace BinaryNinja
 					return this.Register.Name;
 				}
 			
+				throw new Exception("Flag or Register must not both null");
+			}
+		}
+
+		public ulong Identifier
+		{
+			get
+			{
+				if (null != this.Flag)
+				{
+					return (ulong)this.Flag.Index | (1UL << 32);
+				}
+
+				if (null != this.Register)
+				{
+					return (ulong)this.Register.Index;
+				}
+
 				throw new Exception("Flag or Register must not both null");
 			}
 		}

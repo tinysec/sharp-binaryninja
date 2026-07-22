@@ -1052,6 +1052,20 @@ namespace BinaryNinja
 				NativeMethods.BNLowLevelILFreeOperandList
 			);
 		}
+
+		public ulong[] GetOperandAsIndexList(OperandIndex operand)
+		{
+			IntPtr arrayPointer = NativeMethods.BNLowLevelILGetOperandList(
+				this.ILFunction.DangerousGetHandle(),
+				this.ExpressionIndex,
+				(ulong)operand,
+				out ulong arrayLength);
+
+			return UnsafeUtils.TakeNumberArray<ulong>(
+				arrayPointer,
+				arrayLength,
+				NativeMethods.BNLowLevelILFreeOperandList);
+		}
 		
 		public IDictionary<T,T> GetOperandAsIntegerDict<T>(OperandIndex operand)
 			where T : unmanaged

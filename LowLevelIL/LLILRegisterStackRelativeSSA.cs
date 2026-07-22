@@ -27,11 +27,22 @@ namespace BinaryNinja
 			}
 		}
 		
-		public LowLevelILInstruction Top
+		public LLILRegisterSSA Top
 		{
 			get
 			{
-				return this.GetOperandAsExpression((OperandIndex)3);
+				LLILRegisterSSA? instruction =
+					this.GetOperandAsExpression((OperandIndex)3) as LLILRegisterSSA;
+
+				return instruction!;
+			}
+		}
+
+		public LowLevelILSSARegister TopRegister
+		{
+			get
+			{
+				return this.Top.Source;
 			}
 		}
 	}
