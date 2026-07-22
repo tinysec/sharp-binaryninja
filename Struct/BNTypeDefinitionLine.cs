@@ -105,7 +105,7 @@ namespace BinaryNinja
 				ParentType = BinaryNinja.Type.NewFromHandle(native.parentType) ,
 				RootType = BinaryNinja.Type.NewFromHandle(native.rootType) ,
 				RootTypeName = UnsafeUtils.ReadAnsiString(native.rootTypeName) ,
-				BaseType = NamedTypeReference.NewFromHandle(native.type) ,
+				BaseType = NamedTypeReference.NewFromHandle(native.baseType) ,
 				BaseOffset = native.baseOffset ,
 				Offset = native.offset ,
 				FieldIndex = native.fieldIndex 
