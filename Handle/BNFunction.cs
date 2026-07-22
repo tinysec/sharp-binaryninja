@@ -2176,8 +2176,17 @@ namespace BinaryNinja
 	    /// </summary>
 	    public void SetAutoFunctionInlinedDuringAnalysis(BoolWithConfidence inlined)
 	    {
-		    // pass the struct directly (by value), matching the P/Invoke signature
-		    NativeMethods.BNSetAutoFunctionInlinedDuringAnalysis(this.handle , inlined);
+			if (null == inlined)
+			{
+				throw new ArgumentNullException(nameof(inlined));
+			}
+
+			InlineDuringAnalysis value = inlined.Value
+				? InlineDuringAnalysis.InlinePreservingTargetInstructionAddresses
+				: InlineDuringAnalysis.DoNotInlineCall;
+			this.SetAutoInlinedDuringAnalysis(
+				new InlineDuringAnalysisWithConfidence(value, inlined.Confidence)
+			);
 	    }
 
 	    /// <summary>
@@ -2185,8 +2194,17 @@ namespace BinaryNinja
 	    /// </summary>
 	    public void SetUserFunctionInlinedDuringAnalysis(BoolWithConfidence inlined)
 	    {
-		    // pass the struct directly (by value), matching the P/Invoke signature
-		    NativeMethods.BNSetUserFunctionInlinedDuringAnalysis(this.handle , inlined);
+			if (null == inlined)
+			{
+				throw new ArgumentNullException(nameof(inlined));
+			}
+
+			InlineDuringAnalysis value = inlined.Value
+				? InlineDuringAnalysis.InlinePreservingTargetInstructionAddresses
+				: InlineDuringAnalysis.DoNotInlineCall;
+			this.SetUserInlinedDuringAnalysis(
+				new InlineDuringAnalysisWithConfidence(value, inlined.Confidence)
+			);
 	    }
 
 	    /// <summary>
@@ -2202,6 +2220,58 @@ namespace BinaryNinja
 			    );
 		    }
 	    }
+
+		/// <summary>Gets the function's current inline-during-analysis mode and confidence.</summary>
+		public InlineDuringAnalysisWithConfidence InlinedDuringAnalysis
+		{
+			get
+			{
+				return InlineDuringAnalysisWithConfidence.FromNative(
+					NativeMethods.BNGetFunctionInlinedDuringAnalysis(this.handle)
+				);
+			}
+			set { this.SetUserInlinedDuringAnalysis(value); }
+		}
+
+		public void SetAutoInlinedDuringAnalysis(InlineDuringAnalysisWithConfidence inlined)
+		{
+			if (null == inlined)
+			{
+				throw new ArgumentNullException(nameof(inlined));
+			}
+
+			NativeMethods.BNSetAutoFunctionInlinedDuringAnalysis(
+				this.handle,
+				inlined.ToNative()
+			);
+		}
+
+		public void SetAutoInlinedDuringAnalysis(InlineDuringAnalysis inlined)
+		{
+			this.SetAutoInlinedDuringAnalysis(
+				new InlineDuringAnalysisWithConfidence(inlined, byte.MaxValue)
+			);
+		}
+
+		public void SetUserInlinedDuringAnalysis(InlineDuringAnalysisWithConfidence inlined)
+		{
+			if (null == inlined)
+			{
+				throw new ArgumentNullException(nameof(inlined));
+			}
+
+			NativeMethods.BNSetUserFunctionInlinedDuringAnalysis(
+				this.handle,
+				inlined.ToNative()
+			);
+		}
+
+		public void SetUserInlinedDuringAnalysis(InlineDuringAnalysis inlined)
+		{
+			this.SetUserInlinedDuringAnalysis(
+				new InlineDuringAnalysisWithConfidence(inlined, byte.MaxValue)
+			);
+		}
 
 	    // ===================================================================
 	    // Clobbered registers (get / set auto / set user)

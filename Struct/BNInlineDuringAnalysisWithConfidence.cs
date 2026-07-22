@@ -18,4 +18,37 @@ namespace BinaryNinja
 		/// </summary>
 		internal byte confidence;
 	}
+
+	public sealed class InlineDuringAnalysisWithConfidence
+	{
+		public InlineDuringAnalysis Value { get; set; } = InlineDuringAnalysis.DoNotInlineCall;
+
+		public byte Confidence { get; set; } = 0;
+
+		public InlineDuringAnalysisWithConfidence()
+		{
+		}
+
+		public InlineDuringAnalysisWithConfidence(InlineDuringAnalysis value, byte confidence = 0)
+		{
+			this.Value = value;
+			this.Confidence = confidence;
+		}
+
+		internal static InlineDuringAnalysisWithConfidence FromNative(
+			BNInlineDuringAnalysisWithConfidence native
+		)
+		{
+			return new InlineDuringAnalysisWithConfidence(native.value, native.confidence);
+		}
+
+		internal BNInlineDuringAnalysisWithConfidence ToNative()
+		{
+			return new BNInlineDuringAnalysisWithConfidence()
+			{
+				value = this.Value,
+				confidence = this.Confidence,
+			};
+		}
+	}
 }

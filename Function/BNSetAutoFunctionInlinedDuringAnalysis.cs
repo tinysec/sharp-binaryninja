@@ -8,7 +8,7 @@ namespace BinaryNinja
     internal static partial class NativeMethods
     {
 	    /// <summary>
-		/// void BNSetAutoFunctionInlinedDuringAnalysis(BNFunction* func, BNBoolWithConfidence inlined)
+		/// void BNSetAutoFunctionInlinedDuringAnalysis(BNFunction* func, BNInlineDuringAnalysisWithConfidence inlined)
 		/// </summary>
 		[DllImport(
             "binaryninjacore", 
@@ -21,8 +21,8 @@ namespace BinaryNinja
 			// BNFunction* func
 		    IntPtr func  , 
 			
-			// BNBoolWithConfidence inlined
-		    BoolWithConfidence inlined  
+			// BNInlineDuringAnalysisWithConfidence inlined
+		    BNInlineDuringAnalysisWithConfidence inlined
 			
 		);
 	}

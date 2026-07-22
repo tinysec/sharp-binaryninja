@@ -119,6 +119,24 @@ namespace BinaryNinja
 			}
 		}
 
+		/// <summary>Gets or sets the user-facing display name for this file.</summary>
+		public string DisplayName
+		{
+			get
+			{
+				return UnsafeUtils.TakeUtf8String(NativeMethods.BNGetDisplayName(this.handle));
+			}
+			set
+			{
+				if (null == value)
+				{
+					throw new ArgumentNullException(nameof(value));
+				}
+
+				NativeMethods.BNSetDisplayName(this.handle, value);
+			}
+		}
+
 		public string OriginalFilename
 		{
 			get
