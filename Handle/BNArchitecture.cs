@@ -572,6 +572,42 @@ namespace BinaryNinja
 		    return tokens;
 	    }
 
+		public InstructionTextToken[] GetInstructionTextWithContext(
+			byte[] data,
+			ulong address,
+			ref ulong length,
+			IntPtr context
+		)
+		{
+			if (null == data)
+			{
+				throw new ArgumentNullException(nameof(data));
+			}
+
+			UIntPtr nativeLength = new UIntPtr(length);
+			bool ok = NativeMethods.BNGetInstructionTextWithContext(
+				this.handle,
+				data,
+				address,
+				ref nativeLength,
+				context,
+				out IntPtr tokens,
+				out UIntPtr count
+			);
+			length = nativeLength.ToUInt64();
+			if (!ok)
+			{
+				return Array.Empty<InstructionTextToken>();
+			}
+
+			return UnsafeUtils.TakeStructArrayEx<BNInstructionTextToken, InstructionTextToken>(
+				tokens,
+				count.ToUInt64(),
+				InstructionTextToken.FromNative,
+				NativeMethods.BNFreeInstructionText
+			);
+		}
+
 	    public string GetRegisterName(RegisterIndex reg)
 	    {
 		    return UnsafeUtils.TakeAnsiString(

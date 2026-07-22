@@ -23,22 +23,22 @@ namespace BinaryNinja
 		    IntPtr arch   , 
 			
 			// const uint8_t* data
-		    IntPtr data   , 
+		    byte[] data,
 			
 			// uint64_t addr
 		    ulong addr   , 
 			
 			// size_t* len
-		    IntPtr len   , 
+		    ref UIntPtr len,
 			
 			// void* context
 		    IntPtr context   , 
 			
 			// BNInstructionTextToken** result
-		    IntPtr result   , 
+		    out IntPtr result,
 			
 			// size_t* count
-		    IntPtr count  
+		    out UIntPtr count
 		);
 	}
 }
