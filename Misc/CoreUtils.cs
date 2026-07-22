@@ -1449,13 +1449,9 @@ namespace BinaryNinja
 		// TODO: BNPerformCustomRequest / BNPerformDownloadRequest — on DownloadInstance,
 		//       requires callback context parameters for progress/completion notifications.
 
-		// TODO: BNTypeArchiveMergeSnapshots / BNTypeArchiveNewSnapshotTransaction —
-		//       callback-based transaction functions requiring managed delegate infrastructure.
+		// TODO: BNTypeArchiveMergeSnapshots requires conflict-map and progress callback marshalling.
 
 		// NOTE: BNReadSnapshotDataWithProgress — implemented on Snapshot class as ReadDataWithProgress().
-
-		// TODO: BNResolveStructureMemberOrBaseMember — on Structure, requires callback
-		//       context (void* callbackContext, void** resolveFunc) for member resolution.
 
 		// TODO: BNComponentsNotEqual — skip, handled by AbstractSafeHandle operators (== and !=).
 

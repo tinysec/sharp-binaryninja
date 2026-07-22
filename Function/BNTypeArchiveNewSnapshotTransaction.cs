@@ -28,7 +28,7 @@ namespace BinaryNinja
 		    IntPtr context  , 
 			
 			// const char** parents
-		    string[] parents  , 
+		    IntPtr parents,
 			
 			// uint64_t parentCount
 		    ulong parentCount  

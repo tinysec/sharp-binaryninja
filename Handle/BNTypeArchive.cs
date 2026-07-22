@@ -10,7 +10,7 @@ namespace BinaryNinja
     /// that can be shared across multiple binary views and kept in sync via snapshots.
     /// Each archive is backed by a file on disk and exposes a versioned snapshot graph.
     /// </summary>
-    public sealed class TypeArchive : AbstractSafeHandle<TypeArchive>
+    public sealed partial class TypeArchive : AbstractSafeHandle<TypeArchive>
     {
         // Live notification registrations, keyed by the user's TypeArchiveNotification instance. Each
         // entry roots its native callback delegates and struct for the registration lifetime.
