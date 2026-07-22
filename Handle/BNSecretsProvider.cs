@@ -1,179 +1,265 @@
 using System;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
-using Microsoft.Win32.SafeHandles;
 
 namespace BinaryNinja
 {
-    /// <summary>
-    /// Represents a registered secrets provider that stores and retrieves encrypted key-value pairs.
-    /// Secrets provider handles are always borrowed — the provider lifetime is managed by the
-    /// native engine's global registry.
-    /// </summary>
-    public sealed class SecretsProvider : AbstractSafeHandle<SecretsProvider>
-    {
-        /// <summary>
-        /// Initializes a new SecretsProvider wrapper around an existing borrowed handle.
-        /// The handle is never owned — the provider lifetime is managed by the native engine.
-        /// </summary>
-        /// <param name="handle">The native pointer to the BNSecretsProvider object.</param>
-        internal SecretsProvider(IntPtr handle)
-            : base(handle, false)
-        {
-        }
+	/// <summary>
+	/// Stores secrets such as access tokens using an application-defined backend.
+	/// </summary>
+	public abstract class SecretsProvider : AbstractSafeHandle<SecretsProvider>
+	{
+		private static readonly object registrationLock = new object();
 
-        /// <summary>
-        /// Borrows a native handle without taking ownership. Returns null if the handle is zero.
-        /// </summary>
-        /// <param name="handle">The native BNSecretsProvider pointer.</param>
-        /// <returns>A new SecretsProvider instance that will not free the handle on dispose.</returns>
-        internal static SecretsProvider? BorrowHandle(IntPtr handle)
-        {
-            if (handle == IntPtr.Zero)
-            {
-                return null;
-            }
+		private static readonly List<SecretsProvider> registeredProviders =
+			new List<SecretsProvider>();
 
-            return new SecretsProvider(handle);
-        }
+		private readonly string? registrationName;
 
-        /// <summary>
-        /// Borrows a native handle without taking ownership. Throws if the handle is zero.
-        /// </summary>
-        /// <param name="handle">The native BNSecretsProvider pointer.</param>
-        /// <returns>A new SecretsProvider instance that will not free the handle on dispose.</returns>
-        internal static SecretsProvider MustBorrowHandle(IntPtr handle)
-        {
-            if (handle == IntPtr.Zero)
-            {
-                throw new ArgumentNullException(nameof(handle));
-            }
+		private bool isRegistered;
 
-            return new SecretsProvider(handle);
-        }
+		private NativeDelegates.BNSecretsProviderHasData? hasDataCallback;
 
-        /// <summary>
-        /// No-op release: secrets provider handles are always borrowed from the global registry
-        /// and must not be freed by this wrapper.
-        /// </summary>
-        /// <returns>True (always, since no deallocation is performed).</returns>
-        protected override bool ReleaseHandle()
-        {
-            // Provider objects are borrowed from the global registry; the native engine owns their lifetime.
-            return true;
-        }
+		private NativeDelegates.BNSecretsProviderGetData? getDataCallback;
 
-        // ===================================================================
-        // Static lookup methods
-        // ===================================================================
+		private NativeDelegates.BNSecretsProviderStoreData? storeDataCallback;
 
-        /// <summary>
-        /// Looks up a registered secrets provider by its unique name.
-        /// Returns null if no provider with the given name exists.
-        /// </summary>
-        /// <param name="name">The registered name of the provider to find.</param>
-        /// <returns>A borrowed SecretsProvider instance, or null if not found.</returns>
-        public static SecretsProvider? GetByName(string name)
-        {
-            // Query the global registry for a provider with the specified name.
-            IntPtr result = NativeMethods.BNGetSecretsProviderByName(name);
+		private NativeDelegates.BNSecretsProviderDeleteData? deleteDataCallback;
 
-            // Wrap as a borrowed handle; returns null when the native pointer is zero.
-            return SecretsProvider.BorrowHandle(result);
-        }
+		/// <summary>Creates an unregistered custom secrets provider.</summary>
+		protected SecretsProvider(string name)
+			: base(false)
+		{
+			if (null == name)
+			{
+				throw new ArgumentNullException(nameof(name));
+			}
 
-        /// <summary>
-        /// Gets all registered secrets providers from the engine.
-        /// Each returned provider is a borrowed reference.
-        /// </summary>
-        /// <returns>An array of all registered SecretsProvider instances.</returns>
-        public static unsafe SecretsProvider[] GetList()
-        {
-            // 1. Stack-allocate the count variable.
-            ulong count = 0;
+			this.registrationName = name;
+		}
 
-            // 2. Retrieve the native array of provider pointers.
-            IntPtr arrayPointer = NativeMethods.BNGetSecretsProviderList((IntPtr)(&count));
+		private SecretsProvider(IntPtr handle)
+			: base(handle, false)
+		{
+		}
 
-            // 3. Convert to managed array of borrowed handles and free the native pointer array.
-            return UnsafeUtils.TakeHandleArray<SecretsProvider>(
-                arrayPointer ,
-                count ,
-                SecretsProvider.MustBorrowHandle ,
-                NativeMethods.BNFreeSecretsProviderList
-            );
-        }
+		/// <summary>Gets the unique registered provider name.</summary>
+		public string Name
+		{
+			get
+			{
+				if (this.IsInvalid)
+				{
+					return this.registrationName ?? string.Empty;
+				}
 
-        // ===================================================================
-        // Instance properties and methods
-        // ===================================================================
+				return UnsafeUtils.TakeUtf8String(
+					NativeMethods.BNGetSecretsProviderName(this.handle)
+				);
+			}
+		}
 
-        /// <summary>
-        /// Gets the registered name that uniquely identifies this secrets provider.
-        /// </summary>
-        public string Name
-        {
-            get
-            {
-                // 1. Retrieve the native ANSI string pointer for the provider name.
-                IntPtr raw = NativeMethods.BNGetSecretsProviderName(this.handle);
+		/// <summary>Registers this provider and roots its callbacks for core use.</summary>
+		public void Register()
+		{
+			if (this.isRegistered || !this.IsInvalid)
+			{
+				throw new InvalidOperationException("The secrets provider is already registered.");
+			}
 
-                // 2. Copy and free the native string, returning empty on null.
-                return UnsafeUtils.TakeAnsiString(raw) ?? string.Empty;
-            }
-        }
+			this.hasDataCallback = new NativeDelegates.BNSecretsProviderHasData(
+				this.InvokeHasData
+			);
+			this.getDataCallback = new NativeDelegates.BNSecretsProviderGetData(
+				this.InvokeGetData
+			);
+			this.storeDataCallback = new NativeDelegates.BNSecretsProviderStoreData(
+				this.InvokeStoreData
+			);
+			this.deleteDataCallback = new NativeDelegates.BNSecretsProviderDeleteData(
+				this.InvokeDeleteData
+			);
 
-        /// <summary>
-        /// Checks whether any data exists in this provider for the given key.
-        /// </summary>
-        /// <param name="key">The key to test for presence in the secrets store.</param>
-        /// <returns>True if data exists for the key; false otherwise.</returns>
-        public bool HasData(string key)
-        {
-            // Delegate to the native API with the provider handle and the key string.
-            return NativeMethods.BNSecretsProviderHasData(this.handle, key ?? string.Empty);
-        }
+			BNSecretsProviderCallbacks callbacks = new BNSecretsProviderCallbacks();
+			callbacks.context = IntPtr.Zero;
+			callbacks.hasData = Marshal.GetFunctionPointerForDelegate(this.hasDataCallback);
+			callbacks.getData = Marshal.GetFunctionPointerForDelegate(this.getDataCallback);
+			callbacks.storeData = Marshal.GetFunctionPointerForDelegate(this.storeDataCallback);
+			callbacks.deleteData = Marshal.GetFunctionPointerForDelegate(this.deleteDataCallback);
 
-        /// <summary>
-        /// Retrieves the stored data for the given key.
-        /// Returns null if no data is stored for the key or if retrieval fails.
-        /// </summary>
-        /// <param name="key">The key whose associated value should be retrieved.</param>
-        /// <returns>The stored string value, or null if absent or on error.</returns>
-        public string? GetData(string key)
-        {
-            // 1. Retrieve the native ANSI string pointer for the stored value.
-            IntPtr raw = NativeMethods.BNGetSecretsProviderData(this.handle, key ?? string.Empty);
+			IntPtr handle = NativeMethods.BNRegisterSecretsProvider(
+				this.registrationName ?? string.Empty,
+				in callbacks
+			);
+			if (IntPtr.Zero == handle)
+			{
+				throw new InvalidOperationException("The core rejected the secrets provider.");
+			}
 
-            // 2. Copy and free the native string; null means no data for this key.
-            return UnsafeUtils.TakeAnsiString(raw);
-        }
+			this.SetHandle(handle);
+			this.isRegistered = true;
+			lock (SecretsProvider.registrationLock)
+			{
+				SecretsProvider.registeredProviders.Add(this);
+			}
+		}
 
-        /// <summary>
-        /// Stores a value under the given key in this secrets provider.
-        /// </summary>
-        /// <param name="key">The key under which the data will be stored.</param>
-        /// <param name="data">The data string to store.</param>
-        /// <returns>True if the data was stored successfully; false otherwise.</returns>
-        public bool StoreData(string key, string data)
-        {
-            // Forward the provider handle, key, and data to the native storage API.
-            return NativeMethods.BNStoreSecretsProviderData(
-                this.handle,
-                key ?? string.Empty,
-                data ?? string.Empty
-            );
-        }
+		/// <summary>Looks up a registered provider by name.</summary>
+		public static SecretsProvider? GetByName(string name)
+		{
+			if (null == name)
+			{
+				throw new ArgumentNullException(nameof(name));
+			}
 
-        /// <summary>
-        /// Deletes the data stored under the given key in this secrets provider.
-        /// </summary>
-        /// <param name="key">The key whose associated data should be deleted.</param>
-        /// <returns>True if the deletion succeeded; false otherwise.</returns>
-        public bool DeleteData(string key)
-        {
-            // Forward the provider handle and key to the native deletion API.
-            return NativeMethods.BNDeleteSecretsProviderData(this.handle, key ?? string.Empty);
-        }
-    }
+			return SecretsProvider.FromHandle(
+				NativeMethods.BNGetSecretsProviderByName(name)
+			);
+		}
+
+		/// <summary>Gets all providers registered with the core.</summary>
+		public static SecretsProvider[] GetList()
+		{
+			IntPtr providers = NativeMethods.BNGetSecretsProviderList(out ulong count);
+			return UnsafeUtils.TakeHandleArray<SecretsProvider>(
+				providers,
+				count,
+				SecretsProvider.MustFromHandle,
+				NativeMethods.BNFreeSecretsProviderList
+			);
+		}
+
+		private static SecretsProvider? FromHandle(IntPtr handle)
+		{
+			if (IntPtr.Zero == handle)
+			{
+				return null;
+			}
+
+			return new CoreSecretsProvider(handle);
+		}
+
+		private static SecretsProvider MustFromHandle(IntPtr handle)
+		{
+			SecretsProvider? provider = SecretsProvider.FromHandle(handle);
+			if (null == provider)
+			{
+				throw new ArgumentNullException(nameof(handle));
+			}
+
+			return provider;
+		}
+
+		/// <summary>Checks whether data exists for a key without retrieving it.</summary>
+		public abstract bool HasData(string key);
+
+		/// <summary>Gets data for a key, or null when the key is absent.</summary>
+		public abstract string? GetData(string key);
+
+		/// <summary>Stores data under a key.</summary>
+		public abstract bool StoreData(string key, string data);
+
+		/// <summary>Deletes data stored under a key.</summary>
+		public abstract bool DeleteData(string key);
+
+		private bool InvokeHasData(IntPtr context, string key)
+		{
+			try
+			{
+				return this.HasData(key);
+			}
+			catch (Exception exception)
+			{
+				Core.LogError("Unhandled exception in SecretsProvider.HasData: {0}", exception);
+				return false;
+			}
+		}
+
+		private IntPtr InvokeGetData(IntPtr context, string key)
+		{
+			try
+			{
+				string? data = this.GetData(key);
+				return null == data ? IntPtr.Zero : NativeMethods.BNAllocString(data);
+			}
+			catch (Exception exception)
+			{
+				Core.LogError("Unhandled exception in SecretsProvider.GetData: {0}", exception);
+				return IntPtr.Zero;
+			}
+		}
+
+		private bool InvokeStoreData(IntPtr context, string key, string data)
+		{
+			try
+			{
+				return this.StoreData(key, data);
+			}
+			catch (Exception exception)
+			{
+				Core.LogError("Unhandled exception in SecretsProvider.StoreData: {0}", exception);
+				return false;
+			}
+		}
+
+		private bool InvokeDeleteData(IntPtr context, string key)
+		{
+			try
+			{
+				return this.DeleteData(key);
+			}
+			catch (Exception exception)
+			{
+				Core.LogError("Unhandled exception in SecretsProvider.DeleteData: {0}", exception);
+				return false;
+			}
+		}
+
+		private sealed class CoreSecretsProvider : SecretsProvider
+		{
+			internal CoreSecretsProvider(IntPtr handle)
+				: base(handle)
+			{
+			}
+
+			public override bool HasData(string key)
+			{
+				return NativeMethods.BNSecretsProviderHasData(
+					this.handle,
+					key ?? string.Empty
+				);
+			}
+
+			public override string? GetData(string key)
+			{
+				IntPtr data = NativeMethods.BNGetSecretsProviderData(
+					this.handle,
+					key ?? string.Empty
+				);
+				if (IntPtr.Zero == data)
+				{
+					return null;
+				}
+
+				return UnsafeUtils.TakeUtf8String(data);
+			}
+
+			public override bool StoreData(string key, string data)
+			{
+				return NativeMethods.BNStoreSecretsProviderData(
+					this.handle,
+					key ?? string.Empty,
+					data ?? string.Empty
+				);
+			}
+
+			public override bool DeleteData(string key)
+			{
+				return NativeMethods.BNDeleteSecretsProviderData(
+					this.handle,
+					key ?? string.Empty
+				);
+			}
+		}
+	}
 }
