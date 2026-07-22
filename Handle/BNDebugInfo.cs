@@ -193,19 +193,19 @@ namespace BinaryNinja
         }
 
         /// <summary>
-        /// Retrieves all named debug types, optionally filtered by name.
+        /// Retrieves all named debug types, optionally filtered by parser name.
         /// Pass null to get every type from all parsers.
         /// </summary>
-        /// <param name="name">Optional name filter; null returns all types.</param>
+        /// <param name="parserName">Optional parser filter; null returns all types.</param>
         /// <returns>Array of NameAndType records.</returns>
-        public unsafe NameAndType[] GetTypes(string? name = null)
+        public unsafe NameAndType[] GetTypes(string? parserName = null)
         {
             // 1. Stack-allocate the count variable and call the native API.
             ulong count = 0;
 
             IntPtr ptr = NativeMethods.BNGetDebugTypes(
                 this.handle,
-                name ?? string.Empty,
+                parserName ?? string.Empty,
                 (IntPtr)(&count)
             );
 
