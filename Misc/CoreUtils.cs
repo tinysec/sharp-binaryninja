@@ -1037,15 +1037,6 @@ namespace BinaryNinja
 		//  Version Parsing and Comparison
 		// ────────────────────────────────────────────────────────────────────
 
-		// TODO: ParseVersionString uses sret (struct return) calling convention
-		//       for BNVersionInfo, and BNVersionLessThan takes BNVersionInfo by value.
-		//       The P/Invoke bindings pass the managed VersionInfo class by reference,
-		//       which may not match the native ABI. These need careful ABI-level verification
-		//       before use.
-		//
-		// public static VersionInfo ParseVersionString(string version) { ... }
-		// public static bool VersionLessThan(VersionInfo smaller , VersionInfo larger) { ... }
-
 		// ────────────────────────────────────────────────────────────────────
 		//  Memory Usage
 		// ────────────────────────────────────────────────────────────────────
@@ -1156,7 +1147,7 @@ namespace BinaryNinja
 		public static VersionInfo ParseVersionString(string version)
 		{
 			// ABI 176 returns the parsed version by value.
-			return VersionInfo.FromNative(
+			return VersionInfo.TakeNative(
 				NativeMethods.BNParseVersionString(version ?? string.Empty)
 			);
 		}
@@ -1169,8 +1160,22 @@ namespace BinaryNinja
 		/// <returns>True if smaller is strictly less than larger.</returns>
 		public static bool VersionLessThan(VersionInfo smaller , VersionInfo larger)
 		{
-			// Delegate to the native comparison function.
-			return NativeMethods.BNVersionLessThan(smaller , larger);
+			if (null == smaller)
+			{
+				throw new ArgumentNullException(nameof(smaller));
+			}
+
+			if (null == larger)
+			{
+				throw new ArgumentNullException(nameof(larger));
+			}
+
+			using (ScopedAllocator allocator = new ScopedAllocator())
+			{
+				return NativeMethods.BNVersionLessThan(
+					smaller.ToNativeEx(allocator),
+					larger.ToNativeEx(allocator));
+			}
 		}
 
 		/// <summary>

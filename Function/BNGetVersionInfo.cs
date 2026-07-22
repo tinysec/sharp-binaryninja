@@ -9,7 +9,7 @@ namespace BinaryNinja
 	{
 		public static VersionInfo GetVersionInfo()
 		{
-			return VersionInfo.FromNative(
+			return VersionInfo.TakeNative(
 				NativeMethods.BNGetVersionInfo()
 			);
 		}

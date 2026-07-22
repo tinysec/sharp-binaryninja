@@ -6,7 +6,7 @@ using Microsoft.Win32.SafeHandles;
 namespace BinaryNinja
 {
 	[StructLayout(LayoutKind.Sequential)]
-	internal unsafe struct BNVersionInfo 
+	internal struct BNVersionInfo
 	{
 		/// <summary>
 		/// uint32_t major
@@ -39,30 +39,91 @@ namespace BinaryNinja
 		
 		public string Channel { get; set; } = string.Empty;
 		
-		public VersionInfo() 
+		public VersionInfo()
 		{
-		    
+		}
+
+		public VersionInfo(uint major, uint minor = 0, uint build = 0, string channel = "")
+		{
+			this.Major = major;
+			this.Minor = minor;
+			this.Build = build;
+			this.Channel = channel ?? string.Empty;
+		}
+
+		public VersionInfo(string version)
+		{
+			VersionInfo parsed = Core.ParseVersionString(version);
+			this.Major = parsed.Major;
+			this.Minor = parsed.Minor;
+			this.Build = parsed.Build;
+			this.Channel = parsed.Channel;
 		}
 		
-		internal static VersionInfo FromNative(BNVersionInfo raw)
+		internal static VersionInfo TakeNative(BNVersionInfo raw)
 		{
-			return new VersionInfo()
+			try
 			{
-				Major = raw.major ,
-				Minor = raw.minor , 
-				Build = raw.build , 
-				Channel = UnsafeUtils.ReadAnsiString(raw.channel)
+				return new VersionInfo(
+					raw.major,
+					raw.minor,
+					raw.build,
+					UnsafeUtils.ReadUtf8String(raw.channel));
+			}
+			finally
+			{
+				if (IntPtr.Zero != raw.channel)
+				{
+					NativeMethods.BNFreeString(raw.channel);
+				}
+			}
+		}
+
+		internal BNVersionInfo ToNativeEx(ScopedAllocator allocator)
+		{
+			return new BNVersionInfo
+			{
+				major = this.Major,
+				minor = this.Minor,
+				build = this.Build,
+				channel = allocator.AllocUtf8String(this.Channel)
 			};
 		}
 
 		public override string ToString()
 		{
-			return $"{Major}.{Minor}.{Build}.{Channel}";
+			string version = $"{this.Major}.{this.Minor}.{this.Build}";
+			if (string.Empty == this.Channel)
+			{
+				return version;
+			}
+
+			return $"{version}-{this.Channel}";
+		}
+
+		public static bool operator <(VersionInfo smaller, VersionInfo larger)
+		{
+			return Core.VersionLessThan(smaller, larger);
+		}
+
+		public static bool operator >(VersionInfo larger, VersionInfo smaller)
+		{
+			return Core.VersionLessThan(smaller, larger);
+		}
+
+		public static bool operator <=(VersionInfo smaller, VersionInfo larger)
+		{
+			return !Core.VersionLessThan(larger, smaller);
+		}
+
+		public static bool operator >=(VersionInfo larger, VersionInfo smaller)
+		{
+			return !Core.VersionLessThan(larger, smaller);
 		}
 		
 		public static VersionInfo GetVersionInfo()
 		{
-			return VersionInfo.FromNative(
+			return VersionInfo.TakeNative(
 				NativeMethods.BNGetVersionInfo()
 			);
 		}
