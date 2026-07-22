@@ -5,7 +5,7 @@ using Microsoft.Win32.SafeHandles;
 
 namespace BinaryNinja
 {
-	public sealed class BinaryViewType : AbstractSafeHandle<BinaryViewType>
+	public sealed partial class BinaryViewType : AbstractSafeHandle<BinaryViewType>
 	{
 		internal BinaryViewType(IntPtr handle)
 			:base(handle, false)
