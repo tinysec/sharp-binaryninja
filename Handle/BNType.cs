@@ -92,6 +92,14 @@ namespace BinaryNinja
 
 		    return NativeMethods.BNNewTypeReference(type.DangerousGetHandle());
 	    }
+
+		/// <summary>Creates an independent duplicate of this immutable type object.</summary>
+		public BinaryNinja.Type Duplicate()
+		{
+			return BinaryNinja.Type.MustTakeHandle(
+				NativeMethods.BNDuplicateType(this.handle)
+			);
+		}
 	
 	    
 	    public static string GetNameTypeString( NameType classFunctionType )

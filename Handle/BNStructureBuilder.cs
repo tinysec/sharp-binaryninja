@@ -109,6 +109,14 @@ namespace BinaryNinja
 
 			return true;
 		}
+
+		/// <summary>Creates an independent mutable copy of this structure builder.</summary>
+		public StructureBuilder Duplicate()
+		{
+			return StructureBuilder.MustTakeHandle(
+				NativeMethods.BNDuplicateStructureBuilder(this.handle)
+			);
+		}
 		
 		public StructureMember[] Members
 		{
