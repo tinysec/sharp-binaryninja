@@ -1437,9 +1437,6 @@ namespace BinaryNinja
 			return UnsafeUtils.TakeAnsiStringArray(ptr , count , NativeMethods.BNFreeStringList);
 		}
 
-		// TODO: BNAppendSymbolQueue / BNProcessSymbolQueue — internal callback-based
-		//       symbol resolution pipeline. Requires managed delegate infrastructure.
-
 		// NOTE: BNReadSnapshotDataWithProgress — implemented on Snapshot class as ReadDataWithProgress().
 
 		// TODO: BNComponentsNotEqual — skip, handled by AbstractSafeHandle operators (== and !=).

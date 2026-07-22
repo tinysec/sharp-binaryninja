@@ -5,7 +5,7 @@ using Microsoft.Win32.SafeHandles;
 
 namespace BinaryNinja
 {
-	public sealed class SymbolQueue : AbstractSafeHandle<SymbolQueue>
+	public sealed partial class SymbolQueue : AbstractSafeHandle<SymbolQueue>
 	{
 		public SymbolQueue() 
 			: this( NativeMethods.BNCreateSymbolQueue() , true)
@@ -64,6 +64,7 @@ namespace BinaryNinja
 	        if ( !this.IsInvalid )
 	        {
 	            NativeMethods.BNDestroySymbolQueue(this.handle);
+	            this.DisposePendingEntries();
 	            this.SetHandleAsInvalid();
 	        }
 	        
