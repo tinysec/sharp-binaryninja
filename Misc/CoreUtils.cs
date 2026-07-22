@@ -516,14 +516,26 @@ namespace BinaryNinja
 				(IntPtr)(&count)
 			);
 
-			// 3. Copy and free the name string array.
-			names = UnsafeUtils.TakeAnsiStringArray(namesPtr , count , NativeMethods.BNFreeStringList);
+			try
+			{
+				// Copy the arrays before releasing the paired range allocation.
+				names = UnsafeUtils.TakeAnsiStringArray(namesPtr, count, NativeMethods.BNFreeStringList);
+				namesPtr = IntPtr.Zero;
+				rangeStarts = UnsafeUtils.ReadNumberArray<uint>(startsPtr, count);
+				rangeEnds = UnsafeUtils.ReadNumberArray<uint>(endsPtr, count);
+			}
+			finally
+			{
+				if (IntPtr.Zero != namesPtr)
+				{
+					NativeMethods.BNFreeStringList(namesPtr, count);
+				}
 
-			// 4. Copy the start code point array. These are allocated by the native side.
-			rangeStarts = UnsafeUtils.TakeNumberArray<uint>(startsPtr , count , Marshal.FreeHGlobal);
-
-			// 5. Copy the end code point array.
-			rangeEnds = UnsafeUtils.TakeNumberArray<uint>(endsPtr , count , Marshal.FreeHGlobal);
+				if (IntPtr.Zero != startsPtr || IntPtr.Zero != endsPtr)
+				{
+					NativeMethods.BNFreeUnicodeRangeList(startsPtr, endsPtr);
+				}
+			}
 		}
 
 		/// <summary>
@@ -533,19 +545,45 @@ namespace BinaryNinja
 		/// <returns>The UTF-8 string representation.</returns>
 		public static unsafe string UnicodeUTF32ToUTF8(byte[] utf32Bytes)
 		{
-			// ABI 176 removed BNUnicodeUTF32ToUTF8 from core; decode with the managed encoder.
-			return System.Text.Encoding.UTF32.GetString(utf32Bytes);
+			if (null == utf32Bytes)
+			{
+				throw new ArgumentNullException(nameof(utf32Bytes));
+			}
+
+			if (4 > utf32Bytes.Length)
+			{
+				throw new ArgumentException("A UTF-32 code point requires at least four bytes.", nameof(utf32Bytes));
+			}
+
+			fixed (byte* data = utf32Bytes)
+			{
+				return UnsafeUtils.TakeUtf8String(
+					NativeMethods.BNUnicodeUTF32ToUTF8((IntPtr)data));
+			}
 		}
 
 		/// <summary>
-		/// Convert a UTF-16 byte buffer to a UTF-8 string.
+		/// Convert the first UTF-16 code point in a byte buffer to a UTF-8 string.
 		/// </summary>
 		/// <param name="utf16Bytes">The raw UTF-16 bytes.</param>
 		/// <returns>The UTF-8 string representation.</returns>
 		public static unsafe string UnicodeUTF16ToUTF8(byte[] utf16Bytes)
 		{
-			// ABI 176 removed BNUnicodeUTF16ToUTF8 from core; decode with the managed encoder.
-			return System.Text.Encoding.Unicode.GetString(utf16Bytes);
+			if (null == utf16Bytes)
+			{
+				throw new ArgumentNullException(nameof(utf16Bytes));
+			}
+
+			if (2 > utf16Bytes.Length)
+			{
+				throw new ArgumentException("A UTF-16 code point requires at least two bytes.", nameof(utf16Bytes));
+			}
+
+			fixed (byte* data = utf16Bytes)
+			{
+				return UnsafeUtils.TakeUtf8String(
+					NativeMethods.BNUnicodeUTF16ToUTF8((IntPtr)data, (ulong)utf16Bytes.Length));
+			}
 		}
 
 		// ────────────────────────────────────────────────────────────────────
@@ -1239,9 +1277,5 @@ namespace BinaryNinja
 		// TODO: BNUnicodeGetBlocksForNames / BNUnicodeGetUTF8String / BNUnicodeToEscapedString —
 		//       Complex multi-level pointer parameters (uint32_t***, uint64_t**) requiring
 		//       specialized marshalling infrastructure. Implement when Unicode block support is needed.
-
-		// TODO: BNFormatTypeParserParseErrors — static utility that takes BNTypeParserError*
-		//       array. Requires marshalling a managed TypeParserError[] back to native structs.
-		//       Implement when type parser error formatting support is needed.
 	}
 }
