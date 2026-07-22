@@ -15,8 +15,6 @@ namespace BinaryNinja
 		StackFrameOffset,
 		ReturnAddressValue,
 		ImportedAddressValue,
-		ResultPointerValue,
-		ParameterPointerValue,
 		SignedRangeValue,
 		UnsignedRangeValue,
 		LookupTableValue,
