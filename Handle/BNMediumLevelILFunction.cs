@@ -477,7 +477,7 @@ namespace BinaryNinja
 	    {
 		    List<ulong> targets = new List<ulong>();
 
-		    foreach (HighLevelILExpressionIndex operand in operands)
+		    foreach (MediumLevelILExpressionIndex operand in operands)
 		    {
 			    targets.Add( (ulong)operand);
 		    }
@@ -491,11 +491,11 @@ namespace BinaryNinja
 	    
 	    public MediumLevelILExpressionIndex AddVariableList(Variable[] variables)
 	    {
-		    List<MediumLevelILExpressionIndex> operands = new List<MediumLevelILExpressionIndex>();
+		    List<ulong> operands = new List<ulong>();
 
 		    foreach (Variable variable in variables)
 		    {
-			    operands.Add( (MediumLevelILExpressionIndex)variable.Identifier);
+			    operands.Add(variable.Identifier);
 		    }
 		    
 		    return this.AddOperandList(operands.ToArray());
