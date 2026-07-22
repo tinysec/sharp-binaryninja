@@ -5268,6 +5268,34 @@ namespace BinaryNinja
 			    infoData
 		    );
 	    }
+
+		public void AddAutoSections(SectionInfo[] sections)
+		{
+			if (null == sections)
+			{
+				throw new ArgumentNullException(nameof(sections));
+			}
+
+			using (ScopedAllocator allocator = new ScopedAllocator())
+			{
+				BNSectionInfo[] nativeSections = new BNSectionInfo[sections.Length];
+				for (int i = 0; i < sections.Length; i++)
+				{
+					if (null == sections[i])
+					{
+						throw new ArgumentException("Section entries cannot be null.", nameof(sections));
+					}
+
+					nativeSections[i] = sections[i].ToNative(allocator);
+				}
+
+				NativeMethods.BNAddAutoSections(
+					this.handle,
+					allocator.AllocStructArray(nativeSections),
+					new UIntPtr((uint)nativeSections.Length)
+				);
+			}
+		}
 	    
 	    public void RemoveAutoSection(string name)
 	    {
@@ -5301,6 +5329,34 @@ namespace BinaryNinja
 			    infoData
 		    );
 	    }
+
+		public void AddUserSections(SectionInfo[] sections)
+		{
+			if (null == sections)
+			{
+				throw new ArgumentNullException(nameof(sections));
+			}
+
+			using (ScopedAllocator allocator = new ScopedAllocator())
+			{
+				BNSectionInfo[] nativeSections = new BNSectionInfo[sections.Length];
+				for (int i = 0; i < sections.Length; i++)
+				{
+					if (null == sections[i])
+					{
+						throw new ArgumentException("Section entries cannot be null.", nameof(sections));
+					}
+
+					nativeSections[i] = sections[i].ToNative(allocator);
+				}
+
+				NativeMethods.BNAddUserSections(
+					this.handle,
+					allocator.AllocStructArray(nativeSections),
+					new UIntPtr((uint)nativeSections.Length)
+				);
+			}
+		}
 	    
 	    public void RemoveUserSection(string name)
 	    {
