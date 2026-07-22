@@ -8,7 +8,23 @@ namespace BinaryNinja
 {
 	public sealed class LowLevelILFunction : AbstractSafeHandle<LowLevelILFunction>
 	{
-		public bool IsSSAForm { get; } = false;
+		private readonly bool isSSAForm;
+
+		/// <summary>
+		/// Gets whether this function is in SSA form.
+		/// </summary>
+		/// <remarks>
+		/// Form-aware navigation sources propagate this value when creating the wrapper. Keeping
+		/// it as captured state avoids querying basic blocks while IL expression indices are in
+		/// use, because graph discovery can finalize lazy analysis state and shift those indices.
+		/// </remarks>
+		public bool IsSSAForm
+		{
+			get
+			{
+				return this.isSSAForm;
+			}
+		}
 		
 	    internal LowLevelILFunction(
 		    IntPtr handle ,
@@ -16,7 +32,15 @@ namespace BinaryNinja
 		    bool ssa = false
 		) : base(handle , owner)
 	    {
-	       this.IsSSAForm = ssa;
+	       this.isSSAForm = ssa;
+	    }
+
+	    private static FunctionGraphType GetILForm(IntPtr functionHandle)
+	    {
+		    IntPtr blocks = NativeMethods.BNGetLowLevelILBasicBlockList(
+			    functionHandle,
+			    out ulong count);
+		    return ILFunctionNavigation.TakeFunctionGraphType(blocks, count);
 	    }
 	    
 	    internal static LowLevelILFunction? NewFromHandle(
@@ -440,18 +464,26 @@ namespace BinaryNinja
 		    }
 	    }
 
+	    /// <summary>
+	    /// Gets the native IL form represented by this function.
+	    /// </summary>
+	    public FunctionGraphType ILForm
+	    {
+		    get
+		    {
+			    return GetILForm(this.handle);
+		    }
+	    }
+
+	    /// <summary>
+	    /// Gets the native graph type. Use <see cref="ILForm"/> for parity with the official
+	    /// bindings.
+	    /// </summary>
 	    public FunctionGraphType GraphType
 	    {
 		    get
 		    {
-			    if (this.BasicBlocks.Length < 1)
-			    {
-				    return FunctionGraphType.InvalidILViewType;
-			    }
-
-			    return NativeMethods.BNGetBasicBlockFunctionGraphType(
-				    this.BasicBlocks[0].DangerousGetHandle()
-			    );
+			    return this.ILForm;
 		    }
 	    }
 	    
