@@ -56,7 +56,7 @@ namespace BinaryNinja
     {
 		public ulong Address { get;  } = 0;
 		
-		public ulong InstructionIndex { get;  } = 0;
+		public ulong InstructionIndex { get;  } = ulong.MaxValue;
 		
 		public InstructionTextToken[] Tokens { get;  } = Array.Empty<InstructionTextToken>();
 		
@@ -66,9 +66,30 @@ namespace BinaryNinja
 		
 		public DisassemblyTextLineTypeInfo TypeInfo { get;  } = new DisassemblyTextLineTypeInfo();
 
-		internal DisassemblyTextLine()
+		public DisassemblyTextLine()
 		{
 			
+		}
+
+		public DisassemblyTextLine(
+			InstructionTextToken[] tokens,
+			ulong address = 0,
+			ulong instructionIndex = ulong.MaxValue,
+			HighlightColor? highlight = null,
+			Tag[]? tags = null,
+			DisassemblyTextLineTypeInfo? typeInfo = null)
+		{
+			if (null == tokens)
+			{
+				throw new ArgumentNullException(nameof(tokens));
+			}
+
+			this.Address = address;
+			this.InstructionIndex = instructionIndex;
+			this.Tokens = tokens;
+			this.Highlight = highlight ?? new HighlightColor();
+			this.Tags = tags ?? Array.Empty<Tag>();
+			this.TypeInfo = typeInfo ?? new DisassemblyTextLineTypeInfo();
 		}
 		
 		internal DisassemblyTextLine(BNDisassemblyTextLine native)
@@ -110,8 +131,10 @@ namespace BinaryNinja
 							allocator.ConvertToNativeArrayEx<BNInstructionTextToken,InstructionTextToken>(this.Tokens)
 						) 
 					) ,
+				count = (ulong)this.Tokens.Length ,
 				highlight = this.Highlight.ToNative() ,
 				tags = allocator.AllocHandleArray<Tag>(this.Tags) ,
+				tagCount = (ulong)this.Tags.Length ,
 				typeInfo = this.TypeInfo.ToNative()
 			};
 		}

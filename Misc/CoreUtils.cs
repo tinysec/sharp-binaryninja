@@ -1440,9 +1440,6 @@ namespace BinaryNinja
 		// TODO: BNRunProgressDialog — requires callback delegate (void** task, void* taskCtxt).
 		//       Needs managed delegate infrastructure for the progress callback.
 
-		// TODO: BNRenderLinesForData / BNGetLinesForData — complex callback-based renderer
-		//       with custom data renderer context callback parameters.
-
 		// TODO: BNAppendSymbolQueue / BNProcessSymbolQueue — internal callback-based
 		//       symbol resolution pipeline. Requires managed delegate infrastructure.
 

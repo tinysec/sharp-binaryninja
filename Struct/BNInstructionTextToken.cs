@@ -100,21 +100,52 @@ namespace BinaryNinja
 	
 		public ulong Size { get; } = 0;
 	
-		public ulong Operand { get;  } = 0;
+		public ulong Operand { get;  } = ulong.MaxValue;
 		
 		public InstructionTextTokenContext Context { get; } = InstructionTextTokenContext.NoTokenContext;
 	
-		public byte Confidence { get;  } = 0;
+		public byte Confidence { get;  } = Core.MaxConfidence;
 		
 		public ulong Address { get;  } = 0;
 		
 		public string[] TypeNames { get;  } = Array.Empty<string>();
 	
-		public ulong ExpressionIndex { get;  } = 0;
+		public ulong ExpressionIndex { get;  } = ulong.MaxValue;
 		
 		public InstructionTextToken( ) 
 		{
 		    
+		}
+
+		public InstructionTextToken(
+			InstructionTextTokenType type,
+			string text,
+			ulong value = 0,
+			ulong size = 0,
+			ulong operand = ulong.MaxValue,
+			byte confidence = Core.MaxConfidence,
+			string[]? typeNames = null,
+			ulong width = 0,
+			InstructionTextTokenContext context = InstructionTextTokenContext.NoTokenContext,
+			ulong address = 0,
+			ulong expressionIndex = ulong.MaxValue)
+		{
+			if (null == text)
+			{
+				throw new ArgumentNullException(nameof(text));
+			}
+
+			this.Type = type;
+			this.Text = text;
+			this.Value = value;
+			this.Width = 0 == width ? (ulong)System.Text.Encoding.UTF8.GetByteCount(text) : width;
+			this.Size = size;
+			this.Operand = operand;
+			this.Context = context;
+			this.Confidence = confidence;
+			this.Address = address;
+			this.TypeNames = typeNames ?? Array.Empty<string>();
+			this.ExpressionIndex = expressionIndex;
 		}
 		
 		public InstructionTextToken( BNInstructionTextToken native)
