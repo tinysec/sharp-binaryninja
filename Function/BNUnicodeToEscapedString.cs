@@ -31,7 +31,7 @@ namespace BinaryNinja
 		    ulong blockCount  , 
 			
 			// bool utf8Enabled
-		    bool utf8Enabled  , 
+		    [MarshalAs(UnmanagedType.I1)] bool utf8Enabled,
 			
 			// void* data
 		    IntPtr data  , 

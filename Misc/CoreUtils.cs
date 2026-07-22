@@ -539,6 +539,144 @@ namespace BinaryNinja
 		}
 
 		/// <summary>
+		/// Builds the core range groups for a set of Unicode block names.
+		/// </summary>
+		/// <param name="names">Unicode block names returned by <see cref="UnicodeGetBlockNames"/>.</param>
+		/// <returns>Range groups suitable for the Unicode decoding and escaping methods.</returns>
+		public static unsafe UnicodeRange[][] UnicodeGetBlocksForNames(string[] names)
+		{
+			if (null == names)
+			{
+				throw new ArgumentNullException(nameof(names));
+			}
+
+			for (int i = 0; i < names.Length; i++)
+			{
+				if (null == names[i])
+				{
+					throw new ArgumentException("Unicode block names cannot contain null entries.", nameof(names));
+				}
+			}
+
+			IntPtr startsPointer = IntPtr.Zero;
+			IntPtr endsPointer = IntPtr.Zero;
+			IntPtr countsPointer = IntPtr.Zero;
+			ulong groupCount = 0;
+
+			using (ScopedAllocator allocator = new ScopedAllocator())
+			{
+				IntPtr namesPointer = allocator.AllocUtf8StringArray(names);
+				NativeMethods.BNUnicodeGetBlocksForNames(
+					namesPointer,
+					(ulong)names.Length,
+					(IntPtr)(&startsPointer),
+					(IntPtr)(&endsPointer),
+					(IntPtr)(&countsPointer),
+					(IntPtr)(&groupCount));
+			}
+
+			try
+			{
+				ulong[] counts = UnsafeUtils.ReadNumberArray<ulong>(countsPointer, groupCount);
+				UnicodeRange[][] groups = new UnicodeRange[checked((int)groupCount)][];
+				for (int i = 0; i < groups.Length; i++)
+				{
+					IntPtr groupStartsPointer = Marshal.ReadIntPtr(startsPointer, i * IntPtr.Size);
+					IntPtr groupEndsPointer = Marshal.ReadIntPtr(endsPointer, i * IntPtr.Size);
+					uint[] starts = UnsafeUtils.ReadNumberArray<uint>(groupStartsPointer, counts[i]);
+					uint[] ends = UnsafeUtils.ReadNumberArray<uint>(groupEndsPointer, counts[i]);
+					UnicodeRange[] group = new UnicodeRange[starts.Length];
+					for (int j = 0; j < group.Length; j++)
+					{
+						group[j] = new UnicodeRange(starts[j], ends[j]);
+					}
+
+					groups[i] = group;
+				}
+
+				return groups;
+			}
+			finally
+			{
+				if (IntPtr.Zero != startsPointer ||
+					IntPtr.Zero != endsPointer ||
+					IntPtr.Zero != countsPointer)
+				{
+					NativeMethods.BNFreeUnicodeBlockList(
+						startsPointer,
+						endsPointer,
+						countsPointer,
+						groupCount);
+				}
+			}
+		}
+
+		/// <summary>
+		/// Decodes the Unicode code point at an offset when it belongs to the supplied range groups.
+		/// </summary>
+		public static unsafe string UnicodeGetUTF8String(
+			UnicodeRange[][] rangeGroups,
+			byte[] data,
+			ulong offset = 0)
+		{
+			if (null == data)
+			{
+				throw new ArgumentNullException(nameof(data));
+			}
+
+			if ((ulong)data.Length <= offset)
+			{
+				throw new ArgumentOutOfRangeException(nameof(offset));
+			}
+
+			using (NativeUnicodeRangeGroups nativeGroups = new NativeUnicodeRangeGroups(rangeGroups))
+			{
+				fixed (byte* dataPointer = data)
+				{
+					return UnsafeUtils.TakeUtf8String(
+						NativeMethods.BNUnicodeGetUTF8String(
+							nativeGroups.Starts,
+							nativeGroups.Ends,
+							nativeGroups.Counts,
+							nativeGroups.Count,
+							(IntPtr)dataPointer,
+							offset,
+							(ulong)data.Length));
+				}
+			}
+		}
+
+		/// <summary>
+		/// Escapes bytes that are not valid for the supplied Unicode range groups.
+		/// </summary>
+		public static unsafe string UnicodeToEscapedString(
+			UnicodeRange[][] rangeGroups,
+			bool utf8Enabled,
+			byte[] data)
+		{
+			if (null == data)
+			{
+				throw new ArgumentNullException(nameof(data));
+			}
+
+			using (NativeUnicodeRangeGroups nativeGroups = new NativeUnicodeRangeGroups(rangeGroups))
+			{
+				fixed (byte* dataPointer = data)
+				{
+					return UnsafeUtils.TakeUtf8String(
+						NativeMethods.BNUnicodeToEscapedString(
+							nativeGroups.Starts,
+							nativeGroups.Ends,
+							nativeGroups.Counts,
+							nativeGroups.Count,
+							utf8Enabled,
+							(IntPtr)dataPointer,
+							(ulong)data.Length));
+				}
+			}
+		}
+
+		/// <summary>
 		/// Convert a single UTF-32 code point (as a 4-byte buffer) to a UTF-8 string.
 		/// </summary>
 		/// <param name="utf32Bytes">The raw UTF-32 bytes (at least 4 bytes).</param>
@@ -1274,8 +1412,5 @@ namespace BinaryNinja
 
 		// TODO: BNRepositoryFreePluginDirectoryList — internal free function, not a wrapper target.
 
-		// TODO: BNUnicodeGetBlocksForNames / BNUnicodeGetUTF8String / BNUnicodeToEscapedString —
-		//       Complex multi-level pointer parameters (uint32_t***, uint64_t**) requiring
-		//       specialized marshalling infrastructure. Implement when Unicode block support is needed.
 	}
 }
