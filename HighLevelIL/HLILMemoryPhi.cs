@@ -11,19 +11,37 @@ namespace BinaryNinja
 			
 		}
 		
-		public ulong Destination
+		public ulong DestinationMemory
 		{
 			get
 			{
 				return this.RawOperands[0];
 			}
 		}
+
+		[System.Obsolete("Use DestinationMemory instead.")]
+		public ulong Destination
+		{
+			get
+			{
+				return this.DestinationMemory;
+			}
+		}
 		
+		public ulong[] SourceMemory
+		{
+			get
+			{
+				return this.GetOperandAsIndexList((OperandIndex)1);
+			}
+		}
+
+		[System.Obsolete("Use SourceMemory instead.")]
 		public ulong[] Source
 		{
 			get
 			{
-				return this.GetOperandAsIntegerArray<ulong>((OperandIndex)1);
+				return this.SourceMemory;
 			}
 		}
 	}

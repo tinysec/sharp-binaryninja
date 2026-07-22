@@ -27,11 +27,20 @@ namespace BinaryNinja
 			}
 		}
 		
-		public ulong DestionationMemory
+		public ulong DestinationMemory
 		{
 			get
 			{
 				return this.RawOperands[3];
+			}
+		}
+
+		[System.Obsolete("Use DestinationMemory instead.")]
+		public ulong DestionationMemory
+		{
+			get
+			{
+				return this.DestinationMemory;
 			}
 		}
 		
