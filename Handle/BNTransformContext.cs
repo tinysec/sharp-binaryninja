@@ -121,6 +121,17 @@ namespace BinaryNinja
 
 	    }
 
+		/// <summary>Overrides the transform selected for this context.</summary>
+		public void SetTransformName(string transformName)
+		{
+			if (null == transformName)
+			{
+				throw new ArgumentNullException(nameof(transformName));
+			}
+
+			NativeMethods.BNTransformContextSetTransformName(this.handle, transformName);
+		}
+
 	    public TransformParameter[] Parameters
 	    {
 		    set
@@ -178,9 +189,13 @@ namespace BinaryNinja
 	    public TransformResult TransformResult
 	    {
 		    get
-		    {
-			    return NativeMethods.BNTransformContextGetTransformResult(this.handle);
-		    }
+			    {
+				    return NativeMethods.BNTransformContextGetTransformResult(this.handle);
+			    }
+			set
+			{
+				NativeMethods.BNTransformContextSetTransformResult(this.handle, value);
+			}
 	    }
 
 	    public Metadata? Metadata
@@ -291,6 +306,12 @@ namespace BinaryNinja
 			    return NativeMethods.BNTransformContextIsDatabase(this.handle);
 		    }
 	    }
+
+		/// <summary>Gets whether the containing session is operating interactively.</summary>
+		public bool IsInteractive
+		{
+			get { return NativeMethods.BNTransformContextIsInteractive(this.handle); }
+		}
 
 	    public string[] GetAvailableFiles()
 	    {
