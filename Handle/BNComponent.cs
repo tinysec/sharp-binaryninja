@@ -572,7 +572,7 @@ namespace BinaryNinja
         /// <returns>True if both instances wrap the same native component; false otherwise.</returns>
         public new bool Equals(Component? other)
         {
-            if (other == null)
+            if (other is null)
             {
                 // A non-null component is never equal to null.
                 return false;
@@ -583,6 +583,50 @@ namespace BinaryNinja
                 this.handle,
                 other.DangerousGetHandle()
             );
+        }
+
+        public override bool Equals(object? other)
+        {
+            return this.Equals(other as Component);
+        }
+
+        public override int GetHashCode()
+        {
+            return this.Guid.GetHashCode(StringComparison.Ordinal);
+        }
+
+        public static bool operator ==(Component? left, Component? right)
+        {
+            if (left is null)
+            {
+                return right is null;
+            }
+
+            if (right is null)
+            {
+                return false;
+            }
+
+            return NativeMethods.BNComponentsEqual(
+                left.DangerousGetHandle(),
+                right.DangerousGetHandle());
+        }
+
+        public static bool operator !=(Component? left, Component? right)
+        {
+            if (left is null)
+            {
+                return right is not null;
+            }
+
+            if (right is null)
+            {
+                return true;
+            }
+
+            return NativeMethods.BNComponentsNotEqual(
+                left.DangerousGetHandle(),
+                right.DangerousGetHandle());
         }
     }
 }
