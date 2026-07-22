@@ -262,6 +262,12 @@ namespace BinaryNinja
 		
 		    return data;
 	    }
+
+		/// <summary>Gets whether instruction data has been attached to this block.</summary>
+		public bool HasInstructionData
+		{
+			get { return NativeMethods.BNBasicBlockHasInstructionData(this.handle); }
+		}
 	    
 	    public void AddInstructionData(byte[] data)
 	    {

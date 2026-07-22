@@ -1615,6 +1615,11 @@ namespace BinaryNinja
 			return NativeMethods.BNIsOffsetWritableSemantics(this.handle , offset);
 		}
 
+		public bool IsOffsetReadOnlySemantics(ulong offset)
+		{
+			return NativeMethods.BNIsOffsetReadOnlySemantics(this.handle, offset);
+		}
+
 		public bool SaveToFile(FileAccessor accessor)
 		{
 			return NativeMethods.BNSaveToFile(this.handle , accessor.ToNative());

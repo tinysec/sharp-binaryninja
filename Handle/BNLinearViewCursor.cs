@@ -276,37 +276,9 @@ namespace BinaryNinja
 	    {
 		    get
 		    {
-			    IntPtr arrayPointer = NativeMethods.BNGetLinearViewCursorPathObjects(
-				    this.handle, 
-				    out ulong arrayLength
+				return LinearViewObject.TakeHandle(
+					NativeMethods.BNGetLinearViewCursorCurrentObject(this.handle)
 				);
-
-			    LinearViewObject? view = null;
-
-			    if (( IntPtr.Zero != arrayPointer ) && ( 0 != arrayLength ))
-			    {
-				    for (ulong i = 0; i < arrayLength; i++)
-				    {
-					    int offset = checked((int)(i * (ulong)IntPtr.Size));
-					
-					    IntPtr addressOfElement = IntPtr.Add(arrayPointer, offset);
-					
-					    IntPtr element = Marshal.ReadIntPtr(addressOfElement);
-
-					    if (element != IntPtr.Zero)
-					    {
-						    // object chain
-						    view = LinearViewObject.MustNewFromHandle(element, view);
-					    }
-				    }
-			    }
-			    
-			    if (arrayPointer != IntPtr.Zero )
-			    {
-				    NativeMethods.BNFreeLinearViewCursorPathObjects(arrayPointer ,arrayLength);
-			    }
-
-			    return view;
 		    }
 	    }
 	    

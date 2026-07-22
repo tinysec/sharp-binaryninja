@@ -879,6 +879,12 @@ namespace BinaryNinja
 		    NativeMethods.BNLowLevelILClearIndirectBranches(this.handle);
 	    }
 
+		/// <summary>Gets whether this LLIL function contains unresolved indirect branches.</summary>
+		public bool HasIndirectBranches
+		{
+			get { return NativeMethods.BNLowLevelILFunctionHasIndirectBranches(this.handle); }
+		}
+
 	    public void SetIndirectBranches(ArchitectureAndAddress[] branches)
 	    {
 		    NativeMethods.BNLowLevelILSetIndirectBranches(
