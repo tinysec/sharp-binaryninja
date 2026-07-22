@@ -38,7 +38,7 @@ namespace BinaryNinja
 		    ulong offset   , 
 			
 			// BNDerivedString* out
-		    IntPtr @out  
+		    out BNDerivedString @out
 		);
 	}
 }

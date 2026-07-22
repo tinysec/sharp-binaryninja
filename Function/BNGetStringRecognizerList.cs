@@ -19,7 +19,7 @@ namespace BinaryNinja
 		internal static extern IntPtr BNGetStringRecognizerList(
 			
 			// size_t* count
-		    IntPtr count  
+		    out ulong count
 		);
 	}
 }
