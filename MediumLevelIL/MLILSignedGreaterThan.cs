@@ -1,6 +1,6 @@
 namespace BinaryNinja
 {
-	public sealed class MLILSignedGreaterThan : MediumLevelILInstruction
+	public sealed class MLILSignedGreaterThan : AbstractMediumLevelILBinaryInstruction
 	{
 		internal MLILSignedGreaterThan(
 			MediumLevelILFunction ilFunction, 
@@ -11,20 +11,6 @@ namespace BinaryNinja
 			
 		}
 		
-		public MediumLevelILInstruction Left
-		{
-			get
-			{
-				return this.GetOperandAsExpression(0);
-			}
-		}
 		
-		public MediumLevelILInstruction Right
-		{
-			get
-			{
-				return this.GetOperandAsExpression((OperandIndex)1);
-			}
-		}
 	}
 }

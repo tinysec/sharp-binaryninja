@@ -1,6 +1,6 @@
 namespace BinaryNinja
 {
-	public sealed class MLILFloatToInt : MediumLevelILInstruction
+	public sealed class MLILFloatToInt : AbstractMediumLevelILUnaryInstruction
 	{
 		internal MLILFloatToInt(
 			MediumLevelILFunction ilFunction, 
@@ -11,12 +11,5 @@ namespace BinaryNinja
 			
 		}
 		
-		public MediumLevelILInstruction Source
-		{
-			get
-			{
-				return this.GetOperandAsExpression(0);
-			}
-		}
 	}
 }

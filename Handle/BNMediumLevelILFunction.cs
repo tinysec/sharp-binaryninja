@@ -2205,6 +2205,25 @@ namespace BinaryNinja
 		    ulong size,
 		    MediumLevelILExpressionIndex left,
 		    MediumLevelILExpressionIndex right,
+		    MediumLevelILExpressionIndex carry,
+		    SourceLocation? location = null
+	    )
+	    {
+		    return this.AddExpression(
+			    MediumLevelILOperation.MLIL_RLC,
+			    location,
+			    size,
+			    (ulong)left,
+			    (ulong)right,
+			    (ulong)carry
+		    );
+	    }
+
+	    [Obsolete("Use the overload that supplies a carry expression.")]
+	    public MediumLevelILExpressionIndex EmitRotateLeftCarry(
+		    ulong size,
+		    MediumLevelILExpressionIndex left,
+		    MediumLevelILExpressionIndex right,
 		    SourceLocation? location = null
 	    )
 	    {
@@ -2871,6 +2890,22 @@ namespace BinaryNinja
 			    location,
 			    size,
 			    (ulong)a
+		    );
+	    }
+
+	    public MediumLevelILExpressionIndex EmitAddOverflow(
+		    ulong size,
+		    MediumLevelILExpressionIndex left,
+		    MediumLevelILExpressionIndex right,
+		    SourceLocation? location = null
+	    )
+	    {
+		    return this.AddExpression(
+			    MediumLevelILOperation.MLIL_ADD_OVERFLOW,
+			    location,
+			    size,
+			    (ulong)left,
+			    (ulong)right
 		    );
 	    }
 	   

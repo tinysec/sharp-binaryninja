@@ -1,6 +1,6 @@
 namespace BinaryNinja
 {
-	public sealed class MLILImport : MediumLevelILInstruction
+	public sealed class MLILImport : AbstractMediumLevelILConstInstruction
 	{
 		internal MLILImport(
 			MediumLevelILFunction ilFunction, 
@@ -11,12 +11,5 @@ namespace BinaryNinja
 			
 		}
 
-		public ulong Constant
-		{
-			get
-			{
-				return this.RawOperands[0];
-			}
-		}
 	}
 }

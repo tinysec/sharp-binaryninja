@@ -6,7 +6,7 @@ namespace BinaryNinja
 	/// CLZ, CTZ, POPCNT, RBIT). The specific operation is available via
 	/// <see cref="MediumLevelILInstruction.Operation"/>.
 	/// </summary>
-	public sealed class MLILGenericUnary : MediumLevelILInstruction
+	public sealed class MLILGenericUnary : AbstractMediumLevelILUnaryInstruction
 	{
 		internal MLILGenericUnary(
 			MediumLevelILFunction ilFunction ,
@@ -17,12 +17,5 @@ namespace BinaryNinja
 
 		}
 
-		public MediumLevelILInstruction Source
-		{
-			get
-			{
-				return this.GetOperandAsExpression(0);
-			}
-		}
 	}
 }

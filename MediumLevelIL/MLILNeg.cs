@@ -1,6 +1,6 @@
 namespace BinaryNinja
 {
-	public sealed class MLILNeg : MediumLevelILInstruction
+	public sealed class MLILNeg : AbstractMediumLevelILUnaryInstruction
 	{
 		internal MLILNeg(
 			MediumLevelILFunction ilFunction, 
@@ -11,12 +11,5 @@ namespace BinaryNinja
 			
 		}
 		
-		public MediumLevelILInstruction Source
-		{
-			get
-			{
-				return this.GetOperandAsExpression(0);
-			}
-		}
 	}
 }

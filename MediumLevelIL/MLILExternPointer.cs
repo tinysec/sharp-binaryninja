@@ -1,6 +1,6 @@
 namespace BinaryNinja
 {
-	public sealed class MLILExternPointer : MediumLevelILInstruction
+	public sealed class MLILExternPointer : AbstractMediumLevelILConstInstruction
 	{
 		internal MLILExternPointer(
 			MediumLevelILFunction ilFunction, 
@@ -11,13 +11,6 @@ namespace BinaryNinja
 			
 		}
 		
-		public ulong Constant
-		{
-			get
-			{
-				return this.RawOperands[0];
-			}
-		}
 		
 		public ulong Offset
 		{

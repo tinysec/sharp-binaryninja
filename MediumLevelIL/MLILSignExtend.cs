@@ -1,6 +1,6 @@
 namespace BinaryNinja
 {
-	public sealed class MLILSignExtend : MediumLevelILInstruction
+	public sealed class MLILSignExtend : AbstractMediumLevelILUnaryInstruction
 	{
 		internal MLILSignExtend(
 			MediumLevelILFunction ilFunction, 
@@ -11,12 +11,5 @@ namespace BinaryNinja
 			
 		}
 		
-		public MediumLevelILInstruction Source
-		{
-			get
-			{
-				return this.GetOperandAsExpression(0);
-			}
-		}
 	}
 }

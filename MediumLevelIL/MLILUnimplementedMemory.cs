@@ -1,6 +1,6 @@
 namespace BinaryNinja
 {
-	public sealed class MLILUnimplementedMemory : MediumLevelILInstruction
+	public sealed class MLILUnimplementedMemory : AbstractMediumLevelILUnaryInstruction
 	{
 		internal MLILUnimplementedMemory(
 			MediumLevelILFunction ilFunction, 
@@ -11,12 +11,5 @@ namespace BinaryNinja
 			
 		}
 		
-		public MediumLevelILInstruction Source
-		{
-			get
-			{
-				return this.GetOperandAsExpression(0);
-			}
-		}
 	}
 }

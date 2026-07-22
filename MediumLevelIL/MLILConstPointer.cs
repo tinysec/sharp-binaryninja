@@ -1,6 +1,6 @@
 namespace BinaryNinja
 {
-	public sealed class MLILConstPointer : MediumLevelILInstruction
+	public sealed class MLILConstPointer : AbstractMediumLevelILConstInstruction
 	{
 		internal MLILConstPointer(
 			MediumLevelILFunction ilFunction, 
@@ -11,13 +11,6 @@ namespace BinaryNinja
 			
 		}
 		
-		public ulong Constant
-		{
-			get
-			{
-				return this.RawOperands[0];
-			}
-		}
 
 		public StringAnnotation? String
 		{

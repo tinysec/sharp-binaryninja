@@ -1,6 +1,6 @@
 namespace BinaryNinja
 {
-	public sealed class MLILLoad : MediumLevelILInstruction
+	public sealed class MLILLoad : AbstractMediumLevelILUnaryInstruction
 	{
 		internal MLILLoad(
 			MediumLevelILFunction ilFunction, 
@@ -11,12 +11,5 @@ namespace BinaryNinja
 			
 		}
 		
-		public MediumLevelILInstruction Source
-		{
-			get
-			{
-				return this.GetOperandAsExpression(0);
-			}
-		}
 	}
 }

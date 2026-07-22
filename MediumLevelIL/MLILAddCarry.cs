@@ -1,6 +1,6 @@
 namespace BinaryNinja
 {
-	public sealed class MLILAddCarry : MediumLevelILInstruction
+	public sealed class MLILAddCarry : AbstractMediumLevelILCarryInstruction
 	{
 		internal MLILAddCarry(
 			MediumLevelILFunction ilFunction, 
@@ -11,28 +11,7 @@ namespace BinaryNinja
 			
 		}
 		
-		public MediumLevelILInstruction Left
-		{
-			get
-			{
-				return this.GetOperandAsExpression(0);
-			}
-		}
 		
-		public MediumLevelILInstruction Right
-		{
-			get
-			{
-				return this.GetOperandAsExpression((OperandIndex)1);
-			}
-		}
 		
-		public MediumLevelILInstruction Carry
-		{
-			get
-			{
-				return this.GetOperandAsExpression((OperandIndex)2);
-			}
-		}
 	}
 }
