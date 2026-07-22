@@ -1,6 +1,6 @@
 namespace BinaryNinja
 {
-	public sealed class HLILMul : HighLevelILInstruction
+	public sealed class HLILMul : AbstractHighLevelILBinaryInstruction
 	{
 		internal HLILMul(
 			HighLevelILFunction ilFunction, 
@@ -11,21 +11,6 @@ namespace BinaryNinja
 			
 		}
 		
-		public HighLevelILInstruction Left
-		{
-			get
-			{
-				return this.GetOperandAsExpression(0);
-			}
-		}
-		
-		public HighLevelILInstruction Right
-		{
-			get
-			{
-				return this.GetOperandAsExpression((OperandIndex)1);
-			}
-		}
 		
 	}
 }

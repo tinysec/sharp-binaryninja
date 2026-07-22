@@ -2,7 +2,7 @@ using System.Collections.Generic;
 
 namespace BinaryNinja
 {
-	public sealed class HLILAddressOf : HighLevelILInstruction
+	public sealed class HLILAddressOf : AbstractHighLevelILUnaryInstruction
 	{
 		internal HLILAddressOf(
 			HighLevelILFunction ilFunction, 
@@ -13,13 +13,6 @@ namespace BinaryNinja
 			
 		}
 		
-		public HighLevelILInstruction Source
-		{
-			get
-			{
-				return this.GetOperandAsExpression(0);
-			}
-		}
 
 		/// <summary>
 		/// Variables whose address is taken by this instruction, mirroring Python

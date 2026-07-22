@@ -1,6 +1,6 @@
 namespace BinaryNinja
 {
-	public sealed class HLILExternPointer : HighLevelILInstruction
+	public sealed class HLILExternPointer : AbstractHighLevelILConstInstruction
 	{
 		internal HLILExternPointer(
 			HighLevelILFunction ilFunction, 
@@ -11,13 +11,6 @@ namespace BinaryNinja
 			
 		}
 		
-		public ulong Constant
-		{
-			get
-			{
-				return this.RawOperands[0];
-			}
-		}
 		
 		public ulong Offset
 		{

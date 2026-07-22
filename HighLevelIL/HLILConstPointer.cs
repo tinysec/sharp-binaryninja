@@ -1,6 +1,6 @@
 namespace BinaryNinja
 {
-	public sealed class HLILConstPointer : HighLevelILInstruction
+	public sealed class HLILConstPointer : AbstractHighLevelILConstInstruction
 	{
 		internal HLILConstPointer(
 			HighLevelILFunction ilFunction, 
@@ -11,12 +11,5 @@ namespace BinaryNinja
 			
 		}
 		
-		public ulong Constant
-		{
-			get
-			{
-				return this.RawOperands[0];
-			}
-		}
 	}
 }

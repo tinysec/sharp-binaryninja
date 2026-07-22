@@ -1,6 +1,6 @@
 namespace BinaryNinja
 {
-	public sealed class HLILFloatGreaterThan : HighLevelILInstruction
+	public sealed class HLILFloatGreaterThan : AbstractHighLevelILBinaryInstruction
 	{
 		internal HLILFloatGreaterThan(
 			HighLevelILFunction ilFunction, 
@@ -11,20 +11,5 @@ namespace BinaryNinja
 			
 		}
 		
-		public HighLevelILInstruction Left
-		{
-			get
-			{
-				return this.GetOperandAsExpression(0);
-			}
-		}
-		
-		public HighLevelILInstruction Right
-		{
-			get
-			{
-				return this.GetOperandAsExpression((OperandIndex)1);
-			}
-		}
 	}
 }
