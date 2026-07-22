@@ -8,6 +8,13 @@ namespace BinaryNinja
 	[StructLayout(LayoutKind.Sequential)]
 	public unsafe struct BNPluginCommand 
 	{
+		[UnmanagedFunctionPointer(System.Runtime.InteropServices.CallingConvention.Cdecl)]
+		internal delegate void GlobalCommandDelegate(IntPtr ctxt);
+
+		[UnmanagedFunctionPointer(System.Runtime.InteropServices.CallingConvention.Cdecl)]
+		[return: MarshalAs(UnmanagedType.I1)]
+		internal delegate bool GlobalIsValidDelegate(IntPtr ctxt);
+
 		 /// <summary>
 	    /// void (*defaultCommand)(void* ctxt, BNBinaryView* view);
 	    /// </summary>
@@ -258,6 +265,8 @@ namespace BinaryNinja
 		/// void* context
 		/// </summary>
 		internal IntPtr context;
+
+		internal IntPtr globalCommand;
 		
 		/// <summary>
 		/// void* defaultCommand
@@ -313,6 +322,8 @@ namespace BinaryNinja
 		/// void* projectCommand
 		/// </summary>
 		internal IntPtr projectCommand;
+
+		internal IntPtr globalIsValid;
 		
 		/// <summary>
 		/// void* defaultIsValid
@@ -372,6 +383,10 @@ namespace BinaryNinja
 	
     public sealed class PluginCommand
     {
+		public delegate void GlobalCommandDelegate();
+
+		public delegate bool GlobalIsValidDelegate();
+
 	    public delegate void DefaultCommandDelegate(
 		    BinaryView view
 		);
@@ -491,6 +506,10 @@ namespace BinaryNinja
 		public string Description { get; private set; } = string.Empty;
 		
 		public PluginCommandType Type { get; private set; } = PluginCommandType.DefaultPluginCommand;
+
+		public GlobalCommandDelegate? GlobalCommand { get; private set; } = null;
+
+		public GlobalIsValidDelegate? GlobalIsValid { get; private set; } = null;
 		
 		public DefaultCommandDelegate? DefaultCommand { get; private set; } = null;
 		
@@ -537,6 +556,9 @@ namespace BinaryNinja
 		public ProjectIsValidDelegate? ProjectIsValid{ get; private set; } = null;
 		
 		#region native
+		private BNPluginCommand.GlobalCommandDelegate? m_globalCommand;
+
+		private BNPluginCommand.GlobalIsValidDelegate? m_globalIsValid;
 
 		/// <summary>
 		/// void* defaultCommand
@@ -664,7 +686,25 @@ namespace BinaryNinja
 				Type = native.type 
 			};
 
-			if (PluginCommandType.DefaultPluginCommand == native.type)
+			if (PluginCommandType.GlobalPluginCommand == native.type)
+			{
+				if (IntPtr.Zero != native.globalCommand)
+				{
+					command.m_globalCommand = Marshal.GetDelegateForFunctionPointer<BNPluginCommand.GlobalCommandDelegate>(
+						native.globalCommand
+					);
+					command.GlobalCommand = command.GlobalCommandBridge;
+				}
+
+				if (IntPtr.Zero != native.globalIsValid)
+				{
+					command.m_globalIsValid = Marshal.GetDelegateForFunctionPointer<BNPluginCommand.GlobalIsValidDelegate>(
+						native.globalIsValid
+					);
+					command.GlobalIsValid = command.GlobalIsValidBridge;
+				}
+			}
+			else if (PluginCommandType.DefaultPluginCommand == native.type)
 			{
 				if (IntPtr.Zero != native.defaultCommand)
 				{
@@ -908,6 +948,26 @@ namespace BinaryNinja
 			}
 			
 			return command;
+		}
+
+		private void GlobalCommandBridge()
+		{
+			if (null == this.m_globalCommand)
+			{
+				throw new InvalidOperationException("The global command callback is unavailable.");
+			}
+
+			this.m_globalCommand(IntPtr.Zero);
+		}
+
+		private bool GlobalIsValidBridge()
+		{
+			if (null == this.m_globalIsValid)
+			{
+				return false;
+			}
+
+			return this.m_globalIsValid(IntPtr.Zero);
 		}
 
 
