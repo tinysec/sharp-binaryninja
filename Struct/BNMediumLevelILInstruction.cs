@@ -1032,7 +1032,7 @@ namespace BinaryNinja
 		public Intrinsic GetOperandAsIntrinsic(OperandIndex operand)
 		{
 			return new Intrinsic(
-				this.ILFunction.OwnerFunction.Architecture , 
+				this.ILFunction.Architecture,
 				(IntrinsicIndex)this.RawOperands[(ulong)operand]
 			);
 		}
@@ -1094,7 +1094,7 @@ namespace BinaryNinja
 		{
 			if (null == arch)
 			{
-				arch = this.ILFunction.OwnerFunction.Architecture;
+				arch = this.ILFunction.Architecture;
 			}
 
 			bool ok = NativeMethods.BNGetMediumLevelILExprText(

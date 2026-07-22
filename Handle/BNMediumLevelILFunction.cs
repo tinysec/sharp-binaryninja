@@ -12,6 +12,7 @@ namespace BinaryNinja
 	public sealed partial class MediumLevelILFunction : AbstractSafeHandle<MediumLevelILFunction>
 	{
 		private readonly bool isSSAForm;
+		private readonly Architecture? architecture;
 
 		/// <summary>
 		/// Gets whether this function is in either mapped or unmapped SSA form.
@@ -32,10 +33,14 @@ namespace BinaryNinja
 	    internal MediumLevelILFunction(
 		    IntPtr handle , 
 		    bool owner ,
-		    bool ssa = false
+		    bool ssa = false,
+		    Architecture? architecture = null
 		) : base(handle , owner)
 	    {
 	        this.isSSAForm = ssa;
+	        this.architecture = null == architecture
+		        ? null
+		        : BinaryNinja.Architecture.MustFromHandle(architecture.DangerousGetHandle());
 	    }
 
 	    private static FunctionGraphType GetILForm(IntPtr functionHandle)
@@ -48,7 +53,8 @@ namespace BinaryNinja
 
 	    internal static MediumLevelILFunction? NewFromHandle(
 		    IntPtr handle ,
-		    bool ssa = false
+		    bool ssa = false,
+		    Architecture? architecture = null
 		)
 	    {
 		    if (handle == IntPtr.Zero)
@@ -59,13 +65,15 @@ namespace BinaryNinja
 		    return new MediumLevelILFunction(
 			    NativeMethods.BNNewMediumLevelILFunctionReference(handle) ,
 			    true,
-			    ssa
+			    ssa,
+			    architecture
 		    );
 	    }
 	    
 	    internal static MediumLevelILFunction MustNewFromHandle(
 		    IntPtr handle,
-		    bool ssa = false
+		    bool ssa = false,
+		    Architecture? architecture = null
 		)
 	    {
 		    if (handle == IntPtr.Zero)
@@ -76,13 +84,15 @@ namespace BinaryNinja
 		    return new MediumLevelILFunction(
 			    NativeMethods.BNNewMediumLevelILFunctionReference(handle) ,
 			    true,
-			    ssa
+			    ssa,
+			    architecture
 		    );
 	    }
 	    
 	    internal static MediumLevelILFunction? TakeHandle(
 		    IntPtr handle,
-		    bool ssa = false
+		    bool ssa = false,
+		    Architecture? architecture = null
 		)
 	    {
 		    if (handle == IntPtr.Zero)
@@ -90,12 +100,13 @@ namespace BinaryNinja
 			    return null;
 		    }
 		    
-		    return new MediumLevelILFunction(handle, true , ssa);
+		    return new MediumLevelILFunction(handle, true, ssa, architecture);
 	    }
 	    
 	    internal static MediumLevelILFunction MustTakeHandle(
 		    IntPtr handle,
-		    bool ssa = false
+		    bool ssa = false,
+		    Architecture? architecture = null
 		)
 	    {
 		    if (handle == IntPtr.Zero)
@@ -103,12 +114,13 @@ namespace BinaryNinja
 			    throw new ArgumentNullException(nameof(handle));
 		    }
 		    
-		    return new MediumLevelILFunction(handle, true , ssa);
+		    return new MediumLevelILFunction(handle, true, ssa, architecture);
 	    }
 	    
 	    internal static MediumLevelILFunction? BorrowHandle(
 		    IntPtr handle,
-		    bool ssa = false
+		    bool ssa = false,
+		    Architecture? architecture = null
 		)
 	    {
 		    if (handle == IntPtr.Zero)
@@ -116,12 +128,13 @@ namespace BinaryNinja
 			    return null;
 		    }
 		    
-		    return new MediumLevelILFunction(handle, false , ssa);
+		    return new MediumLevelILFunction(handle, false, ssa, architecture);
 	    }
 	    
 	    internal static MediumLevelILFunction MustBorrowHandle(
 		    IntPtr handle,
-		    bool ssa = false
+		    bool ssa = false,
+		    Architecture? architecture = null
 		)
 	    {
 		    if (handle == IntPtr.Zero)
@@ -129,7 +142,7 @@ namespace BinaryNinja
 			    throw new ArgumentNullException(nameof(handle));
 		    }
 		    
-		    return new MediumLevelILFunction(handle, false , ssa);
+		    return new MediumLevelILFunction(handle, false, ssa, architecture);
 	    }
 	    
 	    protected override bool ReleaseHandle()
@@ -143,13 +156,29 @@ namespace BinaryNinja
 	        return true;
 	    }
 
+	    public Function? SourceFunction
+	    {
+		    get
+		    {
+			    return Function.TakeHandle(
+				    NativeMethods.BNGetMediumLevelILOwnerFunction(this.handle) 
+			    );
+		    }
+	    }
+
 	    public Function OwnerFunction
 	    {
 		    get
 		    {
-			    return Function.MustTakeHandle(
-				    NativeMethods.BNGetMediumLevelILOwnerFunction(this.handle) 
-			    );
+			    Function? function = this.SourceFunction;
+
+			    if (null == function)
+			    {
+				    throw new InvalidOperationException(
+					    "Standalone medium-level IL functions do not have an owner function.");
+			    }
+
+			    return function;
 		    }
 	    }
 
@@ -157,7 +186,29 @@ namespace BinaryNinja
 	    {
 		    get
 		    {
-			    return this.OwnerFunction.Architecture;
+			    if (null != this.architecture)
+			    {
+				    return this.architecture;
+			    }
+
+			    using Function? function = this.SourceFunction;
+			    if (null == function)
+			    {
+				    throw new InvalidOperationException(
+					    "The architecture is unavailable for this medium-level IL function.");
+			    }
+
+			    return function.Architecture;
+		    }
+	    }
+
+	    public BinaryView? SourceView
+	    {
+		    get
+		    {
+			    using Function? function = this.SourceFunction;
+
+			    return null == function ? null : function.View;
 		    }
 	    }
 
@@ -168,7 +219,15 @@ namespace BinaryNinja
 	    {
 		    get
 		    {
-			    return this.OwnerFunction.View;
+			    BinaryView? view = this.SourceView;
+
+			    if (null == view)
+			    {
+				    throw new InvalidOperationException(
+					    "Standalone medium-level IL functions do not have a binary view.");
+			    }
+
+			    return view;
 		    }
 	    }
 
@@ -299,7 +358,7 @@ namespace BinaryNinja
 		    {
 			    NativeMethods.BNMediumLevelILSetCurrentAddress(
 				    this.handle, 
-				    this.OwnerFunction.Architecture.DangerousGetHandle(),
+				    this.Architecture.DangerousGetHandle(),
 				    value
 				);
 		    }
@@ -317,7 +376,7 @@ namespace BinaryNinja
 	    {
 		    NativeMethods.BNMediumLevelILSetCurrentAddress(
 			    this.handle, 
-			    null == arch ? this.OwnerFunction.Architecture.DangerousGetHandle() : arch.DangerousGetHandle(),
+			    null == arch ? this.Architecture.DangerousGetHandle() : arch.DangerousGetHandle(),
 			    address
 		    );
 	    }
@@ -385,7 +444,8 @@ namespace BinaryNinja
 			    {
 				    return MediumLevelILFunction.MustTakeHandle(
 					    NativeMethods.BNGetMediumLevelILSSAForm(this.handle),
-					    true
+					    true,
+					    this.Architecture
 				    );
 			    }
 		    }
@@ -399,7 +459,8 @@ namespace BinaryNinja
 			    {
 				    return MediumLevelILFunction.MustTakeHandle(
 					    NativeMethods.BNGetMediumLevelILNonSSAForm(this.handle),
-					    false
+					    false,
+					    this.Architecture
 				    );
 			    }
 			    else
@@ -415,7 +476,8 @@ namespace BinaryNinja
 		    {
 			    return LowLevelILFunction.TakeHandle(
 				    NativeMethods.BNGetLowLevelILForMediumLevelIL(this.handle),
-				    this.IsSSAForm
+				    this.IsSSAForm,
+				    this.Architecture
 			    );
 		    }
 	    }
@@ -441,7 +503,7 @@ namespace BinaryNinja
 		    return this.GetInstruction(
 				    NativeMethods.BNMediumLevelILGetInstructionStart(
 				    this.handle,
-				    null == arch ? this.OwnerFunction.Architecture.DangerousGetHandle() : arch.DangerousGetHandle(),
+				    null == arch ? this.Architecture.DangerousGetHandle() : arch.DangerousGetHandle(),
 				    address
 				)
 		    );
@@ -1090,7 +1152,7 @@ namespace BinaryNinja
 	    {
 		    bool ok = NativeMethods.BNGetMediumLevelILExprText(
 			    this.handle ,
-			    null == arch ? this.OwnerFunction.Architecture.DangerousGetHandle() : arch.DangerousGetHandle(),
+			    null == arch ? this.Architecture.DangerousGetHandle() : arch.DangerousGetHandle(),
 			    expression,
 			    out IntPtr arrayPointer,
 			    out ulong arrayLength,
@@ -3362,10 +3424,19 @@ namespace BinaryNinja
 		    IntPtr tokensPtr = IntPtr.Zero;
 		    ulong count = 0;
 
+		    if (null == arch)
+		    {
+			    arch = this.Architecture;
+		    }
+
+		    using Function? sourceFunction = this.SourceFunction;
+
 		    bool ok = NativeMethods.BNGetMediumLevelILInstructionText(
 			    this.handle ,
-			    this.OwnerFunction.DangerousGetHandle() ,
-			    null == arch ? this.OwnerFunction.Architecture.DangerousGetHandle() : arch.DangerousGetHandle() ,
+			    null == sourceFunction
+				    ? IntPtr.Zero
+				    : sourceFunction.DangerousGetHandle(),
+			    arch.DangerousGetHandle(),
 			    instruction ,
 			    (IntPtr)(&tokensPtr) ,
 			    (IntPtr)(&count) ,
