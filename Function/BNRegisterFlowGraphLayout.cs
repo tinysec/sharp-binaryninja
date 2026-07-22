@@ -22,7 +22,7 @@ namespace BinaryNinja
 		    [MarshalAs(UnmanagedType.LPUTF8Str)] string name  , 
 			
 			// BNCustomFlowGraphLayout* callbacks
-		    IntPtr callbacks  
+		    in BNCustomFlowGraphLayout callbacks
 			
 		);
 	}
