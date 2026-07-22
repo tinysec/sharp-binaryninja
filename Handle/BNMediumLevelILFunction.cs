@@ -585,7 +585,7 @@ namespace BinaryNinja
 
 	    public MediumLevelILInstruction? GetSSAVariableDefinition(Variable variable , ulong version)
 	    {
-		    return this.GetExpression(
+		    return this.GetInstruction(
 			    NativeMethods.BNGetMediumLevelILSSAVarDefinition(
 				    this.handle ,
 				    variable.ToNative() ,
@@ -1501,6 +1501,16 @@ namespace BinaryNinja
 			    variable.ToNative() ,
 			    instruction
 		    );
+	    }
+
+	    public MediumLevelILVariable GetSplitVariableForDefinition(
+		    Variable variable,
+		    MediumLevelILInstructionIndex instruction)
+	    {
+		    BNVariable splitVariable = variable.ToNative();
+		    splitVariable.index = this.GetDefaultIndexForVariableDefinition(variable, instruction);
+
+		    return new MediumLevelILVariable(this, splitVariable);
 	    }
 
 	    public ulong[] GetExpressionOperands(

@@ -15,7 +15,7 @@ namespace BinaryNinja
             CallingConvention = System.Runtime.InteropServices.CallingConvention.Cdecl,
             EntryPoint = "BNGetMediumLevelILSSAVarDefinition"
         )]
-		internal static extern MediumLevelILExpressionIndex BNGetMediumLevelILSSAVarDefinition(
+		internal static extern MediumLevelILInstructionIndex BNGetMediumLevelILSSAVarDefinition(
 			
 			// BNMediumLevelILFunction* func
 		    IntPtr func  , 

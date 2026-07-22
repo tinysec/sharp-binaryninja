@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 
 namespace BinaryNinja
 {
@@ -88,22 +87,14 @@ namespace BinaryNinja
 					out ulong arrayLength
 				);
 
-				ulong[] indexes = UnsafeUtils.TakeNumberArray<ulong>(
+				MediumLevelILInstructionIndex[] indexes =
+					UnsafeUtils.TakeNumberArray<MediumLevelILInstructionIndex>(
 					arrayPointer ,
 					arrayLength ,
 					NativeMethods.BNFreeILInstructionList
 				);
-		    
-				List<MediumLevelILInstruction>  instructions = new List<MediumLevelILInstruction>();
 
-				foreach (MediumLevelILExpressionIndex index in indexes)
-				{
-					instructions.Add(
-						this.ILFunction.MustGetExpression(index)
-					);
-				}
-		    
-				return instructions.ToArray();
+				return this.ILFunction.MustGetInstructions(indexes);
 			}
 		}
 		
@@ -117,22 +108,14 @@ namespace BinaryNinja
 					out ulong arrayLength
 				);
 
-				ulong[] indexes = UnsafeUtils.TakeNumberArray<ulong>(
+				MediumLevelILInstructionIndex[] indexes =
+					UnsafeUtils.TakeNumberArray<MediumLevelILInstructionIndex>(
 					arrayPointer ,
 					arrayLength ,
 					NativeMethods.BNFreeILInstructionList
 				);
-		    
-				List<MediumLevelILInstruction>  instructions = new List<MediumLevelILInstruction>();
 
-				foreach (MediumLevelILExpressionIndex index in indexes)
-				{
-					instructions.Add(
-						this.ILFunction.MustGetExpression(index)
-					);
-				}
-		    
-				return instructions.ToArray();
+				return this.ILFunction.MustGetInstructions(indexes);
 			}
 		}
 	}
