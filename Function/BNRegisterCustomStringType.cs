@@ -19,7 +19,7 @@ namespace BinaryNinja
 		internal static extern IntPtr BNRegisterCustomStringType(
 			
 			// BNCustomStringTypeInfo* info
-		    IntPtr info  
+		    in BNCustomStringTypeInfo info
 		);
 	}
 }
