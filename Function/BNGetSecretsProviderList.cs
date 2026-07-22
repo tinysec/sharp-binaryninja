@@ -8,7 +8,7 @@ namespace BinaryNinja
     internal static partial class NativeMethods
     {
 	    /// <summary>
-		/// BNSecretsProvider** BNGetSecretsProviderList(uint64_t* count)
+		/// BNSecretsProvider** BNGetSecretsProviderList(size_t* count)
 		/// </summary>
 		[DllImport(
             "binaryninjacore", 
@@ -18,8 +18,8 @@ namespace BinaryNinja
         )]
 		internal static extern IntPtr BNGetSecretsProviderList(
 			
-			// uint64_t* count
-		    IntPtr count  
+			// size_t* count
+		    out ulong count
 			
 		);
 	}

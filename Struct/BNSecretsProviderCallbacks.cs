@@ -1,44 +1,50 @@
 using System;
-using System.Collections.Generic;
 using System.Runtime.InteropServices;
-using Microsoft.Win32.SafeHandles;
 
 namespace BinaryNinja
 {
-	[StructLayout(LayoutKind.Sequential)]
-	internal unsafe struct BNSecretsProviderCallbacks 
+	internal static partial class NativeDelegates
 	{
-		/// <summary>
-		/// void* context
-		/// </summary>
-		public IntPtr context;
-		
-		/// <summary>
-		/// void** hasData
-		/// </summary>
-		public IntPtr hasData;
-		
-		/// <summary>
-		/// void** getData
-		/// </summary>
-		public IntPtr getData;
-		
-		/// <summary>
-		/// void** storeData
-		/// </summary>
-		public IntPtr storeData;
-		
-		/// <summary>
-		/// void** deleteData
-		/// </summary>
-		public IntPtr deleteData;
+		[UnmanagedFunctionPointer(System.Runtime.InteropServices.CallingConvention.Cdecl)]
+		[return: MarshalAs(UnmanagedType.I1)]
+		internal delegate bool BNSecretsProviderHasData(
+			IntPtr context,
+			[MarshalAs(UnmanagedType.LPUTF8Str)] string key
+		);
+
+		[UnmanagedFunctionPointer(System.Runtime.InteropServices.CallingConvention.Cdecl)]
+		internal delegate IntPtr BNSecretsProviderGetData(
+			IntPtr context,
+			[MarshalAs(UnmanagedType.LPUTF8Str)] string key
+		);
+
+		[UnmanagedFunctionPointer(System.Runtime.InteropServices.CallingConvention.Cdecl)]
+		[return: MarshalAs(UnmanagedType.I1)]
+		internal delegate bool BNSecretsProviderStoreData(
+			IntPtr context,
+			[MarshalAs(UnmanagedType.LPUTF8Str)] string key,
+			[MarshalAs(UnmanagedType.LPUTF8Str)] string data
+		);
+
+		[UnmanagedFunctionPointer(System.Runtime.InteropServices.CallingConvention.Cdecl)]
+		[return: MarshalAs(UnmanagedType.I1)]
+		internal delegate bool BNSecretsProviderDeleteData(
+			IntPtr context,
+			[MarshalAs(UnmanagedType.LPUTF8Str)] string key
+		);
 	}
 
-    public class SecretsProviderCallbacks 
-    {
-		public SecretsProviderCallbacks() 
-		{
-		    
-		}
-    }
+	[StructLayout(LayoutKind.Sequential)]
+	internal struct BNSecretsProviderCallbacks
+	{
+		internal IntPtr context;
+
+		internal IntPtr hasData;
+
+		internal IntPtr getData;
+
+		internal IntPtr storeData;
+
+		internal IntPtr deleteData;
+	}
 }
