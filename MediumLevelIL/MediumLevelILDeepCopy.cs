@@ -252,7 +252,7 @@ namespace BinaryNinja
 				{
 					MediumLevelILExpressionIndex copiedDestination =
 						subExpressionHandler(jump.Destination);
-					return destination.EmitJump(this.Size, copiedDestination, location);
+					return destination.EmitJump(copiedDestination, location);
 				}
 
 				labels.Add(target.Key, label);
@@ -277,7 +277,7 @@ namespace BinaryNinja
 			MediumLevelILInstruction target = this.ILFunction.MustGetInstruction(goTo.Destination);
 			MediumLevelILExpressionIndex address = destination.EmitConstPointer(
 				this.ILFunction.Architecture.AddressSize, target.Address);
-			return destination.EmitJump(0, address, location);
+			return destination.EmitJump(address, location);
 		}
 
 		private MediumLevelILExpressionIndex CopyIf(

@@ -39,7 +39,7 @@ namespace BinaryNinja
 			MediumLevelILExpressionIndex destination,
 			SourceLocation? location = null)
 		{
-			return this.EmitJump(size, destination, location);
+			return this.EmitJump(destination, location);
 		}
 
 		/// <summary>
