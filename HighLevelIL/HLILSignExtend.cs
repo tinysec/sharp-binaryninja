@@ -1,6 +1,6 @@
 namespace BinaryNinja
 {
-	public sealed class HLILSignExtend : HighLevelILInstruction
+	public sealed class HLILSignExtend : AbstractHighLevelILUnaryInstruction
 	{
 		internal HLILSignExtend(
 			HighLevelILFunction ilFunction ,
@@ -11,12 +11,5 @@ namespace BinaryNinja
 
 		}
 
-		public HighLevelILInstruction Left
-		{
-			get
-			{
-				return this.GetOperandAsExpression(0);
-			}
-		}
 	}
 }

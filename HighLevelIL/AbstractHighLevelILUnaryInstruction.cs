@@ -18,5 +18,13 @@ namespace BinaryNinja
 				return this.GetOperandAsExpression(0);
 			}
 		}
+
+		public HighLevelILInstruction Left
+		{
+			get
+			{
+				return this.Source;
+			}
+		}
 	}
 }

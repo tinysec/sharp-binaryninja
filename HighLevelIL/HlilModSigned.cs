@@ -1,6 +1,7 @@
 namespace BinaryNinja
 {
-	public sealed class HlilModSigned : HighLevelILInstruction
+	[System.Obsolete("Use HLILModSigned instead.")]
+	public sealed class HlilModSigned : HLILModSigned
 	{
 		internal HlilModSigned(
 			HighLevelILFunction ilFunction, 
@@ -9,22 +10,6 @@ namespace BinaryNinja
 		) : base(ilFunction , expressionIndex, native)
 		{
 			
-		}
-		
-		public HighLevelILInstruction Left
-		{
-			get
-			{
-				return this.GetOperandAsExpression(0);
-			}
-		}
-		
-		public HighLevelILInstruction Right
-		{
-			get
-			{
-				return this.GetOperandAsExpression((OperandIndex)1);
-			}
 		}
 	}
 }
