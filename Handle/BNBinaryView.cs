@@ -1462,6 +1462,25 @@ namespace BinaryNinja
 			);
 		}
 
+		/// <summary>
+		/// Gets a pointer to contiguous underlying view data when zero-copy access is available.
+		/// The pointer is borrowed and remains valid only while this view and its data remain unchanged.
+		/// </summary>
+		/// <returns>The underlying data pointer, or zero when the view is not contiguous.</returns>
+		public IntPtr GetDataPointer()
+		{
+			return NativeMethods.BNGetViewDataPointer(this.handle);
+		}
+
+		/// <summary>Gets the byte length available through <see cref="GetDataPointer"/>.</summary>
+		/// <returns>The contiguous data length, or zero when zero-copy access is unavailable.</returns>
+		public ulong GetDataLength()
+		{
+			UIntPtr length = NativeMethods.BNGetViewDataLength(this.handle);
+
+			return length.ToUInt64();
+		}
+
 		public byte[] ReadData(ulong offset , ulong length)
 		{
 			if (0 == length)
