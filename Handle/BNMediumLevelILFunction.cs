@@ -2150,7 +2150,7 @@ namespace BinaryNinja
 		    );
 	    }
 	    
-	    public MediumLevelILExpressionIndex EmitRorateRight(
+	    public MediumLevelILExpressionIndex EmitRotateRight(
 		    ulong size,
 		    MediumLevelILExpressionIndex left,
 		    MediumLevelILExpressionIndex right,
@@ -2184,7 +2184,7 @@ namespace BinaryNinja
 		    );
 	    }
 	    
-	    public MediumLevelILExpressionIndex EmitMUL(
+	    public MediumLevelILExpressionIndex EmitMul(
 		    ulong size,
 		    MediumLevelILExpressionIndex left,
 		    MediumLevelILExpressionIndex right,
@@ -2433,7 +2433,7 @@ namespace BinaryNinja
 		    );
 	    }
 	    
-	    public MediumLevelILExpressionIndex EmitJUMP(
+	    public MediumLevelILExpressionIndex EmitJump(
 		    ulong size,
 		    MediumLevelILExpressionIndex dest,
 		    SourceLocation? location = null
@@ -2482,7 +2482,7 @@ namespace BinaryNinja
 		    );
 	    }
 	
-	    public MediumLevelILExpressionIndex EmitCALL_UNTYPED(
+	    public MediumLevelILExpressionIndex EmitCallUntyped(
 		    Variable[] outputs,
 		    MediumLevelILExpressionIndex dest,
 		    MediumLevelILExpressionIndex[] parameters,
@@ -2885,7 +2885,6 @@ namespace BinaryNinja
 		    Variable[] outputs,
 		    IntrinsicIndex  intrinsic,
 		    MediumLevelILExpressionIndex[] parameters,
-		    MediumLevelILExpressionIndex stack,
 		    SourceLocation? location = null
 	    )
 	    {
@@ -2896,9 +2895,24 @@ namespace BinaryNinja
 			    (ulong)outputs.Length,
 			    (ulong)this.AddVariableList(outputs),
 			    (ulong)intrinsic,
-			  (ulong)parameters.Length,
-			  (ulong)this.AddOperandList(parameters)
+			    (ulong)parameters.Length,
+			    (ulong)this.AddOperandList(parameters)
 		    );
+	    }
+
+	    /// <summary>
+	    /// Compatibility overload for the former signature whose stack argument was unused.
+	    /// </summary>
+	    [Obsolete("Use the EmitIntrinsic overload without a stack expression.")]
+	    public MediumLevelILExpressionIndex EmitIntrinsic(
+		    Variable[] outputs,
+		    IntrinsicIndex intrinsic,
+		    MediumLevelILExpressionIndex[] parameters,
+		    MediumLevelILExpressionIndex stack,
+		    SourceLocation? location = null
+	    )
+	    {
+		    return this.EmitIntrinsic(outputs, intrinsic, parameters, location);
 	    }
 	    
 	    public MediumLevelILExpressionIndex EmitFreeVarSlot(
