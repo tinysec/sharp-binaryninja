@@ -5,24 +5,46 @@ namespace BinaryNinja
 {
 	public sealed class LowLevelILSSARegister 
 	{
+		private ulong version;
+
 		public ILRegister Register { get; }
 		
-		public ulong Vesion { get; set; } = 0;
+		public ulong Version
+		{
+			get
+			{
+				return this.version;
+			}
+		}
+
+		[Obsolete("Use Version.")]
+		public ulong Vesion
+		{
+			get
+			{
+				return this.version;
+			}
+
+			set
+			{
+				this.version = value;
+			}
+		}
 		
 		public LowLevelILFunction ILFunction { get; }
 
-		public LowLevelILSSARegister(LowLevelILFunction function , ILRegister register , ulong vesion)
+		public LowLevelILSSARegister(LowLevelILFunction function , ILRegister register , ulong version)
 		{
 			this.ILFunction = function;
 			
 			this.Register = register;
 			
-			this.Vesion = vesion;
+			this.version = version;
 		}
 		
 		public override string ToString()
 		{
-			return $"{this.Register.Name}#{this.Vesion}";
+			return $"{this.Register.Name}#{this.Version}";
 		}
 		
 		public LowLevelILInstruction? Definition
@@ -32,7 +54,7 @@ namespace BinaryNinja
 				LowLevelILInstructionIndex index = NativeMethods.BNGetLowLevelILSSARegisterDefinition(
 					this.ILFunction.DangerousGetHandle() ,
 					this.Register.Index ,
-					this.Vesion
+					this.Version
 				);
 
 				if ((ulong)index >= this.ILFunction.InstructionCount)
@@ -51,7 +73,7 @@ namespace BinaryNinja
 				IntPtr arrayPointer = NativeMethods.BNGetLowLevelILSSARegisterUses(
 					this.ILFunction.DangerousGetHandle() ,
 					this.Register.Index ,
-					this.Vesion,
+					this.Version,
 					out ulong arrayLength
 				);
 
@@ -85,7 +107,7 @@ namespace BinaryNinja
 					NativeMethods.BNGetLowLevelILSSARegisterValue(
 						this.ILFunction.DangerousGetHandle() , 
 						this.Register.Index ,
-						this.Vesion
+						this.Version
 					)
 				);
 			}
@@ -95,7 +117,7 @@ namespace BinaryNinja
 		{
 			get
 			{
-				return this.ILFunction.SSAForm.GetRegisterSSAVersions(this.Register.Index);
+				return this.ILFunction.GetRegisterSSAVersions(this.Register.Index);
 			}
 		}
 	}

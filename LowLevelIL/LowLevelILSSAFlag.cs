@@ -5,25 +5,42 @@ namespace BinaryNinja
 {
 	public sealed class LowLevelILSSAFlag
 	{
+		private readonly ulong version;
+
 		public LowLevelILFlag Flag { get;  }
 		
-		public ulong Vesion { get;  } = 0;
+		public ulong Version
+		{
+			get
+			{
+				return this.version;
+			}
+		}
+
+		[Obsolete("Use Version.")]
+		public ulong Vesion
+		{
+			get
+			{
+				return this.version;
+			}
+		}
 		
-		public LowLevelILSSAFlag(LowLevelILFunction function , ILFlag flag , ulong vesion)
-			:this( new LowLevelILFlag(function , flag) ,  vesion )
+		public LowLevelILSSAFlag(LowLevelILFunction function , ILFlag flag , ulong version)
+			:this( new LowLevelILFlag(function , flag) ,  version )
 		{
 		
 		}
 		
-		public LowLevelILSSAFlag(LowLevelILFlag flag , ulong vesion)
+		public LowLevelILSSAFlag(LowLevelILFlag flag , ulong version)
 		{
 			this.Flag = flag;
-			this.Vesion = vesion;
+			this.version = version;
 		}
 		
 		public override string ToString()
 		{
-			return $"{this.Flag.Name}#{this.Vesion}";
+			return $"{this.Flag.Name}#{this.Version}";
 		}
 		
 		public LowLevelILInstruction? Definition
@@ -33,7 +50,7 @@ namespace BinaryNinja
 				LowLevelILInstructionIndex index = NativeMethods.BNGetLowLevelILSSAFlagDefinition(
 					this.Flag.ILFunction.DangerousGetHandle() ,
 					this.Flag.Index ,
-					this.Vesion
+					this.Version
 				);
 
 				if ((ulong)index >= this.Flag.ILFunction.InstructionCount)
@@ -52,7 +69,7 @@ namespace BinaryNinja
 				IntPtr arrayPointer = NativeMethods.BNGetLowLevelILSSAFlagUses(
 					this.Flag.ILFunction.DangerousGetHandle() ,
 					this.Flag.Index ,
-					this.Vesion,
+					this.Version,
 					out ulong arrayLength
 				);
 
@@ -86,9 +103,17 @@ namespace BinaryNinja
 					NativeMethods.BNGetLowLevelILSSAFlagValue(
 						this.Flag.ILFunction.DangerousGetHandle() , 
 						this.Flag.Index ,
-						this.Vesion
+						this.Version
 					)
 				);
+			}
+		}
+
+		public ulong[] Versions
+		{
+			get
+			{
+				return this.Flag.ILFunction.GetFlagSSAVersions(this.Flag.Index);
 			}
 		}
 	}
