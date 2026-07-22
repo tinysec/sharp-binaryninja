@@ -690,10 +690,15 @@ namespace BinaryNinja
 				return UnsafeUtils.TakeStructArray<BNStringReference , StringReference>(
 					arrayPointer ,
 					arrayLength ,
-					StringReference.FromNative ,
+					this.StringReferenceFromNative ,
 					NativeMethods.BNFreeStringReferenceList
 				);
 			}
+		}
+
+		private StringReference StringReferenceFromNative(BNStringReference raw)
+		{
+			return StringReference.FromNative(raw, this);
 		}
 
 		public AnalysisInfo GetAnalysisInfo()
@@ -3840,7 +3845,7 @@ namespace BinaryNinja
 				return UnsafeUtils.TakeStructArray<BNStringReference , StringReference>(
 					arrayPointer ,
 					arrayLength ,
-					StringReference.FromNative ,
+					this.StringReferenceFromNative ,
 					NativeMethods.BNFreeStringReferenceList
 				);
 			}
@@ -3858,7 +3863,7 @@ namespace BinaryNinja
 			return UnsafeUtils.TakeStructArray<BNStringReference , StringReference>(
 				arrayPointer ,
 				arrayLength ,
-				StringReference.FromNative ,
+				this.StringReferenceFromNative ,
 				NativeMethods.BNFreeStringReferenceList
 			);
 		}
@@ -3876,7 +3881,7 @@ namespace BinaryNinja
 				return null;
 			}
 			
-			return StringReference.FromNative(strRef);
+			return StringReference.FromNative(strRef, this);
 		}
 
 		public ulong GetNextFunctionStartAfterAddress(ulong address)
