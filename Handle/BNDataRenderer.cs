@@ -10,7 +10,7 @@ namespace BinaryNinja
     /// in Binary Ninja's data variable view. Callers may register renderers
     /// with the global container as generic or type-specific renderers.
     /// </summary>
-    public sealed class DataRenderer : AbstractSafeHandle<DataRenderer>
+    public partial class DataRenderer : AbstractSafeHandle<DataRenderer>
     {
         /// <summary>
         /// Initializes a new DataRenderer wrapper around an existing native handle.
@@ -151,7 +151,10 @@ namespace BinaryNinja
                 throw new ArgumentNullException(nameof(container));
             }
 
-            // 2. Forward this renderer and the container to the native registration API.
+            // 2. Keep managed callback renderers alive for the lifetime of their native registration.
+            this.RootForRegistration();
+
+            // 3. Forward this renderer and the container to the native registration API.
             NativeMethods.BNRegisterGenericDataRenderer(
                 container.DangerousGetHandle(),
                 this.handle
@@ -171,7 +174,10 @@ namespace BinaryNinja
                 throw new ArgumentNullException(nameof(container));
             }
 
-            // 2. Forward this renderer and the container to the native registration API.
+            // 2. Keep managed callback renderers alive for the lifetime of their native registration.
+            this.RootForRegistration();
+
+            // 3. Forward this renderer and the container to the native registration API.
             NativeMethods.BNRegisterTypeSpecificDataRenderer(
                 container.DangerousGetHandle(),
                 this.handle

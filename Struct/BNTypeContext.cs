@@ -29,5 +29,16 @@ namespace BinaryNinja
 		{
 		    
 		}
+
+		public TypeContext(BinaryNinja.Type type, ulong offset)
+		{
+			if (null == type)
+			{
+				throw new ArgumentNullException(nameof(type));
+			}
+
+			this.Type = type;
+			this.Offset = offset;
+		}
     }
 }

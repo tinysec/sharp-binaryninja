@@ -35,11 +35,11 @@ namespace BinaryNinja
 		
 		public BinaryNinja.Type? ParentType { get; set; } = null;
 		
-		public ulong FieldIndex { get; set; } = 0;
+		public ulong FieldIndex { get; set; } = ulong.MaxValue;
 		
 		public ulong Offset { get; set; } = 0;
 
-		internal DisassemblyTextLineTypeInfo()
+		public DisassemblyTextLineTypeInfo()
 		{
 			
 		}
