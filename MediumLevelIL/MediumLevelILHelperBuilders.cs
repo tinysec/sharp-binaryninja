@@ -5,6 +5,36 @@ namespace BinaryNinja
 	public sealed partial class MediumLevelILFunction
 	{
 		/// <summary>
+		/// Creates the address of a field within a variable.
+		/// </summary>
+		public MediumLevelILExpressionIndex EmitAddressOfField(
+			Variable variable,
+			ulong offset,
+			SourceLocation? location = null)
+		{
+			return this.AddExpression(
+				MediumLevelILOperation.MLIL_ADDRESS_OF_FIELD,
+				location,
+				0,
+				variable.Identifier,
+				offset);
+		}
+
+		/// <summary>
+		/// Creates an indirect jump expression. MLIL jumps have no result size.
+		/// </summary>
+		public MediumLevelILExpressionIndex EmitJump(
+			MediumLevelILExpressionIndex destination,
+			SourceLocation? location = null)
+		{
+			return this.AddExpression(
+				MediumLevelILOperation.MLIL_JUMP,
+				location,
+				0,
+				(ulong)destination);
+		}
+
+		/// <summary>
 		/// Creates a floating-point constant from its raw binary representation.
 		/// </summary>
 		public MediumLevelILExpressionIndex EmitFloatConstRaw(

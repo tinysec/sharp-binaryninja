@@ -2428,18 +2428,17 @@ namespace BinaryNinja
 		    );
 	    }
 	    
+	    /// <summary>
+	    /// Compatibility overload for the former jump signature with a caller-supplied size.
+	    /// </summary>
+	    [Obsolete("Use the EmitJump overload without a size.")]
 	    public MediumLevelILExpressionIndex EmitJump(
 		    ulong size,
 		    MediumLevelILExpressionIndex dest,
 		    SourceLocation? location = null
 	    )
 	    {
-		    return this.AddExpression(
-			    MediumLevelILOperation.MLIL_JUMP,
-			    location,
-			    size,
-			    (ulong)dest
-		    );
+		    return this.EmitJump(dest, location);
 	    }
 	    
 	    public MediumLevelILExpressionIndex EmitJumpTo(
