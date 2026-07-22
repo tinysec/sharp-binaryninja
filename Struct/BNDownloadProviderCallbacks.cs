@@ -1,29 +1,32 @@
 using System;
-using System.Collections.Generic;
 using System.Runtime.InteropServices;
-using Microsoft.Win32.SafeHandles;
 
 namespace BinaryNinja
 {
+	internal static partial class NativeDelegates
+	{
+		[UnmanagedFunctionPointer(System.Runtime.InteropServices.CallingConvention.Cdecl)]
+		internal delegate IntPtr BNDownloadProviderCreateInstance(IntPtr context);
+	}
+
 	[StructLayout(LayoutKind.Sequential)]
-	internal unsafe struct BNDownloadProviderCallbacks 
+	internal struct BNDownloadProviderCallbacks
 	{
 		/// <summary>
 		/// void* context
 		/// </summary>
-		public IntPtr context;
+		internal IntPtr context;
 		
 		/// <summary>
 		/// void** createInstance
 		/// </summary>
-		public IntPtr createInstance;
+		internal IntPtr createInstance;
 	}
 
-    public class DownloadProviderCallbacks 
-    {
-		public DownloadProviderCallbacks() 
-		{
-		    
-		}
-    }
+	/// <summary>
+	/// Retained for source compatibility. Custom providers use DownloadProvider directly.
+	/// </summary>
+	public class DownloadProviderCallbacks
+	{
+	}
 }

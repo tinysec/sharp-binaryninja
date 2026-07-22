@@ -19,7 +19,7 @@ namespace BinaryNinja
 	/// <returns>The number of bytes consumed.</returns>
 	public delegate ulong DownloadWriteDelegate(byte[] data);
 
-	public sealed partial class DownloadInstance
+	public abstract partial class DownloadInstance
 	{
 		[UnmanagedFunctionPointer(System.Runtime.InteropServices.CallingConvention.Cdecl)]
 		private delegate long NativeReadCallback(IntPtr data, ulong length, IntPtr context);

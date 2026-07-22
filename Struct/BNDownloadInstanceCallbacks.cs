@@ -1,44 +1,70 @@
 using System;
-using System.Collections.Generic;
 using System.Runtime.InteropServices;
-using Microsoft.Win32.SafeHandles;
 
 namespace BinaryNinja
 {
+	internal static partial class NativeDelegates
+	{
+		[UnmanagedFunctionPointer(System.Runtime.InteropServices.CallingConvention.Cdecl)]
+		internal delegate void BNDownloadInstanceDestroy(IntPtr context);
+
+		[UnmanagedFunctionPointer(System.Runtime.InteropServices.CallingConvention.Cdecl)]
+		internal delegate int BNDownloadInstancePerformRequest(
+			IntPtr context,
+			[MarshalAs(UnmanagedType.LPUTF8Str)] string url
+		);
+
+		[UnmanagedFunctionPointer(System.Runtime.InteropServices.CallingConvention.Cdecl)]
+		internal delegate int BNDownloadInstancePerformCustomRequest(
+			IntPtr context,
+			[MarshalAs(UnmanagedType.LPUTF8Str)] string method,
+			[MarshalAs(UnmanagedType.LPUTF8Str)] string url,
+			ulong headerCount,
+			IntPtr headerKeys,
+			IntPtr headerValues,
+			IntPtr response
+		);
+
+		[UnmanagedFunctionPointer(System.Runtime.InteropServices.CallingConvention.Cdecl)]
+		internal delegate void BNDownloadInstanceFreeResponse(
+			IntPtr context,
+			IntPtr response
+		);
+	}
+
 	[StructLayout(LayoutKind.Sequential)]
-	internal unsafe struct BNDownloadInstanceCallbacks 
+	internal struct BNDownloadInstanceCallbacks
 	{
 		/// <summary>
 		/// void* context
 		/// </summary>
-		public IntPtr context;
+		internal IntPtr context;
 		
 		/// <summary>
 		/// void** destroyInstance
 		/// </summary>
-		public IntPtr destroyInstance;
+		internal IntPtr destroyInstance;
 		
 		/// <summary>
 		/// void** performRequest
 		/// </summary>
-		public IntPtr performRequest;
+		internal IntPtr performRequest;
 		
 		/// <summary>
 		/// void** performCustomRequest
 		/// </summary>
-		public IntPtr performCustomRequest;
+		internal IntPtr performCustomRequest;
 		
 		/// <summary>
 		/// void** freeResponse
 		/// </summary>
-		public IntPtr freeResponse;
+		internal IntPtr freeResponse;
 	}
 
-    public class DownloadInstanceCallbacks 
-    {
-		public DownloadInstanceCallbacks() 
-		{
-		    
-		}
-    }
+	/// <summary>
+	/// Retained for source compatibility. Custom instances use DownloadInstance directly.
+	/// </summary>
+	public class DownloadInstanceCallbacks
+	{
+	}
 }

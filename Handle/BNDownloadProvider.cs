@@ -1,126 +1,199 @@
 using System;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
-using Microsoft.Win32.SafeHandles;
 
 namespace BinaryNinja
 {
-    /// <summary>
-    /// Represents a registered download provider that can create download instances for
-    /// performing HTTP/HTTPS requests. DownloadProvider handles are always borrowed — the
-    /// provider lifetime is managed by the native engine's global registry.
-    /// </summary>
-    public sealed class DownloadProvider : AbstractSafeHandle<DownloadProvider>
-    {
-        /// <summary>
-        /// Initializes a new DownloadProvider wrapper around an existing borrowed handle.
-        /// The handle is never owned — the provider lifetime is managed by the native engine.
-        /// </summary>
-        /// <param name="handle">The native pointer to the BNDownloadProvider object.</param>
-        internal DownloadProvider(IntPtr handle)
-            : base(handle, false)
-        {
-        }
+	/// <summary>
+	/// Creates download instances for application-defined transfer implementations.
+	/// </summary>
+	public abstract class DownloadProvider : AbstractSafeHandle<DownloadProvider>
+	{
+		private static readonly object registrationLock = new object();
 
-        /// <summary>
-        /// Borrows a native handle without taking ownership. Returns null if the handle is zero.
-        /// </summary>
-        /// <param name="handle">The native BNDownloadProvider pointer.</param>
-        /// <returns>A new DownloadProvider instance that will not free the handle on dispose.</returns>
-        internal static DownloadProvider? BorrowHandle(IntPtr handle)
-        {
-            if (handle == IntPtr.Zero)
-            {
-                return null;
-            }
+		private static readonly List<DownloadProvider> registeredProviders =
+			new List<DownloadProvider>();
 
-            return new DownloadProvider(handle);
-        }
+		private readonly string? registrationName;
 
-        /// <summary>
-        /// Borrows a native handle without taking ownership. Throws if the handle is zero.
-        /// </summary>
-        /// <param name="handle">The native BNDownloadProvider pointer.</param>
-        /// <returns>A new DownloadProvider instance that will not free the handle on dispose.</returns>
-        internal static DownloadProvider MustBorrowHandle(IntPtr handle)
-        {
-            if (handle == IntPtr.Zero)
-            {
-                throw new ArgumentNullException(nameof(handle));
-            }
+		private bool isRegistered;
 
-            return new DownloadProvider(handle);
-        }
+		private NativeDelegates.BNDownloadProviderCreateInstance? createInstanceCallback;
 
-        /// <summary>
-        /// No-op release: download provider handles are always borrowed from the global registry
-        /// and must not be freed by this wrapper.
-        /// </summary>
-        /// <returns>True (always, since no deallocation is performed).</returns>
-        protected override bool ReleaseHandle()
-        {
-            // Provider objects are borrowed from the global registry; the native engine owns their lifetime.
-            return true;
-        }
+		/// <summary>Creates an unregistered custom download provider.</summary>
+		protected DownloadProvider(string name)
+			: base(false)
+		{
+			if (null == name)
+			{
+				throw new ArgumentNullException(nameof(name));
+			}
 
-        /// <summary>
-        /// Looks up a registered download provider by name.
-        /// </summary>
-        /// <param name="name">Registered provider name.</param>
-        /// <returns>The borrowed provider, or null when no provider has that name.</returns>
-        public static DownloadProvider? GetByName(string name)
-        {
-            if (null == name)
-            {
-                throw new ArgumentNullException(nameof(name));
-            }
+			this.registrationName = name;
+		}
 
-            return DownloadProvider.BorrowHandle(
-                NativeMethods.BNGetDownloadProviderByName(name));
-        }
+		private DownloadProvider(IntPtr handle)
+			: base(handle, false)
+		{
+		}
 
-        /// <summary>
-        /// Gets every registered download provider.
-        /// </summary>
-        /// <returns>Borrowed provider wrappers whose lifetime is managed by the core.</returns>
-        public static unsafe DownloadProvider[] GetList()
-        {
-            ulong count = 0;
-            IntPtr providers = NativeMethods.BNGetDownloadProviderList((IntPtr)(&count));
-            return UnsafeUtils.TakeHandleArray<DownloadProvider>(
-                providers,
-                count,
-                DownloadProvider.MustBorrowHandle,
-                NativeMethods.BNFreeDownloadProviderList);
-        }
+		/// <summary>Gets the unique registered provider name.</summary>
+		public string Name
+		{
+			get
+			{
+				if (this.IsInvalid)
+				{
+					return this.registrationName ?? string.Empty;
+				}
 
-        /// <summary>
-        /// Gets the registered name that uniquely identifies this download provider.
-        /// </summary>
-        public string Name
-        {
-            get
-            {
-                // 1. Retrieve the native ANSI string pointer for the provider name.
-                IntPtr raw = NativeMethods.BNGetDownloadProviderName(this.handle);
+				return UnsafeUtils.TakeUtf8String(
+					NativeMethods.BNGetDownloadProviderName(this.handle)
+				);
+			}
+		}
 
-                // 2. Copy and free the native string, returning empty on null.
-                return UnsafeUtils.TakeAnsiString(raw) ?? string.Empty;
-            }
-        }
+		/// <summary>Registers this provider and roots its callback for core use.</summary>
+		public void Register()
+		{
+			if (this.isRegistered || !this.IsInvalid)
+			{
+				throw new InvalidOperationException(
+					"The download provider is already registered."
+				);
+			}
 
-        /// <summary>
-        /// Creates a new download instance for this provider.
-        /// The caller is responsible for disposing the returned instance.
-        /// Returns null if the native engine cannot allocate a new instance.
-        /// </summary>
-        /// <returns>A new owned DownloadInstance, or null on failure.</returns>
-        public DownloadInstance? CreateInstance()
-        {
-            // Create a new instance through the provider; the returned handle is owned.
-            return DownloadInstance.TakeHandle(
-                NativeMethods.BNCreateDownloadProviderInstance(this.handle)
-            );
-        }
-    }
+			this.createInstanceCallback =
+				new NativeDelegates.BNDownloadProviderCreateInstance(
+					this.InvokeCreateInstance
+				);
+			BNDownloadProviderCallbacks callbacks = new BNDownloadProviderCallbacks();
+			callbacks.context = IntPtr.Zero;
+			callbacks.createInstance = Marshal.GetFunctionPointerForDelegate(
+				this.createInstanceCallback
+			);
+
+			IntPtr handle = NativeMethods.BNRegisterDownloadProvider(
+				this.registrationName ?? string.Empty,
+				in callbacks
+			);
+			if (IntPtr.Zero == handle)
+			{
+				throw new InvalidOperationException(
+					"The core rejected the download provider."
+				);
+			}
+
+			this.SetHandle(handle);
+			this.isRegistered = true;
+			lock (DownloadProvider.registrationLock)
+			{
+				DownloadProvider.registeredProviders.Add(this);
+			}
+		}
+
+		/// <summary>Creates the custom instance returned by this provider.</summary>
+		public abstract DownloadInstance? CreateNewInstance();
+
+		/// <summary>Looks up a registered download provider by name.</summary>
+		public static DownloadProvider? GetByName(string name)
+		{
+			if (null == name)
+			{
+				throw new ArgumentNullException(nameof(name));
+			}
+
+			return DownloadProvider.FromHandle(
+				NativeMethods.BNGetDownloadProviderByName(name)
+			);
+		}
+
+		/// <summary>Gets every registered download provider.</summary>
+		public static unsafe DownloadProvider[] GetList()
+		{
+			ulong count = 0;
+			IntPtr providers = NativeMethods.BNGetDownloadProviderList((IntPtr)(&count));
+			return UnsafeUtils.TakeHandleArray<DownloadProvider>(
+				providers,
+				count,
+				DownloadProvider.MustFromHandle,
+				NativeMethods.BNFreeDownloadProviderList
+			);
+		}
+
+		/// <summary>
+		/// Creates an owned download instance through this provider's registered callback.
+		/// </summary>
+		public DownloadInstance? CreateInstance()
+		{
+			return DownloadInstance.TakeHandle(
+				NativeMethods.BNCreateDownloadProviderInstance(this.handle)
+			);
+		}
+
+		protected override bool ReleaseHandle()
+		{
+			return true;
+		}
+
+		private static DownloadProvider? FromHandle(IntPtr handle)
+		{
+			if (IntPtr.Zero == handle)
+			{
+				return null;
+			}
+
+			return new CoreDownloadProvider(handle);
+		}
+
+		private static DownloadProvider MustFromHandle(IntPtr handle)
+		{
+			DownloadProvider? provider = DownloadProvider.FromHandle(handle);
+			if (null == provider)
+			{
+				throw new ArgumentNullException(nameof(handle));
+			}
+
+			return provider;
+		}
+
+		private IntPtr InvokeCreateInstance(IntPtr context)
+		{
+			try
+			{
+				DownloadInstance? instance = this.CreateNewInstance();
+				if (null == instance)
+				{
+					return IntPtr.Zero;
+				}
+
+				IntPtr result = NativeMethods.BNNewDownloadInstanceReference(
+					instance.DangerousGetHandle()
+				);
+				instance.ReleaseInitialReferenceForRegistration();
+				return result;
+			}
+			catch (Exception exception)
+			{
+				Core.LogError(
+					"Unhandled exception in DownloadProvider.CreateNewInstance: {0}",
+					exception
+				);
+				return IntPtr.Zero;
+			}
+		}
+
+		private sealed class CoreDownloadProvider : DownloadProvider
+		{
+			internal CoreDownloadProvider(IntPtr handle)
+				: base(handle)
+			{
+			}
+
+			public override DownloadInstance? CreateNewInstance()
+			{
+				return this.CreateInstance();
+			}
+		}
+	}
 }
