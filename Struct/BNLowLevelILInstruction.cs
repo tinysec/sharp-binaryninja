@@ -852,7 +852,7 @@ namespace BinaryNinja
 			IntPtr arrayPointer = NativeMethods.BNLowLevelILGetOperandList(
 				this.ILFunction.DangerousGetHandle() ,
 				this.ExpressionIndex ,
-				this.RawOperands[(ulong)operand] ,
+				(ulong)operand ,
 				out ulong arrayLength
 			);
 
