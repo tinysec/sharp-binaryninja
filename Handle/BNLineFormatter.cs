@@ -1,256 +1,428 @@
 using System;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
-using Microsoft.Win32.SafeHandles;
 
 namespace BinaryNinja
 {
-    /// <summary>
-    /// Represents a registered line formatter that controls how disassembly lines are laid out
-    /// and formatted. LineFormatter handles are always borrowed — the formatter lifetime is
-    /// managed by the native engine's global registry.
-    /// </summary>
-    public sealed class LineFormatter : AbstractSafeHandle<LineFormatter>
-    {
-        /// <summary>
-        /// Initializes a new LineFormatter wrapper around an existing borrowed handle.
-        /// The handle is never owned — the formatter lifetime is managed by the native engine.
-        /// </summary>
-        /// <param name="handle">The native pointer to the BNLineFormatter object.</param>
-        internal LineFormatter(IntPtr handle)
-            : base(handle, false)
-        {
-        }
+	/// <summary>Formats disassembly text lines for high-level representations.</summary>
+	public abstract class LineFormatter : AbstractSafeHandle<LineFormatter>
+	{
+		private static readonly object registrationLock = new object();
 
-        /// <summary>
-        /// Borrows a native handle without taking ownership. Returns null if the handle is zero.
-        /// </summary>
-        /// <param name="handle">The native BNLineFormatter pointer.</param>
-        /// <returns>A new LineFormatter instance that will not free the handle on dispose.</returns>
-        internal static LineFormatter? BorrowHandle(IntPtr handle)
-        {
-            if (handle == IntPtr.Zero)
-            {
-                return null;
-            }
+		private static readonly List<LineFormatter> registeredFormatters =
+			new List<LineFormatter>();
 
-            return new LineFormatter(handle);
-        }
+		private readonly object outputLock = new object();
 
-        /// <summary>
-        /// Borrows a native handle without taking ownership. Throws if the handle is zero.
-        /// </summary>
-        /// <param name="handle">The native BNLineFormatter pointer.</param>
-        /// <returns>A new LineFormatter instance that will not free the handle on dispose.</returns>
-        internal static LineFormatter MustBorrowHandle(IntPtr handle)
-        {
-            if (handle == IntPtr.Zero)
-            {
-                throw new ArgumentNullException(nameof(handle));
-            }
+		private readonly Dictionary<IntPtr, ScopedAllocator> pendingOutputs =
+			new Dictionary<IntPtr, ScopedAllocator>();
 
-            return new LineFormatter(handle);
-        }
+		private readonly string? registrationName;
 
-        /// <summary>
-        /// No-op release: line formatter handles are always borrowed from the global registry
-        /// and must not be freed by this wrapper.
-        /// </summary>
-        /// <returns>True (always, since no deallocation is performed).</returns>
-        protected override bool ReleaseHandle()
-        {
-            // Formatter objects are borrowed from the global registry; the native engine owns their lifetime.
-            return true;
-        }
+		private bool isRegistered;
 
-        /// <summary>
-        /// Gets the registered name that uniquely identifies this line formatter.
-        /// </summary>
-        public string Name
-        {
-            get
-            {
-                // 1. Retrieve the native ANSI string pointer for the formatter name.
-                IntPtr raw = NativeMethods.BNGetLineFormatterName(this.handle);
+		private NativeDelegates.BNLineFormatterFormatLines? formatLinesCallback;
 
-                // 2. Copy and free the native string, returning empty on null.
-                return UnsafeUtils.TakeAnsiString(raw) ?? string.Empty;
-            }
-        }
+		private NativeDelegates.BNLineFormatterFreeLines? freeLinesCallback;
 
-        // ===================================================================
-        // Static lookup methods
-        // ===================================================================
+		/// <summary>Creates an unregistered custom line formatter.</summary>
+		protected LineFormatter(string name)
+			: base(false)
+		{
+			if (null == name)
+			{
+				throw new ArgumentNullException(nameof(name));
+			}
 
-        /// <summary>
-        /// Looks up a registered line formatter by its unique name.
-        /// Returns null if no formatter with the given name exists.
-        /// </summary>
-        /// <param name="name">The registered name of the formatter to find.</param>
-        /// <returns>A borrowed LineFormatter instance, or null if not found.</returns>
-        public static LineFormatter? GetByName(string name)
-        {
-            // Query the global registry for a formatter with the specified name.
-            IntPtr result = NativeMethods.BNGetLineFormatterByName(name);
+			this.registrationName = name;
+		}
 
-            // Wrap as a borrowed handle; returns null when the native pointer is zero.
-            return LineFormatter.BorrowHandle(result);
-        }
+		private LineFormatter(IntPtr handle)
+			: base(handle, false)
+		{
+		}
 
-        /// <summary>
-        /// Gets the default line formatter registered with the engine.
-        /// Returns null if no default formatter is configured.
-        /// </summary>
-        /// <returns>A borrowed LineFormatter instance, or null if unavailable.</returns>
-        public static LineFormatter? GetDefault()
-        {
-            // Query the global registry for the default formatter.
-            IntPtr result = NativeMethods.BNGetDefaultLineFormatter();
+		/// <summary>Gets the registered formatter name.</summary>
+		public string Name
+		{
+			get
+			{
+				if (this.IsInvalid)
+				{
+					return this.registrationName ?? string.Empty;
+				}
 
-            // Wrap as a borrowed handle; returns null when the native pointer is zero.
-            return LineFormatter.BorrowHandle(result);
-        }
+				return UnsafeUtils.TakeUtf8String(
+					NativeMethods.BNGetLineFormatterName(this.handle)
+				);
+			}
+		}
 
-        /// <summary>
-        /// Gets the default line formatter settings for the given disassembly settings
-        /// and optional high-level IL function context. The returned settings struct
-        /// describes the line layout parameters the default formatter would use.
-        /// </summary>
-        /// <param name="settings">The disassembly settings to query defaults for.</param>
-        /// <param name="func">Optional HLIL function context; null for defaults without IL context.</param>
-        /// <returns>A LineFormatterSettings populated with default values.</returns>
-        public static unsafe LineFormatterSettings GetDefaultSettings(
-            DisassemblySettings settings ,
-            HighLevelILFunction? func = null)
-        {
-            // 1. Resolve the raw handles for the required and optional parameters.
-            IntPtr settingsHandle = settings.DangerousGetHandle();
-            IntPtr funcHandle = (func != null) ? func.DangerousGetHandle() : IntPtr.Zero;
+		/// <summary>Registers this formatter and roots its callbacks for core use.</summary>
+		public void Register()
+		{
+			if (this.isRegistered || !this.IsInvalid)
+			{
+				throw new InvalidOperationException(
+					"The line formatter is already registered."
+				);
+			}
 
-            // 2. Call the native function to obtain a heap-allocated BNLineFormatterSettings.
-            IntPtr ptr = NativeMethods.BNGetDefaultLineFormatterSettings(settingsHandle , funcHandle);
+			this.formatLinesCallback =
+				new NativeDelegates.BNLineFormatterFormatLines(
+					this.InvokeFormatLines
+				);
+			this.freeLinesCallback = new NativeDelegates.BNLineFormatterFreeLines(
+				this.InvokeFreeLines
+			);
+			BNCustomLineFormatter callbacks = new BNCustomLineFormatter();
+			callbacks.context = IntPtr.Zero;
+			callbacks.formatLines = Marshal.GetFunctionPointerForDelegate(
+				this.formatLinesCallback
+			);
+			callbacks.freeLines = Marshal.GetFunctionPointerForDelegate(
+				this.freeLinesCallback
+			);
 
-            if (ptr == IntPtr.Zero)
-            {
-                return new LineFormatterSettings();
-            }
+			IntPtr handle = NativeMethods.BNRegisterLineFormatter(
+				this.registrationName ?? string.Empty,
+				in callbacks
+			);
+			if (IntPtr.Zero == handle)
+			{
+				throw new InvalidOperationException(
+					"The core rejected the line formatter."
+				);
+			}
 
-            // 3. Read the native struct from the pointer.
-            BNLineFormatterSettings native = Marshal.PtrToStructure<BNLineFormatterSettings>(ptr);
+			this.SetHandle(handle);
+			this.isRegistered = true;
+			lock (LineFormatter.registrationLock)
+			{
+				LineFormatter.registeredFormatters.Add(this);
+			}
+		}
 
-            // 4. Convert to managed type.
-            LineFormatterSettings result = new LineFormatterSettings();
-            result.DesiredLineLength = native.desiredLineLength;
-            result.MinimumContentLength = native.minimumContentLength;
-            result.TabWidth = native.tabWidth;
-            result.MaximumAnnotationLength = native.maximumAnnotationLength;
-            result.StringWrappingWidth = native.stringWrappingWidth;
-            result.LanguageName = UnsafeUtils.ReadAnsiString(native.languageName);
-            result.CommentStartString = UnsafeUtils.ReadAnsiString(native.commentStartString);
-            result.CommentEndString = UnsafeUtils.ReadAnsiString(native.commentEndString);
-            result.AnnotationStartString = UnsafeUtils.ReadAnsiString(native.annotationStartString);
-            result.AnnotationEndString = UnsafeUtils.ReadAnsiString(native.annotationEndString);
+		/// <summary>Looks up a registered formatter by name.</summary>
+		public static LineFormatter? GetByName(string name)
+		{
+			if (null == name)
+			{
+				throw new ArgumentNullException(nameof(name));
+			}
 
-            // 5. The HLIL function is a borrowed pointer inside the struct; wrap it if non-null.
-            result.HighLevelIL = (native.highLevelIL != IntPtr.Zero)
-                ? HighLevelILFunction.NewFromHandle(native.highLevelIL)
-                : null;
+			return LineFormatter.FromHandle(
+				NativeMethods.BNGetLineFormatterByName(name)
+			);
+		}
 
-            // 6. Free the native struct allocation.
-            NativeMethods.BNFreeLineFormatterSettings(ptr);
+		/// <summary>Gets the default formatter.</summary>
+		public static LineFormatter? GetDefault()
+		{
+			return LineFormatter.FromHandle(NativeMethods.BNGetDefaultLineFormatter());
+		}
 
-            return result;
-        }
+		/// <summary>Gets every formatter registered with the core.</summary>
+		public static unsafe LineFormatter[] GetList()
+		{
+			ulong count = 0;
+			IntPtr formatters = NativeMethods.BNGetLineFormatterList((IntPtr)(&count));
+			return UnsafeUtils.TakeHandleArray<LineFormatter>(
+				formatters,
+				count,
+				LineFormatter.MustFromHandle,
+				NativeMethods.BNFreeLineFormatterList
+			);
+		}
 
-        /// <summary>
-        /// Gets all registered line formatters from the engine.
-        /// Each returned formatter is a borrowed reference.
-        /// </summary>
-        /// <returns>An array of all registered LineFormatter instances.</returns>
-        public static unsafe LineFormatter[] GetList()
-        {
-            // 1. Stack-allocate the count variable.
-            ulong count = 0;
+		/// <summary>Gets the default settings for a disassembly context.</summary>
+		public static LineFormatterSettings GetDefaultSettings(
+			HighLevelILFunction function,
+			DisassemblySettings? settings = null
+		)
+		{
+			if (null == function)
+			{
+				throw new ArgumentNullException(nameof(function));
+			}
 
-            // 2. Retrieve the native array of formatter pointers.
-            IntPtr arrayPointer = NativeMethods.BNGetLineFormatterList((IntPtr)(&count));
+			IntPtr result = NativeMethods.BNGetDefaultLineFormatterSettings(
+				null == settings ? IntPtr.Zero : settings.DangerousGetHandle(),
+				function.DangerousGetHandle()
+			);
+			if (IntPtr.Zero == result)
+			{
+				return new LineFormatterSettings();
+			}
 
-            // 3. Convert to managed array of borrowed handles and free the native pointer array.
-            return UnsafeUtils.TakeHandleArray<LineFormatter>(
-                arrayPointer ,
-                count ,
-                LineFormatter.MustBorrowHandle ,
-                NativeMethods.BNFreeLineFormatterList
-            );
-        }
+			try
+			{
+				return LineFormatter.ReadSettings(
+					Marshal.PtrToStructure<BNLineFormatterSettings>(result)
+				);
+			}
+			finally
+			{
+				NativeMethods.BNFreeLineFormatterSettings(result);
+			}
+		}
 
-        /// <summary>
-        /// Formats an array of disassembly text lines according to the given settings.
-        /// The formatter applies line wrapping, indentation, and annotation formatting.
-        /// </summary>
-        /// <param name="lines">The input lines to format.</param>
-        /// <param name="settings">The formatter settings controlling output appearance.</param>
-        /// <returns>An array of formatted DisassemblyTextLine objects.</returns>
-        public unsafe DisassemblyTextLine[] FormatLines(
-            DisassemblyTextLine[] lines ,
-            LineFormatterSettings settings
-        )
-        {
-            // 1. Handle empty input.
-            if (null == lines || 0 == lines.Length)
-            {
-                return Array.Empty<DisassemblyTextLine>();
-            }
+		/// <summary>Formats input lines and returns a replacement sequence.</summary>
+		public abstract DisassemblyTextLine[] FormatLines(
+			DisassemblyTextLine[] lines,
+			LineFormatterSettings settings
+		);
 
-            using (ScopedAllocator allocator = new ScopedAllocator())
-            {
-                // 2. Marshal the input lines to native structs.
-                BNDisassemblyTextLine[] nativeLines = new BNDisassemblyTextLine[lines.Length];
-                for (int i = 0; i < lines.Length; i++)
-                {
-                    nativeLines[i] = lines[i].ToNativeEx(allocator);
-                }
-                IntPtr linesPtr = allocator.AllocStructArray<BNDisassemblyTextLine>(nativeLines);
+		private static LineFormatter? FromHandle(IntPtr handle)
+		{
+			if (IntPtr.Zero == handle)
+			{
+				return null;
+			}
 
-                // 3. Marshal the settings struct.
-                BNLineFormatterSettings nativeSettings = new BNLineFormatterSettings()
-                {
-                    highLevelIL = (null != settings.HighLevelIL)
-                        ? settings.HighLevelIL.DangerousGetHandle()
-                        : IntPtr.Zero ,
-                    desiredLineLength = settings.DesiredLineLength ,
-                    minimumContentLength = settings.MinimumContentLength ,
-                    tabWidth = settings.TabWidth ,
-                    maximumAnnotationLength = settings.MaximumAnnotationLength ,
-                    stringWrappingWidth = settings.StringWrappingWidth ,
-                    languageName = allocator.AllocAnsiString(settings.LanguageName) ,
-                    commentStartString = allocator.AllocAnsiString(settings.CommentStartString) ,
-                    commentEndString = allocator.AllocAnsiString(settings.CommentEndString) ,
-                    annotationStartString = allocator.AllocAnsiString(settings.AnnotationStartString) ,
-                    annotationEndString = allocator.AllocAnsiString(settings.AnnotationEndString)
-                };
-                IntPtr settingsPtr = allocator.AllocStruct<BNLineFormatterSettings>(nativeSettings);
+			return new CoreLineFormatter(handle);
+		}
 
-                // 4. Stack-allocate the output count.
-                ulong outCount = 0;
+		internal static LineFormatter? BorrowHandle(IntPtr handle)
+		{
+			return LineFormatter.FromHandle(handle);
+		}
 
-                // 5. Call the native API.
-                IntPtr resultPointer = NativeMethods.BNFormatLines(
-                    this.handle ,
-                    linesPtr ,
-                    (ulong)lines.Length ,
-                    settingsPtr ,
-                    (IntPtr)(&outCount)
-                );
+		private static LineFormatter MustFromHandle(IntPtr handle)
+		{
+			LineFormatter? formatter = LineFormatter.FromHandle(handle);
+			if (null == formatter)
+			{
+				throw new ArgumentNullException(nameof(handle));
+			}
 
-                // 6. Convert the native result array to managed objects and free the native memory.
-                return UnsafeUtils.TakeStructArrayEx<BNDisassemblyTextLine , DisassemblyTextLine>(
-                    resultPointer ,
-                    outCount ,
-                    DisassemblyTextLine.FromNative ,
-                    NativeMethods.BNFreeDisassemblyTextLines
-                );
-            }
-        }
-    }
+			return formatter;
+		}
+
+		private IntPtr InvokeFormatLines(
+			IntPtr context,
+			IntPtr inputLines,
+			ulong inputCount,
+			IntPtr settings,
+			IntPtr outputCount
+		)
+		{
+			Marshal.WriteInt64(outputCount, 0);
+			DisassemblyTextLine[] input =
+				UnsafeUtils.ReadStructArray<BNDisassemblyTextLine, DisassemblyTextLine>(
+					inputLines,
+					inputCount,
+					DisassemblyTextLine.FromNative
+				);
+			LineFormatterSettings? managedSettings = null;
+			try
+			{
+				managedSettings = LineFormatter.ReadSettings(
+					Marshal.PtrToStructure<BNLineFormatterSettings>(settings)
+				);
+				DisassemblyTextLine[] output = this.FormatLines(
+					input,
+					managedSettings
+				);
+				if (null == output || 0 == output.Length)
+				{
+					return IntPtr.Zero;
+				}
+
+				ScopedAllocator allocator = new ScopedAllocator();
+				try
+				{
+					BNDisassemblyTextLine[] nativeOutput =
+						new BNDisassemblyTextLine[output.Length];
+					for (int i = 0; i < output.Length; i++)
+					{
+						nativeOutput[i] = output[i].ToNativeEx(allocator);
+					}
+
+					IntPtr result = allocator.AllocStructArray(nativeOutput);
+					lock (this.outputLock)
+					{
+						this.pendingOutputs.Add(result, allocator);
+					}
+
+					Marshal.WriteInt64(outputCount, output.Length);
+					return result;
+				}
+				catch
+				{
+					allocator.Dispose();
+					throw;
+				}
+			}
+			catch (Exception exception)
+			{
+				Core.LogError(
+					"Unhandled exception in LineFormatter.FormatLines: {0}",
+					exception
+				);
+				return IntPtr.Zero;
+			}
+			finally
+			{
+				LineFormatter.DisposeLines(input);
+				if (null != managedSettings && null != managedSettings.HighLevelIL)
+				{
+					managedSettings.HighLevelIL.Dispose();
+				}
+			}
+		}
+
+		private void InvokeFreeLines(IntPtr context, IntPtr lines, ulong count)
+		{
+			if (IntPtr.Zero == lines)
+			{
+				return;
+			}
+
+			ScopedAllocator? allocator = null;
+			lock (this.outputLock)
+			{
+				if (this.pendingOutputs.TryGetValue(lines, out allocator))
+				{
+					this.pendingOutputs.Remove(lines);
+				}
+			}
+
+			if (null == allocator)
+			{
+				Core.LogError("LineFormatter received an unknown output allocation.");
+				return;
+			}
+
+			allocator.Dispose();
+		}
+
+		private static LineFormatterSettings ReadSettings(BNLineFormatterSettings native)
+		{
+			LineFormatterSettings settings = new LineFormatterSettings();
+			settings.HighLevelIL = HighLevelILFunction.NewFromHandle(native.highLevelIL);
+			settings.DesiredLineLength = native.desiredLineLength;
+			settings.MinimumContentLength = native.minimumContentLength;
+			settings.TabWidth = native.tabWidth;
+			settings.MaximumAnnotationLength = native.maximumAnnotationLength;
+			settings.StringWrappingWidth = native.stringWrappingWidth;
+			settings.LanguageName = UnsafeUtils.ReadUtf8String(native.languageName);
+			settings.CommentStartString = UnsafeUtils.ReadUtf8String(
+				native.commentStartString
+			);
+			settings.CommentEndString = UnsafeUtils.ReadUtf8String(
+				native.commentEndString
+			);
+			settings.AnnotationStartString = UnsafeUtils.ReadUtf8String(
+				native.annotationStartString
+			);
+			settings.AnnotationEndString = UnsafeUtils.ReadUtf8String(
+				native.annotationEndString
+			);
+			return settings;
+		}
+
+		private static void DisposeLines(DisassemblyTextLine[] lines)
+		{
+			foreach (DisassemblyTextLine line in lines)
+			{
+				foreach (Tag tag in line.Tags)
+				{
+					tag.Dispose();
+				}
+			}
+		}
+
+		private sealed class CoreLineFormatter : LineFormatter
+		{
+			internal CoreLineFormatter(IntPtr handle)
+				: base(handle)
+			{
+			}
+
+			public override unsafe DisassemblyTextLine[] FormatLines(
+				DisassemblyTextLine[] lines,
+				LineFormatterSettings settings
+			)
+			{
+				if (null == lines)
+				{
+					throw new ArgumentNullException(nameof(lines));
+				}
+
+				if (null == settings)
+				{
+					throw new ArgumentNullException(nameof(settings));
+				}
+
+				if (null == settings.HighLevelIL)
+				{
+					throw new ArgumentException(
+						"Line formatter settings require a high-level IL function.",
+						nameof(settings)
+					);
+				}
+
+				using (ScopedAllocator allocator = new ScopedAllocator())
+				{
+					BNDisassemblyTextLine[] nativeLines =
+						new BNDisassemblyTextLine[lines.Length];
+					for (int i = 0; i < lines.Length; i++)
+					{
+						nativeLines[i] = lines[i].ToNativeEx(allocator);
+					}
+
+					BNLineFormatterSettings nativeSettings =
+						LineFormatter.WriteSettings(settings, allocator);
+					ulong outputCount = 0;
+					IntPtr output = NativeMethods.BNFormatLines(
+						this.handle,
+						allocator.AllocStructArray(nativeLines),
+						(ulong)nativeLines.Length,
+						allocator.AllocStruct(nativeSettings),
+						(IntPtr)(&outputCount)
+					);
+					return UnsafeUtils.TakeStructArrayEx<
+						BNDisassemblyTextLine,
+						DisassemblyTextLine
+					>(
+						output,
+						outputCount,
+						DisassemblyTextLine.FromNative,
+						NativeMethods.BNFreeDisassemblyTextLines
+					);
+				}
+			}
+		}
+
+		private static BNLineFormatterSettings WriteSettings(
+			LineFormatterSettings settings,
+			ScopedAllocator allocator
+		)
+		{
+			BNLineFormatterSettings native = new BNLineFormatterSettings();
+			native.highLevelIL = null == settings.HighLevelIL
+				? IntPtr.Zero
+				: settings.HighLevelIL.DangerousGetHandle();
+			native.desiredLineLength = settings.DesiredLineLength;
+			native.minimumContentLength = settings.MinimumContentLength;
+			native.tabWidth = settings.TabWidth;
+			native.maximumAnnotationLength = settings.MaximumAnnotationLength;
+			native.stringWrappingWidth = settings.StringWrappingWidth;
+			native.languageName = allocator.AllocUtf8String(settings.LanguageName);
+			native.commentStartString = allocator.AllocUtf8String(
+				settings.CommentStartString
+			);
+			native.commentEndString = allocator.AllocUtf8String(
+				settings.CommentEndString
+			);
+			native.annotationStartString = allocator.AllocUtf8String(
+				settings.AnnotationStartString
+			);
+			native.annotationEndString = allocator.AllocUtf8String(
+				settings.AnnotationEndString
+			);
+			return native;
+		}
+	}
 }
