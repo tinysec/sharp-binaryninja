@@ -11,7 +11,23 @@ namespace BinaryNinja
 {
 	public sealed class MediumLevelILFunction : AbstractSafeHandle<MediumLevelILFunction>
 	{
-		public bool IsSSAForm { get; } = false;
+		private readonly bool isSSAForm;
+
+		/// <summary>
+		/// Gets whether this function is in either mapped or unmapped SSA form.
+		/// </summary>
+		/// <remarks>
+		/// Form-aware navigation sources propagate this value when creating the wrapper. Keeping
+		/// it as captured state avoids querying basic blocks while IL expression indices are in
+		/// use, because graph discovery can finalize lazy analysis state and shift those indices.
+		/// </remarks>
+		public bool IsSSAForm
+		{
+			get
+			{
+				return this.isSSAForm;
+			}
+		}
 		
 	    internal MediumLevelILFunction(
 		    IntPtr handle , 
@@ -19,7 +35,15 @@ namespace BinaryNinja
 		    bool ssa = false
 		) : base(handle , owner)
 	    {
-	        this.IsSSAForm = ssa;
+	        this.isSSAForm = ssa;
+	    }
+
+	    private static FunctionGraphType GetILForm(IntPtr functionHandle)
+	    {
+		    IntPtr blocks = NativeMethods.BNGetMediumLevelILBasicBlockList(
+			    functionHandle,
+			    out ulong count);
+		    return ILFunctionNavigation.TakeFunctionGraphType(blocks, count);
 	    }
 
 	    internal static MediumLevelILFunction? NewFromHandle(
@@ -313,6 +337,29 @@ namespace BinaryNinja
 				    (native) => { return MediumLevelILBasicBlock.MustNewFromHandleEx(this , native);},
 				    NativeMethods.BNFreeBasicBlockList
 			    );
+		    }
+	    }
+
+	    /// <summary>
+	    /// Gets the native IL form represented by this function.
+	    /// </summary>
+	    public FunctionGraphType ILForm
+	    {
+		    get
+		    {
+			    return GetILForm(this.handle);
+		    }
+	    }
+
+	    /// <summary>
+	    /// Gets the native graph type. This alias keeps the MLIL API consistent with the
+	    /// existing LLIL and HLIL navigation properties.
+	    /// </summary>
+	    public FunctionGraphType FunctionGraphType
+	    {
+		    get
+		    {
+			    return this.ILForm;
 		    }
 	    }
 

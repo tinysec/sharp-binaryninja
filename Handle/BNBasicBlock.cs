@@ -50,8 +50,11 @@ namespace BinaryNinja
 	    {
 		    get
 		    {
+			    bool isSSAForm = FunctionGraphType.LowLevelILSSAFormFunctionGraph
+				    == this.FunctionGraphType;
 			    return LowLevelILFunction.TakeHandle(
-				    NativeMethods.BNGetBasicBlockLowLevelILFunction(this.handle)
+				    NativeMethods.BNGetBasicBlockLowLevelILFunction(this.handle),
+				    isSSAForm
 				);
 		    }
 	    }
@@ -60,8 +63,12 @@ namespace BinaryNinja
 	    {
 		    get
 		    {
+			    FunctionGraphType graphType = this.FunctionGraphType;
+			    bool isSSAForm = FunctionGraphType.MediumLevelILSSAFormFunctionGraph == graphType
+				    || FunctionGraphType.MappedMediumLevelILSSAFormFunctionGraph == graphType;
 			    return MediumLevelILFunction.TakeHandle(
-				    NativeMethods.BNGetBasicBlockMediumLevelILFunction(this.handle)
+				    NativeMethods.BNGetBasicBlockMediumLevelILFunction(this.handle),
+				    isSSAForm
 			    );
 		    }
 	    }
@@ -70,8 +77,11 @@ namespace BinaryNinja
 	    {
 		    get
 		    {
+			    bool isSSAForm = FunctionGraphType.HighLevelILSSAFormFunctionGraph
+				    == this.FunctionGraphType;
 			    return HighLevelILFunction.TakeHandle(
-				    NativeMethods.BNGetBasicBlockHighLevelILFunction(this.handle)
+				    NativeMethods.BNGetBasicBlockHighLevelILFunction(this.handle),
+				    isSSAForm
 			    );
 		    }
 	    }
