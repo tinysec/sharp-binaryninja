@@ -22,7 +22,7 @@ namespace BinaryNinja
 		    [MarshalAs(UnmanagedType.LPUTF8Str)] string channel  , 
 			
 			// const char** errors
-		    string[] errors  , 
+		    out IntPtr errors  ,
 			
 			// void** progress
 		    IntPtr progress  , 

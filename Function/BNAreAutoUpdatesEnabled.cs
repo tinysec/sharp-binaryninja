@@ -16,6 +16,6 @@ namespace BinaryNinja
             EntryPoint = "BNAreAutoUpdatesEnabled"
         )]
 		[return: MarshalAs(UnmanagedType.I1)]
-		public static extern bool BNAreAutoUpdatesEnabled();
+		internal static extern bool BNAreAutoUpdatesEnabled();
 	}
 }

@@ -19,10 +19,10 @@ namespace BinaryNinja
 		internal static extern IntPtr BNGetUpdateChannels(
 			
 			// uint64_t* count
-		    IntPtr count  , 
+		    out ulong count  ,
 			
 			// const char** errors
-		    string[] errors  
+		    out IntPtr errors
 			
 		);
 	}

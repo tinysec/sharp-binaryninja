@@ -19,7 +19,7 @@ namespace BinaryNinja
 		internal static extern void BNInstallPendingUpdate(
 			
 			// const char** errors
-		    string[] errors  
+		    out IntPtr errors
 			
 		);
 	}
