@@ -1439,8 +1439,6 @@ namespace BinaryNinja
 
 		// NOTE: BNReadSnapshotDataWithProgress — implemented on Snapshot class as ReadDataWithProgress().
 
-		// TODO: BNComponentsNotEqual — skip, handled by AbstractSafeHandle operators (== and !=).
-
 		// TODO: BNRepositoryFreePluginDirectoryList — internal free function, not a wrapper target.
 
 	}
