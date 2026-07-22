@@ -167,6 +167,27 @@ namespace BinaryNinja
             return TransformSession.TakeHandle(result);
         }
 
+		/// <summary>Creates a transform session rooted at an existing context.</summary>
+		public static TransformSession? CreateFromTransformContextWithMode(
+			TransformContext context,
+			TransformSessionMode mode,
+			string options = ""
+		)
+		{
+			if (null == context)
+			{
+				throw new ArgumentNullException(nameof(context));
+			}
+
+			return TransformSession.TakeHandle(
+				NativeMethods.BNCreateTransformSessionFromTransformContextWithMode(
+					context.DangerousGetHandle(),
+					mode,
+					options ?? string.Empty
+				)
+			);
+		}
+
         // ===================================================================
         // Instance properties
         // ===================================================================
@@ -239,6 +260,12 @@ namespace BinaryNinja
                 return NativeMethods.BNTransformSessionHasSinglePath(this.handle);
             }
         }
+
+		/// <summary>Sets whether transforms should use interactive behavior.</summary>
+		public void SetInteractive(bool interactive)
+		{
+			NativeMethods.BNTransformSessionSetInteractive(this.handle, interactive);
+		}
 
         /// <summary>
         /// Advances this session by one step, executing the current pipeline stage.
