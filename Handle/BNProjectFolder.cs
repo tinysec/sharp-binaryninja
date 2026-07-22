@@ -104,11 +104,33 @@ namespace BinaryNinja
 		    get { return UnsafeUtils.TakeAnsiString(NativeMethods.BNProjectFolderGetName(this.handle)); }
 	    }
 
+		/// <summary>Sets the folder's display name.</summary>
+		public bool SetName(string name)
+		{
+			if (null == name)
+			{
+				throw new ArgumentNullException(nameof(name));
+			}
+
+			return NativeMethods.BNProjectFolderSetName(this.handle, name);
+		}
+
 	    /// <summary>The folder's description.</summary>
 	    public string Description
 	    {
 		    get { return UnsafeUtils.TakeAnsiString(NativeMethods.BNProjectFolderGetDescription(this.handle)); }
 	    }
+
+		/// <summary>Sets the folder's description.</summary>
+		public bool SetDescription(string description)
+		{
+			if (null == description)
+			{
+				throw new ArgumentNullException(nameof(description));
+			}
+
+			return NativeMethods.BNProjectFolderSetDescription(this.handle, description);
+		}
 
 	    // --- Navigation ------------------------------------------------------
 
@@ -123,6 +145,36 @@ namespace BinaryNinja
 	    {
 		    get { return ProjectFolder.TakeHandle(NativeMethods.BNProjectFolderGetParent(this.handle)); }
 	    }
+
+		/// <summary>Moves the folder under another parent, or to the project root.</summary>
+		public bool SetParent(ProjectFolder? parent)
+		{
+			return NativeMethods.BNProjectFolderSetParent(
+				this.handle,
+				null == parent ? IntPtr.Zero : parent.DangerousGetHandle()
+			);
+		}
+
+		/// <summary>Recursively exports this folder to a destination path.</summary>
+		public bool Export(string destination, ProgressDelegate? progress = null)
+		{
+			if (null == destination)
+			{
+				throw new ArgumentNullException(nameof(destination));
+			}
+
+			ProgressCallbackContext progressContext = new ProgressCallbackContext(progress);
+			NativeDelegates.BNProgressFunction nativeProgress = progressContext.Invoke;
+			bool result = NativeMethods.BNProjectFolderExport(
+				this.handle,
+				destination,
+				IntPtr.Zero,
+				Marshal.GetFunctionPointerForDelegate<NativeDelegates.BNProgressFunction>(nativeProgress)
+			);
+			GC.KeepAlive(nativeProgress);
+			progressContext.ThrowIfFailed();
+			return result;
+		}
 
 	    /// <summary>The files directly contained in this folder. Mirrors Python ProjectFolder navigation.</summary>
 	    public unsafe ProjectFile[] Files

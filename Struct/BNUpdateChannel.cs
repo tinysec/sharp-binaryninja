@@ -146,7 +146,7 @@ namespace BinaryNinja
 				throw new ArgumentNullException(nameof(version));
 			}
 
-			UpdateProgressContext progressContext = new UpdateProgressContext(progress);
+			ProgressCallbackContext progressContext = new ProgressCallbackContext(progress);
 			NativeDelegates.BNProgressFunction nativeProgress = progressContext.Invoke;
 			IntPtr error;
 			UpdateResult result = NativeMethods.BNUpdateToVersion(
@@ -165,7 +165,7 @@ namespace BinaryNinja
 		/// <summary>Downloads the latest version in this channel.</summary>
 		public UpdateResult UpdateToLatestVersion(ProgressDelegate? progress = null)
 		{
-			UpdateProgressContext progressContext = new UpdateProgressContext(progress);
+			ProgressCallbackContext progressContext = new ProgressCallbackContext(progress);
 			NativeDelegates.BNProgressFunction nativeProgress = progressContext.Invoke;
 			IntPtr error;
 			UpdateResult result = NativeMethods.BNUpdateToLatestVersion(

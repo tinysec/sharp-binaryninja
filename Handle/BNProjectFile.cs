@@ -104,17 +104,57 @@ namespace BinaryNinja
 		    get { return UnsafeUtils.TakeAnsiString(NativeMethods.BNProjectFileGetName(this.handle)); }
 	    }
 
+		/// <summary>Sets the file's display name.</summary>
+		public bool SetName(string name)
+		{
+			if (null == name)
+			{
+				throw new ArgumentNullException(nameof(name));
+			}
+
+			return NativeMethods.BNProjectFileSetName(this.handle, name);
+		}
+
 	    /// <summary>The file's description.</summary>
 	    public string Description
 	    {
 		    get { return UnsafeUtils.TakeAnsiString(NativeMethods.BNProjectFileGetDescription(this.handle)); }
 	    }
 
+		/// <summary>Sets the file's description.</summary>
+		public bool SetDescription(string description)
+		{
+			if (null == description)
+			{
+				throw new ArgumentNullException(nameof(description));
+			}
+
+			return NativeMethods.BNProjectFileSetDescription(this.handle, description);
+		}
+
 	    /// <summary>The absolute path of the file's backing content on disk.</summary>
 	    public string PathOnDisk
 	    {
 		    get { return UnsafeUtils.TakeAnsiString(NativeMethods.BNProjectFileGetPathOnDisk(this.handle)); }
 	    }
+
+		/// <summary>Gets the file's path within its project.</summary>
+		public string PathInProject
+		{
+			get { return UnsafeUtils.TakeUtf8String(NativeMethods.BNProjectFileGetPathInProject(this.handle)); }
+		}
+
+		/// <summary>Gets whether the file's backing contents exist on disk.</summary>
+		public bool ExistsOnDisk
+		{
+			get { return NativeMethods.BNProjectFileExistsOnDisk(this.handle); }
+		}
+
+		/// <summary>Gets the file's creation timestamp.</summary>
+		public long CreationTimestamp
+		{
+			get { return NativeMethods.BNProjectFileGetCreationTimestamp(this.handle); }
+		}
 
 	    // --- Navigation ------------------------------------------------------
 
@@ -129,6 +169,54 @@ namespace BinaryNinja
 	    {
 		    get { return ProjectFolder.TakeHandle(NativeMethods.BNProjectFileGetFolder(this.handle)); }
 	    }
+
+		/// <summary>Moves the file to another folder, or to the project root.</summary>
+		public bool SetFolder(ProjectFolder? folder)
+		{
+			return NativeMethods.BNProjectFileSetFolder(
+				this.handle,
+				null == folder ? IntPtr.Zero : folder.DangerousGetHandle()
+			);
+		}
+
+		/// <summary>Exports the file's contents to a destination path.</summary>
+		public bool Export(string destination)
+		{
+			if (null == destination)
+			{
+				throw new ArgumentNullException(nameof(destination));
+			}
+
+			return NativeMethods.BNProjectFileExport(this.handle, destination);
+		}
+
+		/// <summary>Adds another project file as a dependency.</summary>
+		public bool AddDependency(ProjectFile file)
+		{
+			if (null == file)
+			{
+				throw new ArgumentNullException(nameof(file));
+			}
+
+			return NativeMethods.BNProjectFileAddDependency(
+				this.handle,
+				file.DangerousGetHandle()
+			);
+		}
+
+		/// <summary>Removes a project file dependency.</summary>
+		public bool RemoveDependency(ProjectFile file)
+		{
+			if (null == file)
+			{
+				throw new ArgumentNullException(nameof(file));
+			}
+
+			return NativeMethods.BNProjectFileRemoveDependency(
+				this.handle,
+				file.DangerousGetHandle()
+			);
+		}
 
 	    /// <summary>The project files this file depends on. Mirrors Python ProjectFile.dependencies.</summary>
 	    public unsafe ProjectFile[] GetDependencies()
