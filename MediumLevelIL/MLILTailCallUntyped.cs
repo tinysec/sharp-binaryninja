@@ -2,7 +2,7 @@ using System;
 
 namespace BinaryNinja
 {
-	public sealed class MLILTailCallUntyped : MediumLevelILInstruction
+	public sealed class MLILTailCallUntyped : AbstractMediumLevelILCallInstruction
 	{
 		internal MLILTailCallUntyped(
 			MediumLevelILFunction ilFunction, 
@@ -17,7 +17,7 @@ namespace BinaryNinja
 		// sub-instruction expressions whose own dest / src hold the variable / expression lists
 		// (mirrors MediumLevelILTailcallUntyped in mediumlevelil.py and the sibling MLILCallUntyped
 		// / MLILSysCallUntyped wrappers). The earlier flat readers misread those slots as lists.
-		public MediumLevelILVariable[] Output
+		public override MediumLevelILVariable[] Output
 		{
 			get
 			{
@@ -40,7 +40,15 @@ namespace BinaryNinja
 			}
 		}
 
-		public MediumLevelILInstruction[] Parameters
+		public MediumLevelILInstruction Destination
+		{
+			get
+			{
+				return this.Dest;
+			}
+		}
+
+		public override MediumLevelILInstruction[] Parameters
 		{
 			get
 			{

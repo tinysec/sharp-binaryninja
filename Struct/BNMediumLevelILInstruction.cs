@@ -827,7 +827,32 @@ namespace BinaryNinja
 		{
 			get
 			{
-				return Array.Empty<MediumLevelILVariable>();
+				List<MediumLevelILVariable> variables = new List<MediumLevelILVariable>();
+
+				foreach (object? operand in this.Operands)
+				{
+					if (operand is MediumLevelILVariable variable)
+					{
+						variables.Add(variable);
+					}
+					else if (operand is MediumLevelILVariable[] variableList)
+					{
+						variables.AddRange(variableList);
+					}
+					else if (operand is MediumLevelILInstruction instruction)
+					{
+						variables.AddRange(instruction.VariablesRead);
+					}
+					else if (operand is MediumLevelILInstruction[] instructionList)
+					{
+						foreach (MediumLevelILInstruction item in instructionList)
+						{
+							variables.AddRange(item.VariablesRead);
+						}
+					}
+				}
+
+				return variables.ToArray();
 			}
 		}
 		
@@ -838,12 +863,62 @@ namespace BinaryNinja
 				return Array.Empty<MediumLevelILVariable>();
 			}
 		}
+
+		public virtual MediumLevelILVariable[] VariablesAddressTaken
+		{
+			get
+			{
+				List<MediumLevelILVariable> variables = new List<MediumLevelILVariable>();
+
+				foreach (object? operand in this.Operands)
+				{
+					if (operand is MediumLevelILInstruction instruction)
+					{
+						variables.AddRange(instruction.VariablesAddressTaken);
+					}
+					else if (operand is MediumLevelILInstruction[] instructionList)
+					{
+						foreach (MediumLevelILInstruction item in instructionList)
+						{
+							variables.AddRange(item.VariablesAddressTaken);
+						}
+					}
+				}
+
+				return variables.ToArray();
+			}
+		}
 		
 		public virtual MediumLevelILSSAVariable[] SSAVariablesRead
 		{
 			get
 			{
-				return Array.Empty<MediumLevelILSSAVariable>();
+				List<MediumLevelILSSAVariable> variables = new List<MediumLevelILSSAVariable>();
+
+				foreach (object? operand in this.Operands)
+				{
+					if (operand is MediumLevelILSSAVariable variable)
+					{
+						variables.Add(variable);
+					}
+					else if (operand is MediumLevelILSSAVariable[] variableList)
+					{
+						variables.AddRange(variableList);
+					}
+					else if (operand is MediumLevelILInstruction instruction)
+					{
+						variables.AddRange(instruction.SSAVariablesRead);
+					}
+					else if (operand is MediumLevelILInstruction[] instructionList)
+					{
+						foreach (MediumLevelILInstruction item in instructionList)
+						{
+							variables.AddRange(item.SSAVariablesRead);
+						}
+					}
+				}
+
+				return variables.ToArray();
 			}
 		}
 		

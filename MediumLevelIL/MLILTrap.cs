@@ -18,5 +18,21 @@ namespace BinaryNinja
 				return this.RawOperands[0];
 			}
 		}
+
+		public long Vector
+		{
+			get
+			{
+				return unchecked((long)this.RawOperands[0]);
+			}
+		}
+
+		public ulong RawVector
+		{
+			get
+			{
+				return this.RawOperands[0];
+			}
+		}
 	}
 }

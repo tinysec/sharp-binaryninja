@@ -18,5 +18,13 @@ namespace BinaryNinja
 				return this.GetOperandAsVariable(0);
 			}
 		}
+
+		public MediumLevelILVariable Source
+		{
+			get
+			{
+				return this.Variable;
+			}
+		}
 	}
 }

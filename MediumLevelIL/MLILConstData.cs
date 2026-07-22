@@ -18,5 +18,13 @@ namespace BinaryNinja
 				return this.GetOperandAsConstantData((OperandIndex)0,(OperandIndex)1);
 			}
 		}
+
+		public RegisterValue Constant
+		{
+			get
+			{
+				return this.ConstantData;
+			}
+		}
 	}
 }
