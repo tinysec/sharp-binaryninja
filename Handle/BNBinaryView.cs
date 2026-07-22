@@ -208,6 +208,38 @@ namespace BinaryNinja
 			return result;
 		}
 
+		/// <summary>Loads a binary view from a file stored in a Binary Ninja project.</summary>
+		/// <param name="projectFile">The project file to load.</param>
+		/// <param name="updateAnalysis">Whether to update analysis before returning.</param>
+		/// <param name="options">JSON load options accepted by the core.</param>
+		/// <param name="progress">Optional progress callback.</param>
+		/// <returns>The loaded view, or null when the core cannot load the project file.</returns>
+		public static BinaryView? LoadFile(
+			ProjectFile projectFile,
+			bool updateAnalysis = false,
+			string options = "",
+			ProgressDelegate? progress = null
+		)
+		{
+			if (null == projectFile)
+			{
+				throw new ArgumentNullException(nameof(projectFile));
+			}
+
+			ProgressCallbackContext progressContext = new ProgressCallbackContext(progress);
+			NativeDelegates.BNProgressFunction nativeProgress = progressContext.Invoke;
+			IntPtr result = NativeMethods.BNLoadProjectFile(
+				projectFile.DangerousGetHandle(),
+				updateAnalysis,
+				options ?? string.Empty,
+				Marshal.GetFunctionPointerForDelegate<NativeDelegates.BNProgressFunction>(nativeProgress),
+				IntPtr.Zero
+			);
+			GC.KeepAlive(nativeProgress);
+			progressContext.ThrowIfFailed();
+			return BinaryView.TakeHandle(result);
+		}
+
 		public static BinaryView? OpenExisting(string filename , ProgressDelegate? progress = null)
 		{
 			FileMetadata file = new FileMetadata(filename);
