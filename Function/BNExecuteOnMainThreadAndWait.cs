@@ -8,7 +8,7 @@ namespace BinaryNinja
     internal static partial class NativeMethods
     {
 	    /// <summary>
-		/// void BNExecuteOnMainThreadAndWait(void* ctxt, void** func)
+		/// void BNExecuteOnMainThreadAndWait(void* ctxt, void (*func)(void* ctxt))
 		/// </summary>
 		[DllImport(
             "binaryninjacore", 
@@ -21,7 +21,7 @@ namespace BinaryNinja
 			// void* ctxt
 		    IntPtr ctxt  , 
 			
-			// void** func
+			// void (*func)(void* ctxt)
 		    IntPtr func  
 			
 		);

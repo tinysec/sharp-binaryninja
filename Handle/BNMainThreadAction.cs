@@ -128,5 +128,11 @@ namespace BinaryNinja
             // Suspend the caller until the native action signals completion.
             NativeMethods.BNWaitForMainThreadAction(this.handle);
         }
+
+		/// <summary>Blocks until this action has finished executing.</summary>
+		public void Wait()
+		{
+			this.WaitForCompletion();
+		}
     }
 }

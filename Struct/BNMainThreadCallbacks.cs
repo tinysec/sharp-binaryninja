@@ -1,29 +1,25 @@
 using System;
-using System.Collections.Generic;
 using System.Runtime.InteropServices;
-using Microsoft.Win32.SafeHandles;
 
 namespace BinaryNinja
 {
+	internal static partial class NativeDelegates
+	{
+		[UnmanagedFunctionPointer(System.Runtime.InteropServices.CallingConvention.Cdecl)]
+		internal delegate void BNMainThreadAddAction(IntPtr context, IntPtr action);
+	}
+
 	[StructLayout(LayoutKind.Sequential)]
-	internal unsafe struct BNMainThreadCallbacks 
+	internal struct BNMainThreadCallbacks
 	{
 		/// <summary>
 		/// void* context
 		/// </summary>
-		public IntPtr context;
+		internal IntPtr context;
 		
 		/// <summary>
-		/// void** addAction
+		/// void (*addAction)(void* ctxt, BNMainThreadAction* action)
 		/// </summary>
-		public IntPtr addAction;
+		internal IntPtr addAction;
 	}
-
-    public class MainThreadCallbacks 
-    {
-		public MainThreadCallbacks() 
-		{
-		    
-		}
-    }
 }

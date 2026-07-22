@@ -19,7 +19,7 @@ namespace BinaryNinja
 		internal static extern void BNRegisterMainThread(
 			
 			// BNMainThreadCallbacks* callbacks
-		    IntPtr callbacks  
+		    in BNMainThreadCallbacks callbacks
 			
 		);
 	}
