@@ -15,7 +15,17 @@ namespace BinaryNinja
 		{
 			get
 			{
-				return this.GetOperandAsDouble(0);
+				if (4 == this.Size)
+				{
+					return this.GetOperandAsFloat(0);
+				}
+
+				if (8 == this.Size)
+				{
+					return this.GetOperandAsDouble(0);
+				}
+
+				return this.RawOperands[0];
 			}
 		}
 	}
