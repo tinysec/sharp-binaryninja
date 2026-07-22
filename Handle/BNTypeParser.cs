@@ -10,14 +10,28 @@ namespace BinaryNinja
     /// Binary Ninja type objects. TypeParser handles are always borrowed — the parser
     /// lifetime is managed by the native engine's global registry.
     /// </summary>
-    public sealed class TypeParser : AbstractSafeHandle<TypeParser>
+    public abstract partial class TypeParser : AbstractSafeHandle<TypeParser>
     {
+		private readonly string? registrationName;
+
+		/// <summary>Creates an unregistered custom type parser.</summary>
+		protected TypeParser(string name)
+			: base(false)
+		{
+			if (null == name)
+			{
+				throw new ArgumentNullException(nameof(name));
+			}
+
+			this.registrationName = name;
+		}
+
         /// <summary>
         /// Initializes a new TypeParser wrapper around an existing borrowed handle.
         /// The handle is never owned — the parser lifetime is managed by the native engine.
         /// </summary>
         /// <param name="handle">The native pointer to the BNTypeParser object.</param>
-        internal TypeParser(IntPtr handle)
+        private TypeParser(IntPtr handle)
             : base(handle, false)
         {
         }
@@ -34,7 +48,7 @@ namespace BinaryNinja
                 return null;
             }
 
-            return new TypeParser(handle);
+            return new CoreTypeParser(handle);
         }
 
         /// <summary>
@@ -49,7 +63,7 @@ namespace BinaryNinja
                 throw new ArgumentNullException(nameof(handle));
             }
 
-            return new TypeParser(handle);
+            return new CoreTypeParser(handle);
         }
 
         /// <summary>
@@ -70,6 +84,11 @@ namespace BinaryNinja
         {
             get
             {
+				if (this.IsInvalid)
+				{
+					return this.registrationName ?? string.Empty;
+				}
+
                 // 1. Retrieve the native ANSI string pointer for the parser name.
                 IntPtr raw = NativeMethods.BNGetTypeParserName(this.handle);
 
@@ -123,6 +142,12 @@ namespace BinaryNinja
 			}
 		}
 
+		/// <summary>Parses command-line-style text into type parser options.</summary>
+		public static string[] ParseOptionsText(string optionsText)
+		{
+			return Core.ParseTypeParserOptionsText(optionsText ?? string.Empty);
+		}
+
         /// <summary>
         /// Looks up a registered type parser by its name.
         /// Returns null if no parser is registered with the given name.
@@ -143,7 +168,12 @@ namespace BinaryNinja
         /// <param name="option">The parser option to query.</param>
         /// <param name="value">The value of the option.</param>
         /// <returns>The display text for the option, or null on failure.</returns>
-        public string? GetOptionText(TypeParserOption option , string value)
+		public virtual string? GetOptionText(TypeParserOption option, string value)
+		{
+			return null;
+		}
+
+		private string? GetOptionTextCore(TypeParserOption option , string value)
         {
             // 1. Call the native function; result is a char* the core allocates.
             IntPtr resultPointer;
@@ -171,10 +201,17 @@ namespace BinaryNinja
         /// <param name="existingTypes">The type container with existing types for reference.</param>
         /// <param name="errors">Output array of parser errors if parsing fails.</param>
         /// <returns>The parsed qualified name and type, or null on failure.</returns>
-        public unsafe QualifiedNameAndType? ParseTypeString(
+		public abstract QualifiedNameAndType? ParseTypeString(
+			string source,
+			Platform platform,
+			TypeContainer? existingTypes,
+			out TypeParserError[] errors
+		);
+
+		private unsafe QualifiedNameAndType? ParseTypeStringCore(
             string source ,
             Platform platform ,
-            TypeContainer existingTypes ,
+            TypeContainer? existingTypes ,
             out TypeParserError[] errors
         )
         {
@@ -182,11 +219,6 @@ namespace BinaryNinja
             if (null == platform)
             {
                 throw new ArgumentNullException(nameof(platform));
-            }
-
-            if (null == existingTypes)
-            {
-                throw new ArgumentNullException(nameof(existingTypes));
             }
 
             // 2. Stack-allocate result and error output variables.
@@ -199,31 +231,26 @@ namespace BinaryNinja
                 this.handle ,
                 source ?? string.Empty ,
                 platform.DangerousGetHandle() ,
-                existingTypes.DangerousGetHandle() ,
+				null == existingTypes ? IntPtr.Zero : existingTypes.DangerousGetHandle() ,
                 (IntPtr)(&rawResult) ,
                 (IntPtr)(&errorsPointer) ,
                 (IntPtr)(&errorCount)
             );
 
-            // 4. On success, return the parsed result.
+			errors = UnsafeUtils.TakeStructArrayEx<BNTypeParserError , TypeParserError>(
+				errorsPointer ,
+				errorCount ,
+				TypeParserError.FromNative ,
+				NativeMethods.BNFreeTypeParserErrors
+			);
+
+            // 4. On success, take the parsed result and release its native storage.
             if (ok)
             {
-                errors = Array.Empty<TypeParserError>();
-
-                return QualifiedNameAndType.FromNative(rawResult);
+				return QualifiedNameAndType.TakeNative(rawResult);
             }
-            else
-            {
-                // 5. On failure, convert the native error array to managed objects.
-                errors = UnsafeUtils.TakeStructArrayEx<BNTypeParserError , TypeParserError>(
-                    errorsPointer ,
-                    errorCount ,
-                    TypeParserError.FromNative ,
-                    NativeMethods.BNFreeTypeParserErrors
-                );
 
-                return null;
-            }
+			return null;
         }
 
         /// <summary>
@@ -238,13 +265,24 @@ namespace BinaryNinja
         /// <param name="autoTypeSource">The auto type source identifier.</param>
         /// <param name="errors">Output array of parser errors if parsing fails.</param>
         /// <returns>The parsed type result, or null on failure.</returns>
-        public unsafe TypeParserResult? ParseTypesFromSource(
+		public abstract TypeParserResult? ParseTypesFromSource(
+			string source,
+			string fileName,
+			Platform platform,
+			TypeContainer? existingTypes,
+			string[]? options,
+			string[]? includeDirs,
+			string autoTypeSource,
+			out TypeParserError[] errors
+		);
+
+		private unsafe TypeParserResult? ParseTypesFromSourceCore(
             string source ,
             string fileName ,
             Platform platform ,
-            TypeContainer existingTypes ,
-            string[] options ,
-            string[] includeDirs ,
+            TypeContainer? existingTypes ,
+            string[]? options ,
+            string[]? includeDirs ,
             string autoTypeSource ,
             out TypeParserError[] errors
         )
@@ -253,11 +291,6 @@ namespace BinaryNinja
             if (null == platform)
             {
                 throw new ArgumentNullException(nameof(platform));
-            }
-
-            if (null == existingTypes)
-            {
-                throw new ArgumentNullException(nameof(existingTypes));
             }
 
             // 2. Stack-allocate result and error output variables.
@@ -284,7 +317,7 @@ namespace BinaryNinja
                     source ?? string.Empty ,
                     fileName ?? string.Empty ,
                     platform.DangerousGetHandle() ,
-                    existingTypes.DangerousGetHandle() ,
+					null == existingTypes ? IntPtr.Zero : existingTypes.DangerousGetHandle() ,
                     optionsBlock ,
                     (ulong)safeOptions.Length ,
                     includeDirsBlock ,
@@ -296,25 +329,21 @@ namespace BinaryNinja
                 );
             }
 
+			errors = UnsafeUtils.TakeStructArrayEx<BNTypeParserError , TypeParserError>(
+				errorsPointer ,
+				errorCount ,
+				TypeParserError.FromNative ,
+				NativeMethods.BNFreeTypeParserErrors
+			);
+
             // 5. On success, return the parsed result.
             if (ok)
             {
-                errors = Array.Empty<TypeParserError>();
-
                 return TypeParserResult.TakeNative(rawResult);
             }
-            else
-            {
-                // 6. On failure, convert the native error array to managed objects.
-                errors = UnsafeUtils.TakeStructArrayEx<BNTypeParserError , TypeParserError>(
-                    errorsPointer ,
-                    errorCount ,
-                    TypeParserError.FromNative ,
-                    NativeMethods.BNFreeTypeParserErrors
-                );
 
-                return null;
-            }
+			NativeMethods.BNFreeTypeParserResult(rawResult);
+			return null;
         }
 
         /// <summary>
@@ -328,13 +357,23 @@ namespace BinaryNinja
         /// <param name="includeDirs">Include directory paths for resolving #include directives.</param>
         /// <param name="errors">Output array of parser errors if preprocessing fails.</param>
         /// <returns>The preprocessed source text, or null on failure.</returns>
-        public unsafe string? PreprocessSource(
+		public abstract string? PreprocessSource(
+			string source,
+			string fileName,
+			Platform platform,
+			TypeContainer? existingTypes,
+			string[]? options,
+			string[]? includeDirs,
+			out TypeParserError[] errors
+		);
+
+		private unsafe string? PreprocessSourceCore(
             string source ,
             string fileName ,
             Platform platform ,
-            TypeContainer existingTypes ,
-            string[] options ,
-            string[] includeDirs ,
+            TypeContainer? existingTypes ,
+            string[]? options ,
+            string[]? includeDirs ,
             out TypeParserError[] errors
         )
         {
@@ -342,11 +381,6 @@ namespace BinaryNinja
             if (null == platform)
             {
                 throw new ArgumentNullException(nameof(platform));
-            }
-
-            if (null == existingTypes)
-            {
-                throw new ArgumentNullException(nameof(existingTypes));
             }
 
             // 2. Prepare error output variables.
@@ -369,7 +403,7 @@ namespace BinaryNinja
                     source ?? string.Empty ,
                     fileName ?? string.Empty ,
                     platform.DangerousGetHandle() ,
-                    existingTypes.DangerousGetHandle() ,
+					null == existingTypes ? IntPtr.Zero : existingTypes.DangerousGetHandle() ,
                     optionsBlock ,
                     (ulong)safeOptions.Length ,
                     includeDirsBlock ,
@@ -379,25 +413,20 @@ namespace BinaryNinja
                     (IntPtr)(&errorCount)
                 );
 
-                // 5. On success, decode + free the preprocessed output.
+				errors = UnsafeUtils.TakeStructArrayEx<BNTypeParserError , TypeParserError>(
+					errorsPointer ,
+					errorCount ,
+					TypeParserError.FromNative ,
+					NativeMethods.BNFreeTypeParserErrors
+				);
+
+				// 5. On success, decode + free the preprocessed output.
                 if (ok)
                 {
-                    errors = Array.Empty<TypeParserError>();
-
                     return UnsafeUtils.TakeUtf8String(outputPointer);
                 }
-                else
-                {
-                    // 6. On failure, convert the native error array to managed objects.
-                    errors = UnsafeUtils.TakeStructArrayEx<BNTypeParserError , TypeParserError>(
-                        errorsPointer ,
-                        errorCount ,
-                        TypeParserError.FromNative ,
-                        NativeMethods.BNFreeTypeParserErrors
-                    );
 
-                    return null;
-                }
+				return null;
             }
         }
 
@@ -422,5 +451,6 @@ namespace BinaryNinja
                 NativeMethods.BNFreeTypeParserList
             );
         }
+
     }
 }

@@ -19,7 +19,7 @@ namespace BinaryNinja
 		internal static extern IntPtr BNAllocStringList(
 			
 			// const char** contents
-		    string[] contents  , 
+		    IntPtr contents  ,
 			
 			// uint64_t size
 		    ulong size  

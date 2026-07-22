@@ -292,10 +292,15 @@ namespace BinaryNinja
 				result.nameCount = (ulong)components.Length;
 				if (0 != components.Length)
 				{
-					result.name = NativeMethods.BNAllocStringList(
-						components,
-						(ulong)components.Length
-					);
+					using (ScopedAllocator allocator = new ScopedAllocator())
+					{
+						IntPtr componentPointers =
+							allocator.AllocUtf8StringArray(components);
+						result.name = NativeMethods.BNAllocStringList(
+							componentPointers,
+							(ulong)components.Length
+						);
+					}
 				}
 
 				result.join = NativeMethods.BNAllocString(name.Join ?? string.Empty);
