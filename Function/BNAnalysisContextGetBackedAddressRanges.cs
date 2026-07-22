@@ -22,7 +22,7 @@ namespace BinaryNinja
 		    IntPtr analysisContext   , 
 			
 			// size_t* count
-		    IntPtr count  
+		    out ulong count
 		);
 	}
 }
