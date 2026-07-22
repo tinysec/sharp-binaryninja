@@ -454,14 +454,25 @@ namespace BinaryNinja
 	    
 	    public MediumLevelILExpressionIndex AddLabelMap(IDictionary<ulong, MediumLevelILLabel> labelMap)
 	    {
-		    return NativeMethods.BNMediumLevelILAddLabelMap(
-			    this.handle ,
-			    labelMap.Keys.ToArray(),
-			    UnsafeUtils.ConvertToNativeArray<BNMediumLevelILLabel,MediumLevelILLabel>(
-				    labelMap.Values.ToArray()
-				) ,
-			    (ulong)labelMap.Count
-		    );
+		    ulong[] values = new ulong[labelMap.Count];
+		    IntPtr[] labelPointers = new IntPtr[labelMap.Count];
+		    int index = 0;
+
+		    using (ScopedAllocator allocator = new ScopedAllocator())
+		    {
+			    foreach (KeyValuePair<ulong, MediumLevelILLabel> entry in labelMap)
+			    {
+				    values[index] = entry.Key;
+				    labelPointers[index] = allocator.AllocStruct(entry.Value.ToNative());
+				    index++;
+			    }
+
+			    return NativeMethods.BNMediumLevelILAddLabelMap(
+				    this.handle,
+				    values,
+				    labelPointers,
+				    (ulong)labelMap.Count);
+		    }
 	    }
 
 	    public MediumLevelILExpressionIndex AddOperandList(ulong[] operands)
@@ -2465,6 +2476,7 @@ namespace BinaryNinja
 			    0,
 			    (ulong)outputs.Length,
 			    (ulong)this.AddVariableList(outputs),
+			    (ulong)dest,
 			    (ulong)parameters.Length,
 			    (ulong)this.AddOperandList(parameters)
 		    );
@@ -2551,9 +2563,11 @@ namespace BinaryNinja
 		    SourceLocation? location = null
 	    )
 	    {
+		    MediumLevelILExpressionIndex result;
+
 		    if (null == location)
 		    {
-			    return NativeMethods.BNMediumLevelILIf(
+			    result = NativeMethods.BNMediumLevelILIf(
 				    this.handle ,
 				    condition ,
 				    tureLabel.ToNative() ,
@@ -2562,7 +2576,7 @@ namespace BinaryNinja
 		    }
 		    else
 		    {
-			    return NativeMethods.BNMediumLevelILIfWithLocation(
+			    result = NativeMethods.BNMediumLevelILIfWithLocation(
 				    this.handle ,
 				    condition ,
 				    tureLabel.ToNative() ,
@@ -2571,6 +2585,9 @@ namespace BinaryNinja
 				    (uint)location.Operand
 			    );
 		    }
+
+		    this.RecordExpressionTranslation(result, location);
+		    return result;
 	    }
 	
 	    public MediumLevelILExpressionIndex EmitGoto(
@@ -2578,22 +2595,27 @@ namespace BinaryNinja
 		    SourceLocation? location = null
 	    )
 	    {
+		    MediumLevelILExpressionIndex result;
+
 		    if (null == location)
 		    {
-			    return NativeMethods.BNMediumLevelILGoto(
+			    result = NativeMethods.BNMediumLevelILGoto(
 				    this.handle,
 				    label.ToNative()
 			    );
 		    }
 		    else
 		    {
-			    return NativeMethods.BNMediumLevelILGotoWithLocation(
+			    result = NativeMethods.BNMediumLevelILGotoWithLocation(
 				    this.handle,
 				    label.ToNative(),
 				    location.Address,
 				    location.Operand
 			    );
 		    }
+
+		    this.RecordExpressionTranslation(result, location);
+		    return result;
 	    }
 	    
 	    public MediumLevelILExpressionIndex EmitEqual(
@@ -2853,8 +2875,9 @@ namespace BinaryNinja
 			    location,
 			    0,
 			    (ulong)this.EmitCallOutput(outputs, location),
+			    (ulong)dest,
 			    (ulong)this.EmitCallParam(parameters , location),
-			    (ulong) stack
+			    (ulong)stack
 		    );
 	    }
 	    

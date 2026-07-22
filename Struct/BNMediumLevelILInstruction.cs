@@ -40,7 +40,7 @@ namespace BinaryNinja
 		internal ulong address;
 	}
 
-	public abstract class MediumLevelILInstruction 
+	public abstract partial class MediumLevelILInstruction
 		: INativeWrapper<BNMediumLevelILInstruction>,
 		IEquatable<MediumLevelILInstruction>,
 		IComparable<MediumLevelILInstruction>
@@ -66,7 +66,15 @@ namespace BinaryNinja
 			}
 		}
 		
-		public ulong[] RawOperands { get;  }= Array.Empty<ulong>();
+		/// <summary>
+		/// Gets all five raw operand slots from the core instruction structure.
+		/// </summary>
+		/// <remarks>
+		/// The native structure and the official Python binding always expose five slots, including
+		/// unused trailing zeroes. Logical operand counts cannot be used here because list operands
+		/// occupy a count slot and a cache-index slot.
+		/// </remarks>
+		public ulong[] RawOperands { get; } = Array.Empty<ulong>();
 
 		// extra fields
 		internal MediumLevelILFunction ILFunction { get;  }
@@ -85,151 +93,6 @@ namespace BinaryNinja
 
 		public MediumLevelILExpressionIndex ExpressionIndex { get;  } = 0;
 
-		private static Dictionary<MediumLevelILOperation,int> OperationOperands = new Dictionary<MediumLevelILOperation,int> {
-
-			{ MediumLevelILOperation.MLIL_NOP, 0 },
-        	{ MediumLevelILOperation.MLIL_SET_VAR, 2 },
-        	{ MediumLevelILOperation.MLIL_SET_VAR_FIELD, 3 },
-        	{ MediumLevelILOperation.MLIL_SET_VAR_SPLIT, 3 },
-        	{ MediumLevelILOperation.MLIL_ASSERT, 2 },  // variable, constraint
-        	{ MediumLevelILOperation.MLIL_FORCE_VER, 2 },  // destVariable, variable
-        	{ MediumLevelILOperation.MLIL_LOAD, 1 },
-        	{ MediumLevelILOperation.MLIL_LOAD_STRUCT, 2 },
-        	{ MediumLevelILOperation.MLIL_STORE, 2 },
-        	{ MediumLevelILOperation.MLIL_STORE_STRUCT, 3 },
-        	{ MediumLevelILOperation.MLIL_VAR, 1 },
-        	{ MediumLevelILOperation.MLIL_VAR_FIELD, 2 },
-        	{ MediumLevelILOperation.MLIL_VAR_SPLIT, 2 },
-        	{ MediumLevelILOperation.MLIL_ADDRESS_OF, 1 },
-        	{ MediumLevelILOperation.MLIL_ADDRESS_OF_FIELD, 2 },
-        	{ MediumLevelILOperation.MLIL_CONST, 1 },
-        	{ MediumLevelILOperation.MLIL_CONST_DATA, 2 },
-        	{ MediumLevelILOperation.MLIL_CONST_PTR, 1 },
-        	{ MediumLevelILOperation.MLIL_EXTERN_PTR, 2 },
-        	{ MediumLevelILOperation.MLIL_FLOAT_CONST, 1 },
-        	{ MediumLevelILOperation.MLIL_IMPORT, 1 },
-        	{ MediumLevelILOperation.MLIL_ADD, 2 },
-        	{ MediumLevelILOperation.MLIL_ADC, 3 },  // left, right, carry
-        	{ MediumLevelILOperation.MLIL_SUB, 2 },
-        	{ MediumLevelILOperation.MLIL_SBB, 3 },  // left, right, carry
-        	{ MediumLevelILOperation.MLIL_AND, 2 },
-        	{ MediumLevelILOperation.MLIL_OR, 2 },
-        	{ MediumLevelILOperation.MLIL_XOR, 2 },
-        	{ MediumLevelILOperation.MLIL_LSL, 2 },
-        	{ MediumLevelILOperation.MLIL_LSR, 2 },
-        	{ MediumLevelILOperation.MLIL_ASR, 2 },
-        	{ MediumLevelILOperation.MLIL_ROL, 2 },
-        	{ MediumLevelILOperation.MLIL_RLC, 3 },  // left, right, carry
-        	{ MediumLevelILOperation.MLIL_ROR, 2 },
-        	{ MediumLevelILOperation.MLIL_RRC, 3 },  // left, right, carry
-        	{ MediumLevelILOperation.MLIL_MUL, 2 },
-        	{ MediumLevelILOperation.MLIL_MULU_DP, 2 },
-        	{ MediumLevelILOperation.MLIL_MULS_DP, 2 },
-        	{ MediumLevelILOperation.MLIL_DIVU, 2 },
-        	{ MediumLevelILOperation.MLIL_DIVU_DP, 2 },
-        	{ MediumLevelILOperation.MLIL_DIVS, 2 },
-        	{ MediumLevelILOperation.MLIL_DIVS_DP, 2 },
-        	{ MediumLevelILOperation.MLIL_MODU, 2 },
-        	{ MediumLevelILOperation.MLIL_MODU_DP, 2 },
-        	{ MediumLevelILOperation.MLIL_MODS, 2 },
-        	{ MediumLevelILOperation.MLIL_MODS_DP, 2 },
-        	{ MediumLevelILOperation.MLIL_NEG, 1 },
-        	{ MediumLevelILOperation.MLIL_NOT, 1 },
-        	{ MediumLevelILOperation.MLIL_SX, 2 }, // value, fromSize
-        	{ MediumLevelILOperation.MLIL_ZX, 2 }, // value, fromSize
-        	{ MediumLevelILOperation.MLIL_LOW_PART, 2 }, // value, toSize
-        	{ MediumLevelILOperation.MLIL_JUMP, 1 },
-        	{ MediumLevelILOperation.MLIL_JUMP_TO, 2 }, // target, switchVar
-        	{ MediumLevelILOperation.MLIL_RET_HINT, 1 },  // dest(expr)@0
-        	{ MediumLevelILOperation.MLIL_CALL, 3 }, // dest, params(list), outputs(list)
-        	{ MediumLevelILOperation.MLIL_CALL_UNTYPED, 4 }, // output(subexpr)@0, dest@1, params(subexpr)@2, stack@3
-        	{ MediumLevelILOperation.MLIL_CALL_OUTPUT, 2 }, // outputLoc, sourceExpr
-        	{ MediumLevelILOperation.MLIL_CALL_PARAM, 2 }, // paramLoc, sourceExpr
-        	{ MediumLevelILOperation.MLIL_SEPARATE_PARAM_LIST, 2 }, // intParams(list), floatParams(list)
-        	{ MediumLevelILOperation.MLIL_SHARED_PARAM_SLOT, 2 }, // slot, size
-        	{ MediumLevelILOperation.MLIL_RET, 1 }, // retVals(list)
-        	{ MediumLevelILOperation.MLIL_NORET, 0 },
-        	{ MediumLevelILOperation.MLIL_IF, 3 }, // cond, true, false (block refs)
-        	{ MediumLevelILOperation.MLIL_GOTO, 1 }, // target block
-        	{ MediumLevelILOperation.MLIL_CMP_E, 2 },
-        	{ MediumLevelILOperation.MLIL_CMP_NE, 2 },
-        	{ MediumLevelILOperation.MLIL_CMP_SLT, 2 },
-        	{ MediumLevelILOperation.MLIL_CMP_ULT, 2 },
-        	{ MediumLevelILOperation.MLIL_CMP_SLE, 2 },
-        	{ MediumLevelILOperation.MLIL_CMP_ULE, 2 },
-        	{ MediumLevelILOperation.MLIL_CMP_SGE, 2 },
-        	{ MediumLevelILOperation.MLIL_CMP_UGE, 2 },
-        	{ MediumLevelILOperation.MLIL_CMP_SGT, 2 },
-        	{ MediumLevelILOperation.MLIL_CMP_UGT, 2 },
-        	{ MediumLevelILOperation.MLIL_TEST_BIT, 2 },
-        	{ MediumLevelILOperation.MLIL_BOOL_TO_INT, 1 },
-        	{ MediumLevelILOperation.MLIL_ADD_OVERFLOW, 2 },
-        	{ MediumLevelILOperation.MLIL_SYSCALL, 3 },  // output(varList), params(list)
-        	{ MediumLevelILOperation.MLIL_SYSCALL_UNTYPED, 3 }, // output(subexpr)@0, params(subexpr)@1, stack@2
-        	{ MediumLevelILOperation.MLIL_TAILCALL, 4 },  // output(varList), dest, params(list)
-        	{ MediumLevelILOperation.MLIL_TAILCALL_UNTYPED, 4 }, // output(subexpr)@0, dest@1, params(subexpr)@2, stack@3
-        	{ MediumLevelILOperation.MLIL_INTRINSIC, 4 },  // output(varList), intrinsic, params(list)
-        	{ MediumLevelILOperation.MLIL_FREE_VAR_SLOT, 1 }, // var
-        	{ MediumLevelILOperation.MLIL_BP, 0 },
-        	{ MediumLevelILOperation.MLIL_TRAP, 1 }, // code
-        	{ MediumLevelILOperation.MLIL_UNDEF, 0 },
-        	{ MediumLevelILOperation.MLIL_UNIMPL, 0 },
-        	{ MediumLevelILOperation.MLIL_UNIMPL_MEM, 1 }, // addr
-        	{ MediumLevelILOperation.MLIL_FADD, 2 },
-        	{ MediumLevelILOperation.MLIL_FSUB, 2 },
-        	{ MediumLevelILOperation.MLIL_FMUL, 2 },
-        	{ MediumLevelILOperation.MLIL_FDIV, 2 },
-        	{ MediumLevelILOperation.MLIL_FSQRT, 1 },
-        	{ MediumLevelILOperation.MLIL_FNEG, 1 },
-        	{ MediumLevelILOperation.MLIL_FABS, 1 },
-        	{ MediumLevelILOperation.MLIL_FLOAT_TO_INT, 2 }, // value, mode/size
-        	{ MediumLevelILOperation.MLIL_INT_TO_FLOAT, 2 }, // value, mode/size
-        	{ MediumLevelILOperation.MLIL_FLOAT_CONV, 2 }, // value, toType
-        	{ MediumLevelILOperation.MLIL_ROUND_TO_INT, 2 }, // value, mode
-        	{ MediumLevelILOperation.MLIL_FLOOR, 1 },
-        	{ MediumLevelILOperation.MLIL_CEIL, 1 },
-        	{ MediumLevelILOperation.MLIL_FTRUNC, 1 },
-        	{ MediumLevelILOperation.MLIL_FCMP_E, 2 },
-        	{ MediumLevelILOperation.MLIL_FCMP_NE, 2 },
-        	{ MediumLevelILOperation.MLIL_FCMP_LT, 2 },
-        	{ MediumLevelILOperation.MLIL_FCMP_LE, 2 },
-        	{ MediumLevelILOperation.MLIL_FCMP_GE, 2 },
-        	{ MediumLevelILOperation.MLIL_FCMP_GT, 2 },
-        	{ MediumLevelILOperation.MLIL_FCMP_O, 2 },
-        	{ MediumLevelILOperation.MLIL_FCMP_UO, 2 },
-
-        	{ MediumLevelILOperation.MLIL_SET_VAR_SSA, 3 },  // destSSAVariable(var,version), sourceExpr
-        	{ MediumLevelILOperation.MLIL_SET_VAR_SSA_FIELD, 5 },  // destSSAVariable(var,version), prev, offset, sourceExpr
-        	{ MediumLevelILOperation.MLIL_SET_VAR_SPLIT_SSA, 5 },  // destSSAVariable(var,version), high, low, sourceExpr
-        	{ MediumLevelILOperation.MLIL_SET_VAR_ALIASED, 4 },  // destSSAVariable(var,version), prev, sourceExpr
-        	{ MediumLevelILOperation.MLIL_SET_VAR_ALIASED_FIELD, 5 },  // destSSAVariable(var,version), prev, offset, sourceExpr
-        	{ MediumLevelILOperation.MLIL_VAR_SSA, 2 }, // var, version
-        	{ MediumLevelILOperation.MLIL_VAR_SSA_FIELD, 3 }, // var, version, offset/size
-        	{ MediumLevelILOperation.MLIL_VAR_ALIASED, 2 },  // var, version
-        	{ MediumLevelILOperation.MLIL_VAR_ALIASED_FIELD, 3 },  // var, version, offset
-        	{ MediumLevelILOperation.MLIL_VAR_SPLIT_SSA, 4 },  // destSSAVariable(var,version), high, low
-		{ MediumLevelILOperation.MLIL_ASSERT_SSA, 3 }, // variable, version, constraint
-        	{ MediumLevelILOperation.MLIL_FORCE_VER_SSA, 4 },  // destSSAVariable(var,version), sourceSSAVariable(var,version)
-        	{ MediumLevelILOperation.MLIL_CALL_SSA, 5 },  // output(wrapper holds destMem), dest, params(list), srcMemory
-        	{ MediumLevelILOperation.MLIL_CALL_UNTYPED_SSA, 4 }, // dest, params, outputs, srcMem
-        	{ MediumLevelILOperation.MLIL_SYSCALL_SSA, 4 },  // output(wrapper holds destMem), params(list), srcMemory
-        	{ MediumLevelILOperation.MLIL_SYSCALL_UNTYPED_SSA, 3 }, // params, outputs, srcMem
-        	{ MediumLevelILOperation.MLIL_TAILCALL_SSA, 5 },  // output(wrapper holds destMem), dest, params(list), srcMemory
-        	{ MediumLevelILOperation.MLIL_TAILCALL_UNTYPED_SSA, 4 },  // output(wrapper), dest, params(wrapper), stack
-        	{ MediumLevelILOperation.MLIL_CALL_PARAM_SSA, 3 }, // paramLoc, sourceExpr, srcMem
-        	{ MediumLevelILOperation.MLIL_CALL_OUTPUT_SSA, 3 }, // outputLoc, sourceExpr, dstMem
-        	{ MediumLevelILOperation.MLIL_MEMORY_INTRINSIC_OUTPUT_SSA, 3 }, // dest, size, dstMem
-        	{ MediumLevelILOperation.MLIL_LOAD_SSA, 2 }, // addr, srcMem
-        	{ MediumLevelILOperation.MLIL_LOAD_STRUCT_SSA, 3 }, // addr, offset, srcMem
-        	{ MediumLevelILOperation.MLIL_STORE_SSA, 4 },  // destExpr, destMemoryVersion, sourceMemoryVersion, sourceExpr
-        	{ MediumLevelILOperation.MLIL_STORE_STRUCT_SSA, 5 }, // dest@0, offset@1, dest_memory@2, src_memory@3, src@4
-        	{ MediumLevelILOperation.MLIL_INTRINSIC_SSA, 4 }, // intrinsicId, params(list), outputs(list), srcMem
-        	{ MediumLevelILOperation.MLIL_MEMORY_INTRINSIC_SSA, 5 },  // output, destMemory, intrinsic, params(list), srcMemory
-        	{ MediumLevelILOperation.MLIL_FREE_VAR_SLOT_SSA, 3 },  // destSSAVariable(var,version), prev
-        	{ MediumLevelILOperation.MLIL_VAR_PHI, 3 },  // destSSAVariable(var,version), sourceSSAVariables(list)
-        	{ MediumLevelILOperation.MLIL_MEM_PHI, 2 },  // destMemoryVersion, sourceMemoryVersions(list)
-		};
-		
 		internal MediumLevelILInstruction(
 			MediumLevelILFunction ilFunction ,
 			MediumLevelILExpressionIndex expressionIndex 
@@ -261,26 +124,14 @@ namespace BinaryNinja
 			this.Size = native.size ;
 			this.Address = native.address ;
 
-			MediumLevelILInstruction.OperationOperands.TryGetValue(
-				this.Operation ,
-				out int operandCount
-			);
-		
-			if (0 == operandCount)
+			this.RawOperands = new ulong[5];
+
+			for (int i = 0; i < this.RawOperands.Length; i++)
 			{
-				this.RawOperands = Array.Empty<ulong>();
+				unsafe
+			{
+					this.RawOperands[i] = native.operands[i];
 			}
-			else
-			{
-				this.RawOperands = new ulong[operandCount];
-					
-				for (int i = 0; i < operandCount; i++)
-				{
-					unsafe
-					{
-						this.RawOperands[i] = native.operands[i] ;
-					}
-				}
 			}
 		}
 

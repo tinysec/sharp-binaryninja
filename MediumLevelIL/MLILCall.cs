@@ -31,7 +31,7 @@ namespace BinaryNinja
 		{
 			get
 			{
-				return this.GetOperandAsExpressionList((OperandIndex)1);
+				return this.GetOperandAsExpressionList((OperandIndex)3);
 			}
 		}
 	}
