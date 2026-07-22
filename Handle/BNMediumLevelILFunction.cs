@@ -1932,12 +1932,7 @@ namespace BinaryNinja
 		    SourceLocation? location = null
 	    )
 	    {
-		    return this.AddExpression(
-			    MediumLevelILOperation.MLIL_FLOAT_CONST,
-			    location,
-			    size,
-			    value
-		    );
+		    return this.EmitFloatConstRaw(size, value, location);
 	    }
 	    
 	    public MediumLevelILExpressionIndex EmitImport(

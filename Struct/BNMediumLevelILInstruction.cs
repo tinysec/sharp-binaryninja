@@ -1376,7 +1376,17 @@ namespace BinaryNinja
 					return this.GetOperandAsSSAVariableList(index);
 
 				case ILOperandKind.Float:
-					return this.GetOperandAsDouble(index);
+					if (4 == this.Size)
+					{
+						return (double)this.GetOperandAsFloat(index);
+					}
+
+					if (8 == this.Size)
+					{
+						return this.GetOperandAsDouble(index);
+					}
+
+					return (double)this.RawOperands[(ulong)index];
 
 				case ILOperandKind.ConstantData:
 					return this.GetOperandAsConstantData(index, secondaryIndex);
