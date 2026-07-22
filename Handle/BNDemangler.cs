@@ -1,186 +1,375 @@
 using System;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
-using Microsoft.Win32.SafeHandles;
 
 namespace BinaryNinja
 {
-    /// <summary>
-    /// Represents a registered name demangler that translates mangled compiler-generated names
-    /// (such as C++ symbols) into human-readable qualified names and types.
-    /// Demangler handles are always borrowed — the demangler lifetime is managed by the
-    /// native engine's global registry.
-    /// </summary>
-    public sealed class Demangler : AbstractSafeHandle<Demangler>
-    {
-        /// <summary>
-        /// Initializes a new Demangler wrapper around an existing borrowed handle.
-        /// The handle is never owned — the demangler lifetime is managed by the native engine.
-        /// </summary>
-        /// <param name="handle">The native pointer to the BNDemangler object.</param>
-        internal Demangler(IntPtr handle)
-            : base(handle, false)
-        {
-        }
+	/// <summary>
+	/// Translates compiler-generated names into qualified names and optional types.
+	/// </summary>
+	public abstract class Demangler : AbstractSafeHandle<Demangler>
+	{
+		private static readonly object registrationLock = new object();
 
-        /// <summary>
-        /// Borrows a native handle without taking ownership. Returns null if the handle is zero.
-        /// </summary>
-        /// <param name="handle">The native BNDemangler pointer.</param>
-        /// <returns>A new Demangler instance that will not free the handle on dispose.</returns>
-        internal static Demangler? BorrowHandle(IntPtr handle)
-        {
-            if (handle == IntPtr.Zero)
-            {
-                return null;
-            }
+		private static readonly List<Demangler> registeredDemanglers =
+			new List<Demangler>();
 
-            return new Demangler(handle);
-        }
+		private readonly string? registrationName;
 
-        /// <summary>
-        /// Borrows a native handle without taking ownership. Throws if the handle is zero.
-        /// </summary>
-        /// <param name="handle">The native BNDemangler pointer.</param>
-        /// <returns>A new Demangler instance that will not free the handle on dispose.</returns>
-        internal static Demangler MustBorrowHandle(IntPtr handle)
-        {
-            if (handle == IntPtr.Zero)
-            {
-                throw new ArgumentNullException(nameof(handle));
-            }
+		private bool isRegistered;
 
-            return new Demangler(handle);
-        }
+		private NativeDelegates.BNDemanglerIsMangledString? isMangledStringCallback;
 
-        /// <summary>
-        /// No-op release: demangler handles are always borrowed from the global registry
-        /// and must not be freed by this wrapper.
-        /// </summary>
-        /// <returns>True (always, since no deallocation is performed).</returns>
-        protected override bool ReleaseHandle()
-        {
-            // Demangler objects are borrowed from the global registry; the native engine owns their lifetime.
-            return true;
-        }
+		private NativeDelegates.BNDemanglerDemangle? demangleCallback;
 
-        /// <summary>
-        /// Gets the registered name that uniquely identifies this demangler.
-        /// </summary>
-        public string Name
-        {
-            get
-            {
-                // 1. Retrieve the native ANSI string pointer for the demangler name.
-                IntPtr raw = NativeMethods.BNGetDemanglerName(this.handle);
+		private NativeDelegates.BNDemanglerFreeVarName? freeVarNameCallback;
 
-                // 2. Copy and free the native string, returning empty on null.
-                return UnsafeUtils.TakeAnsiString(raw) ?? string.Empty;
-            }
-        }
+		/// <summary>Creates an unregistered custom demangler.</summary>
+		protected Demangler(string name)
+			: base(false)
+		{
+			if (null == name)
+			{
+				throw new ArgumentNullException(nameof(name));
+			}
 
-        // ===================================================================
-        // Static lookup methods
-        // ===================================================================
+			this.registrationName = name;
+		}
 
-        /// <summary>
-        /// Looks up a registered demangler by its unique name.
-        /// Returns null if no demangler with the given name exists.
-        /// </summary>
-        /// <param name="name">The registered name of the demangler to find.</param>
-        /// <returns>A borrowed Demangler instance, or null if not found.</returns>
-        public static Demangler? GetByName(string name)
-        {
-            // Query the global registry for a demangler with the specified name.
-            IntPtr result = NativeMethods.BNGetDemanglerByName(name);
+		private Demangler(IntPtr handle)
+			: base(handle, false)
+		{
+		}
 
-            // Wrap as a borrowed handle; returns null when the native pointer is zero.
-            return Demangler.BorrowHandle(result);
-        }
+		/// <summary>Gets the unique name registered with the core.</summary>
+		public string Name
+		{
+			get
+			{
+				if (this.IsInvalid)
+				{
+					return this.registrationName ?? string.Empty;
+				}
 
-        /// <summary>
-        /// Gets all registered demanglers from the engine.
-        /// Each returned demangler is a borrowed reference.
-        /// </summary>
-        /// <returns>An array of all registered Demangler instances.</returns>
-        public static unsafe Demangler[] GetList()
-        {
-            // 1. Stack-allocate the count variable.
-            ulong count = 0;
+				return UnsafeUtils.TakeUtf8String(
+					NativeMethods.BNGetDemanglerName(this.handle)
+				);
+			}
+		}
 
-            // 2. Retrieve the native array of demangler pointers.
-            IntPtr arrayPointer = NativeMethods.BNGetDemanglerList((IntPtr)(&count));
+		/// <summary>Registers this demangler and roots its callbacks for core use.</summary>
+		public void Register()
+		{
+			if (this.isRegistered || !this.IsInvalid)
+			{
+				throw new InvalidOperationException("The demangler is already registered.");
+			}
 
-            // 3. Convert to managed array of borrowed handles and free the native pointer array.
-            return UnsafeUtils.TakeHandleArray<Demangler>(
-                arrayPointer ,
-                count ,
-                Demangler.MustBorrowHandle ,
-                NativeMethods.BNFreeDemanglerList
-            );
-        }
+			this.isMangledStringCallback =
+				new NativeDelegates.BNDemanglerIsMangledString(
+					this.InvokeIsMangledString
+				);
+			this.demangleCallback = new NativeDelegates.BNDemanglerDemangle(
+				this.InvokeDemangle
+			);
+			this.freeVarNameCallback = new NativeDelegates.BNDemanglerFreeVarName(
+				this.InvokeFreeVarName
+			);
 
-        /// <summary>
-        /// Promotes a demangler so it takes priority over other demanglers in the registry.
-        /// </summary>
-        /// <param name="demangler">The demangler to promote.</param>
-        public static void Promote(Demangler demangler)
-        {
-            // Forward the demangler handle to the native promote API.
-            NativeMethods.BNPromoteDemangler(demangler.DangerousGetHandle());
-        }
+			BNDemanglerCallbacks callbacks = new BNDemanglerCallbacks();
+			callbacks.context = IntPtr.Zero;
+			callbacks.isMangledString = Marshal.GetFunctionPointerForDelegate(
+				this.isMangledStringCallback
+			);
+			callbacks.demangle = Marshal.GetFunctionPointerForDelegate(
+				this.demangleCallback
+			);
+			callbacks.freeVarName = Marshal.GetFunctionPointerForDelegate(
+				this.freeVarNameCallback
+			);
 
-        // ===================================================================
-        // Instance methods
-        // ===================================================================
+			IntPtr handle = NativeMethods.BNRegisterDemangler(
+				this.registrationName ?? string.Empty,
+				in callbacks
+			);
+			if (IntPtr.Zero == handle)
+			{
+				throw new InvalidOperationException("The core rejected the demangler.");
+			}
 
-        /// <summary>
-        /// Attempts to demangle the given mangled name using this demangler.
-        /// On success, outType receives the demangled type (may be null for pure names),
-        /// and outVarName receives the demangled qualified name.
-        /// </summary>
-        /// <param name="arch">The architecture context for the demangling operation.</param>
-        /// <param name="name">The mangled name string to demangle.</param>
-        /// <param name="view">The binary view context for the demangling operation (may be null).</param>
-        /// <param name="outType">Receives the demangled type, or null when only a name is returned.</param>
-        /// <param name="outVarName">Receives the demangled qualified variable name.</param>
-        /// <returns>True if demangling succeeded; false if this demangler cannot handle the name.</returns>
-        public unsafe bool Demangle(
-            Architecture arch,
-            string name,
-            BinaryView? view,
-            out BinaryNinja.Type? outType,
-            out QualifiedName outVarName)
-        {
-            // 1. Prepare a stack slot for the native type pointer output.
-            IntPtr typePtr = IntPtr.Zero;
+			this.SetHandle(handle);
+			this.isRegistered = true;
+			lock (Demangler.registrationLock)
+			{
+				Demangler.registeredDemanglers.Add(this);
+			}
+		}
 
-            // 2. Prepare a zeroed BNQualifiedName struct on the stack for the name output.
-            BNQualifiedName nativeVarName = new BNQualifiedName();
+		/// <summary>Looks up a registered demangler by name.</summary>
+		public static Demangler? GetByName(string name)
+		{
+			if (null == name)
+			{
+				throw new ArgumentNullException(nameof(name));
+			}
 
-            // 3. Resolve the raw architecture and optional binary view handles.
-            IntPtr archHandle = arch.DangerousGetHandle();
+			return Demangler.FromHandle(NativeMethods.BNGetDemanglerByName(name));
+		}
 
-            IntPtr viewHandle = (view != null) ? view.DangerousGetHandle() : IntPtr.Zero;
+		/// <summary>Gets every demangler registered with the core.</summary>
+		public static unsafe Demangler[] GetList()
+		{
+			ulong count = 0;
+			IntPtr demanglers = NativeMethods.BNGetDemanglerList((IntPtr)(&count));
+			return UnsafeUtils.TakeHandleArray<Demangler>(
+				demanglers,
+				count,
+				Demangler.MustFromHandle,
+				NativeMethods.BNFreeDemanglerList
+			);
+		}
 
-            // 4. Call the native demangler function with pointers to the output slots.
-            bool success = NativeMethods.BNDemanglerDemangle(
-                this.handle,
-                archHandle,
-                name ?? string.Empty,
-                (IntPtr)(&typePtr),
-                (IntPtr)(&nativeVarName),
-                viewHandle
-            );
+		/// <summary>Promotes a demangler to the highest-priority registry position.</summary>
+		public static void Promote(Demangler demangler)
+		{
+			if (null == demangler)
+			{
+				throw new ArgumentNullException(nameof(demangler));
+			}
 
-            // 5. Wrap the output type pointer; it is a new owned reference when non-null.
-            outType = BinaryNinja.Type.TakeHandle(typePtr);
+			NativeMethods.BNPromoteDemangler(demangler.DangerousGetHandle());
+		}
 
-            // 6. Convert the native qualified name struct to the managed QualifiedName.
-            //    TakeNative copies the strings and frees the native allocation.
-            outVarName = QualifiedName.TakeNative(nativeVarName);
+		/// <summary>Determines whether this demangler may handle a name.</summary>
+		public abstract bool IsMangledString(string name);
 
-            return success;
-        }
-    }
+		/// <summary>
+		/// Attempts to produce a qualified name and optional type for a mangled name.
+		/// </summary>
+		public abstract bool Demangle(
+			Architecture arch,
+			string name,
+			BinaryView? view,
+			out BinaryNinja.Type? outType,
+			out QualifiedName outVarName
+		);
+
+		private static Demangler? FromHandle(IntPtr handle)
+		{
+			if (IntPtr.Zero == handle)
+			{
+				return null;
+			}
+
+			return new CoreDemangler(handle);
+		}
+
+		private static Demangler MustFromHandle(IntPtr handle)
+		{
+			Demangler? demangler = Demangler.FromHandle(handle);
+			if (null == demangler)
+			{
+				throw new ArgumentNullException(nameof(handle));
+			}
+
+			return demangler;
+		}
+
+		private bool InvokeIsMangledString(IntPtr context, string name)
+		{
+			try
+			{
+				return this.IsMangledString(name);
+			}
+			catch (Exception exception)
+			{
+				Core.LogError("Unhandled exception in Demangler.IsMangledString: {0}", exception);
+				return false;
+			}
+		}
+
+		private bool InvokeDemangle(
+			IntPtr context,
+			IntPtr architecture,
+			string name,
+			IntPtr outType,
+			IntPtr outVarName,
+			IntPtr view
+		)
+		{
+			IntPtr typeReference = IntPtr.Zero;
+			BNQualifiedName nativeName = new BNQualifiedName();
+			bool nameAllocated = false;
+			BinaryView? managedView = null;
+
+			Marshal.WriteIntPtr(outType, IntPtr.Zero);
+			Marshal.StructureToPtr(new BNQualifiedName(), outVarName, false);
+
+			try
+			{
+				Architecture managedArchitecture = Architecture.MustFromHandle(architecture);
+				if (IntPtr.Zero != view)
+				{
+					managedView = BinaryView.MustTakeHandle(
+						NativeMethods.BNNewViewReference(view)
+					);
+				}
+
+				BinaryNinja.Type? managedType;
+				QualifiedName managedName;
+				bool success = this.Demangle(
+					managedArchitecture,
+					name,
+					managedView,
+					out managedType,
+					out managedName
+				);
+				if (!success || null == managedName)
+				{
+					return false;
+				}
+
+				nativeName = Demangler.AllocateQualifiedName(managedName);
+				nameAllocated = true;
+				Marshal.StructureToPtr(nativeName, outVarName, false);
+
+				if (null != managedType)
+				{
+					typeReference = NativeMethods.BNNewTypeReference(
+						managedType.DangerousGetHandle()
+					);
+					Marshal.WriteIntPtr(outType, typeReference);
+				}
+
+				return true;
+			}
+			catch (Exception exception)
+			{
+				if (IntPtr.Zero != typeReference)
+				{
+					NativeMethods.BNFreeType(typeReference);
+					Marshal.WriteIntPtr(outType, IntPtr.Zero);
+				}
+
+				if (nameAllocated)
+				{
+					Demangler.FreeQualifiedName(nativeName);
+					Marshal.StructureToPtr(new BNQualifiedName(), outVarName, false);
+				}
+
+				Core.LogError("Unhandled exception in Demangler.Demangle: {0}", exception);
+				return false;
+			}
+			finally
+			{
+				if (null != managedView)
+				{
+					managedView.Dispose();
+				}
+			}
+		}
+
+		private void InvokeFreeVarName(IntPtr context, IntPtr name)
+		{
+			try
+			{
+				BNQualifiedName nativeName = Marshal.PtrToStructure<BNQualifiedName>(name);
+				Demangler.FreeQualifiedName(nativeName);
+				Marshal.StructureToPtr(new BNQualifiedName(), name, false);
+			}
+			catch (Exception exception)
+			{
+				Core.LogError("Unhandled exception in Demangler.FreeVarName: {0}", exception);
+			}
+		}
+
+		private static BNQualifiedName AllocateQualifiedName(QualifiedName name)
+		{
+			string[] components = name.Name ?? Array.Empty<string>();
+			BNQualifiedName result = new BNQualifiedName();
+			try
+			{
+				result.nameCount = (ulong)components.Length;
+				if (0 != components.Length)
+				{
+					result.name = NativeMethods.BNAllocStringList(
+						components,
+						(ulong)components.Length
+					);
+				}
+
+				result.join = NativeMethods.BNAllocString(name.Join ?? string.Empty);
+				return result;
+			}
+			catch
+			{
+				Demangler.FreeQualifiedName(result);
+				throw;
+			}
+		}
+
+		private static void FreeQualifiedName(BNQualifiedName name)
+		{
+			if (IntPtr.Zero != name.name)
+			{
+				NativeMethods.BNFreeStringList(name.name, name.nameCount);
+			}
+
+			if (IntPtr.Zero != name.join)
+			{
+				NativeMethods.BNFreeString(name.join);
+			}
+		}
+
+		private sealed class CoreDemangler : Demangler
+		{
+			internal CoreDemangler(IntPtr handle)
+				: base(handle)
+			{
+			}
+
+			public override bool IsMangledString(string name)
+			{
+				return NativeMethods.BNIsDemanglerMangledName(
+					this.handle,
+					name ?? string.Empty
+				);
+			}
+
+			public override unsafe bool Demangle(
+				Architecture arch,
+				string name,
+				BinaryView? view,
+				out BinaryNinja.Type? outType,
+				out QualifiedName outVarName
+			)
+			{
+				if (null == arch)
+				{
+					throw new ArgumentNullException(nameof(arch));
+				}
+
+				IntPtr type = IntPtr.Zero;
+				BNQualifiedName nativeName = new BNQualifiedName();
+				bool success = NativeMethods.BNDemanglerDemangle(
+					this.handle,
+					arch.DangerousGetHandle(),
+					name ?? string.Empty,
+					(IntPtr)(&type),
+					(IntPtr)(&nativeName),
+					null == view ? IntPtr.Zero : view.DangerousGetHandle()
+				);
+				if (!success)
+				{
+					outType = null;
+					outVarName = new QualifiedName(Array.Empty<string>());
+					return false;
+				}
+
+				outType = BinaryNinja.Type.TakeHandle(type);
+				outVarName = QualifiedName.TakeNative(nativeName);
+				return true;
+			}
+		}
+	}
 }
