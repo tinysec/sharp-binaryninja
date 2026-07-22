@@ -9,20 +9,7 @@ namespace BinaryNinja
 	{
 		public static void RegisterBinaryViewEvent( BinaryViewEventType type ,Action<BinaryView> callback)
 		{
-			Action<IntPtr , IntPtr> adapter = (ctx , view) =>
-			{
-				callback( BinaryView.MustBorrowHandle(view));
-			};
-		    
-			// The core stores this function pointer for the BinaryView event's lifetime, so the
-			// adapter must be rooted for the process lifetime. PinCallback adds it to a static
-			// root list and returns the function pointer; without it the next GC would reclaim the
-			// adapter and the event callback would crash.
-			NativeMethods.BNRegisterBinaryViewEvent(
-				type,
-				UnsafeUtils.PinCallback(adapter),
-				IntPtr.Zero
-			);
+			BinaryViewType.RegisterBinaryViewEvent(type, callback);
 		}
 	}
 	
