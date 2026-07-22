@@ -1,6 +1,6 @@
 namespace BinaryNinja
 {
-	public sealed class MLILCeil : MediumLevelILInstruction
+	public sealed class MLILCeil : AbstractMediumLevelILUnaryInstruction
 	{
 		internal MLILCeil(
 			MediumLevelILFunction ilFunction, 
@@ -11,12 +11,5 @@ namespace BinaryNinja
 			
 		}
 		
-		public MediumLevelILInstruction Source
-		{
-			get
-			{
-				return this.GetOperandAsExpression(0);
-			}
-		}
 	}
 }

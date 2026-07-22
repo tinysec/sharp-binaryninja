@@ -1,6 +1,6 @@
 namespace BinaryNinja
 {
-	public sealed class MLILFloatTruncate : MediumLevelILInstruction
+	public sealed class MLILFloatTruncate : AbstractMediumLevelILUnaryInstruction
 	{
 		internal MLILFloatTruncate(
 			MediumLevelILFunction ilFunction, 
@@ -11,12 +11,5 @@ namespace BinaryNinja
 			
 		}
 		
-		public MediumLevelILInstruction Source
-		{
-			get
-			{
-				return this.GetOperandAsExpression(0);
-			}
-		}
 	}
 }

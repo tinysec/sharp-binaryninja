@@ -1,6 +1,6 @@
 namespace BinaryNinja
 {
-	public sealed class MLILBoolToInt : MediumLevelILInstruction
+	public sealed class MLILBoolToInt : AbstractMediumLevelILUnaryInstruction
 	{
 		internal MLILBoolToInt(
 			MediumLevelILFunction ilFunction, 
@@ -11,12 +11,5 @@ namespace BinaryNinja
 			
 		}
 		
-		public MediumLevelILInstruction Source
-		{
-			get
-			{
-				return this.GetOperandAsExpression(0);
-			}
-		}
 	}
 }

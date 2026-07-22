@@ -1,6 +1,6 @@
 namespace BinaryNinja
 {
-	public sealed class MLILUnsignedGreaterOrEqual : MediumLevelILInstruction
+	public sealed class MLILUnsignedGreaterOrEqual : AbstractMediumLevelILBinaryInstruction
 	{
 		internal MLILUnsignedGreaterOrEqual(
 			MediumLevelILFunction ilFunction, 
@@ -11,20 +11,6 @@ namespace BinaryNinja
 			
 		}
 		
-		public MediumLevelILInstruction Left
-		{
-			get
-			{
-				return this.GetOperandAsExpression(0);
-			}
-		}
 		
-		public MediumLevelILInstruction Right
-		{
-			get
-			{
-				return this.GetOperandAsExpression((OperandIndex)1);
-			}
-		}
 	}
 }

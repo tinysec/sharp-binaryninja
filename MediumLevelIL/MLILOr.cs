@@ -1,6 +1,6 @@
 namespace BinaryNinja
 {
-	public sealed class MLILOr : MediumLevelILInstruction
+	public sealed class MLILOr : AbstractMediumLevelILBinaryInstruction
 	{
 		internal MLILOr(
 			MediumLevelILFunction ilFunction, 
@@ -11,20 +11,6 @@ namespace BinaryNinja
 			
 		}
 		
-		public MediumLevelILInstruction Left
-		{
-			get
-			{
-				return this.GetOperandAsExpression(0);
-			}
-		}
 		
-		public MediumLevelILInstruction Right
-		{
-			get
-			{
-				return this.GetOperandAsExpression((OperandIndex)1);
-			}
-		}
 	}
 }

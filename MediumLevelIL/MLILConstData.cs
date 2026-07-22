@@ -1,6 +1,6 @@
 namespace BinaryNinja
 {
-	public sealed class MLILConstData : MediumLevelILInstruction
+	public sealed class MLILConstData : AbstractMediumLevelILConstDataInstruction
 	{
 		internal MLILConstData(
 			MediumLevelILFunction ilFunction, 
@@ -11,20 +11,6 @@ namespace BinaryNinja
 			
 		}
 		
-		public RegisterValue ConstantData
-		{
-			get
-			{
-				return this.GetOperandAsConstantData((OperandIndex)0,(OperandIndex)1);
-			}
-		}
 
-		public RegisterValue Constant
-		{
-			get
-			{
-				return this.ConstantData;
-			}
-		}
 	}
 }

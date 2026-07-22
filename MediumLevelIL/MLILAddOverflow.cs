@@ -1,6 +1,6 @@
 namespace BinaryNinja
 {
-	public sealed class MLILAddOverflow : MediumLevelILInstruction
+	public sealed class MLILAddOverflow : AbstractMediumLevelILBinaryInstruction
 	{
 		internal MLILAddOverflow(
 			MediumLevelILFunction ilFunction, 
@@ -11,20 +11,6 @@ namespace BinaryNinja
 			
 		}
 		
-		public MediumLevelILInstruction Left
-		{
-			get
-			{
-				return this.GetOperandAsExpression(0);
-			}
-		}
 		
-		public MediumLevelILInstruction Right
-		{
-			get
-			{
-				return this.GetOperandAsExpression((OperandIndex)1);
-			}
-		}
 	}
 }

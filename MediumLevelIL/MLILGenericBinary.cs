@@ -6,7 +6,7 @@ namespace BinaryNinja
 	/// (MAXS, MAXU, MINS, MINU). The specific operation is available via
 	/// <see cref="MediumLevelILInstruction.Operation"/>.
 	/// </summary>
-	public sealed class MLILGenericBinary : MediumLevelILInstruction
+	public sealed class MLILGenericBinary : AbstractMediumLevelILBinaryInstruction
 	{
 		internal MLILGenericBinary(
 			MediumLevelILFunction ilFunction ,
@@ -17,20 +17,6 @@ namespace BinaryNinja
 
 		}
 
-		public MediumLevelILInstruction Left
-		{
-			get
-			{
-				return this.GetOperandAsExpression(0);
-			}
-		}
 
-		public MediumLevelILInstruction Right
-		{
-			get
-			{
-				return this.GetOperandAsExpression((OperandIndex)1);
-			}
-		}
 	}
 }

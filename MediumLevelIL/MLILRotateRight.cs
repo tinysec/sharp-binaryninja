@@ -1,6 +1,6 @@
 namespace BinaryNinja
 {
-	public sealed class MLILRotateRight : MediumLevelILInstruction
+	public sealed class MLILRotateRight : AbstractMediumLevelILBinaryInstruction
 	{
 		internal MLILRotateRight(
 			MediumLevelILFunction ilFunction, 
@@ -11,20 +11,6 @@ namespace BinaryNinja
 			
 		}
 		
-		public MediumLevelILInstruction Left
-		{
-			get
-			{
-				return this.GetOperandAsExpression(0);
-			}
-		}
 		
-		public MediumLevelILInstruction Right
-		{
-			get
-			{
-				return this.GetOperandAsExpression((OperandIndex)1);
-			}
-		}
 	}
 }
