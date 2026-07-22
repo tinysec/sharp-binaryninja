@@ -175,8 +175,8 @@ namespace BinaryNinja
 			{ MediumLevelILOperation.MLIL_STORE_STRUCT_SSA, new ILOperandDescriptor[] { new ILOperandDescriptor("dest", ILOperandKind.Expression, 0, "MediumLevelILInstruction"), new ILOperandDescriptor("offset", ILOperandKind.Integer, 1, "int"), new ILOperandDescriptor("dest_memory", ILOperandKind.Integer, 2, "int"), new ILOperandDescriptor("src_memory", ILOperandKind.Integer, 3, "int"), new ILOperandDescriptor("src", ILOperandKind.Expression, 4, "MediumLevelILInstruction") } },
 			{ MediumLevelILOperation.MLIL_ASSERT, new ILOperandDescriptor[] { new ILOperandDescriptor("src", ILOperandKind.Variable, 0, "Variable"), new ILOperandDescriptor("constraint", ILOperandKind.PossibleValueSet, 1, "PossibleValueSet") } },
 			{ MediumLevelILOperation.MLIL_ASSERT_SSA, new ILOperandDescriptor[] { new ILOperandDescriptor("src", ILOperandKind.SSAVariable, 0, 1, "SSAVariable"), new ILOperandDescriptor("constraint", ILOperandKind.PossibleValueSet, 2, "PossibleValueSet") } },
-			{ MediumLevelILOperation.MLIL_FORCE_VER, new ILOperandDescriptor[] {  } },
-			{ MediumLevelILOperation.MLIL_FORCE_VER_SSA, new ILOperandDescriptor[] {  } },
+			{ MediumLevelILOperation.MLIL_FORCE_VER, new ILOperandDescriptor[] { new ILOperandDescriptor("dest", ILOperandKind.Variable, 0, "Variable"), new ILOperandDescriptor("src", ILOperandKind.Variable, 1, "Variable") } },
+			{ MediumLevelILOperation.MLIL_FORCE_VER_SSA, new ILOperandDescriptor[] { new ILOperandDescriptor("dest", ILOperandKind.SSAVariable, 0, 1, "SSAVariable"), new ILOperandDescriptor("src", ILOperandKind.SSAVariable, 2, 3, "SSAVariable") } },
 			};
 	}
 }
