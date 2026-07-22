@@ -1476,12 +1476,14 @@ namespace BinaryNinja
 		{
 			get
 			{
-				if (null == this.MediumLevelIL)
+				MediumLevelILInstruction? mediumInstruction = this.MediumLevelIL;
+
+				if (null == mediumInstruction)
 				{
 					return new RegisterValue();
 				}
 				
-				return this.MediumLevelIL.Value;
+				return mediumInstruction.Value;
 			}
 		}
 
@@ -1532,23 +1534,27 @@ namespace BinaryNinja
 		{
 			get
 			{
-				if (null == this.MediumLevelIL)
+				MediumLevelILInstruction? mediumInstruction = this.MediumLevelIL;
+
+				if (null == mediumInstruction)
 				{
 					return new PossibleValueSet();
 				}
 				
-				return this.MediumLevelIL.PossibleValues;
+				return mediumInstruction.PossibleValues;
 			}
 		}
 
 		public PossibleValueSet GetPossibleValues(DataFlowQueryOption[] options)
 		{
-			if (null == this.MediumLevelIL)
+			MediumLevelILInstruction? mediumInstruction = this.MediumLevelIL;
+
+			if (null == mediumInstruction)
 			{
 				return new PossibleValueSet();
 			}
 			
-			return this.MediumLevelIL.GetPossibleValues(options);
+			return mediumInstruction.GetPossibleValues(options);
 		}
 		
 		public TypeWithConfidence Type
