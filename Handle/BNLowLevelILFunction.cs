@@ -6,7 +6,7 @@ using Microsoft.Win32.SafeHandles;
 
 namespace BinaryNinja
 {
-	public sealed class LowLevelILFunction : AbstractSafeHandle<LowLevelILFunction>
+	public sealed partial class LowLevelILFunction : AbstractSafeHandle<LowLevelILFunction>
 	{
 		private readonly bool isSSAForm;
 
@@ -1296,18 +1296,15 @@ namespace BinaryNinja
 		    );
 	    }
 	    
+	    [Obsolete("Use GetRegisterValueAfterInstruction.")]
 	    public RegisterValue GetRegisterValueAfteInstruction(
 		    uint registerIndex,
 		    LowLevelILInstructionIndex instruction
 	    )
 	    {
-		    return RegisterValue.FromNative(
-			    NativeMethods.BNGetLowLevelILRegisterValueAfterInstruction(
-				    this.handle , 
-				    registerIndex,
-				    instruction
-			    )
-		    );
+		    return this.GetRegisterValueAfterInstruction(
+			    (RegisterIndex)registerIndex,
+			    instruction);
 	    }
 	    
 	    public LowLevelILInstructionIndex? GetInstructionIndexForExpressionIndex(LowLevelILExpressionIndex expressionIndex)
