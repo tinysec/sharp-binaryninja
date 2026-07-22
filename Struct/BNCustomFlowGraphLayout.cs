@@ -1,12 +1,22 @@
 using System;
-using System.Collections.Generic;
 using System.Runtime.InteropServices;
-using Microsoft.Win32.SafeHandles;
 
 namespace BinaryNinja
 {
+	internal static partial class NativeDelegates
+	{
+		[UnmanagedFunctionPointer(System.Runtime.InteropServices.CallingConvention.Cdecl)]
+		[return: MarshalAs(UnmanagedType.I1)]
+		internal delegate bool BNFlowGraphLayout(
+			IntPtr context,
+			IntPtr graph,
+			IntPtr nodes,
+			ulong nodeCount
+		);
+	}
+
 	[StructLayout(LayoutKind.Sequential)]
-	internal unsafe struct BNCustomFlowGraphLayout 
+	internal struct BNCustomFlowGraphLayout
 	{
 		/// <summary>
 		/// void* context
@@ -19,7 +29,7 @@ namespace BinaryNinja
 		public IntPtr layout;
 	}
 
-    public class CustomFlowGraphLayout 
+	public class CustomFlowGraphLayout
     {
 		public CustomFlowGraphLayout() 
 		{

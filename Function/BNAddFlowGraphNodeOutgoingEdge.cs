@@ -27,7 +27,7 @@ namespace BinaryNinja
 		    IntPtr target  , 
 			
 			// BNEdgeStyle edgeStyle
-		    EdgeStyle edgeStyle  
+		    BNEdgeStyle edgeStyle
 		);
 	}
 }

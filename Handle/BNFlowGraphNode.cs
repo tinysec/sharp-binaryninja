@@ -198,11 +198,21 @@ namespace BinaryNinja
 		    EdgeStyle  style 
 		)
 	    {
+		    if (null == target)
+		    {
+			    throw new ArgumentNullException(nameof(target));
+		    }
+
+		    if (null == style)
+		    {
+			    throw new ArgumentNullException(nameof(style));
+		    }
+
 		    NativeMethods.BNAddFlowGraphNodeOutgoingEdge(
 			    this.handle ,
 			    kind ,
 			    target.DangerousGetHandle() ,
-			    style
+			    style.ToNative()
 		    );
 	    }
 
