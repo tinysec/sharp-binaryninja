@@ -45,6 +45,9 @@ namespace BinaryNinja
 		/// <summary>Constant data (Python type "ConstantData").</summary>
 		ConstantData,
 
+		/// <summary>A cached possible-value constraint (Python type "PossibleValueSet").</summary>
+		PossibleValueSet,
+
 		/// <summary>An intrinsic reference (Python type "ILIntrinsic").</summary>
 		Intrinsic,
 

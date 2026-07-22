@@ -23,7 +23,7 @@ namespace BinaryNinja
 		{
 			get
 			{
-				return this.GetOperandAsPossibleValueSet((OperandIndex)1);
+				return this.GetOperandAsPossibleValueSet((OperandIndex)2);
 			}
 		}
 	}
