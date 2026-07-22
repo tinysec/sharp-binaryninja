@@ -7,8 +7,7 @@ namespace BinaryNinja
 {
     /// <summary>
     /// Represents a Binary Ninja project handle.
-    /// Project management APIs require an enterprise license and are not implemented here.
-    /// Only the ValidPluginCommands query is exposed as it uses a non-enterprise entry point.
+    /// Provides local project creation, navigation, metadata, and content management APIs.
     /// </summary>
     public sealed class Project : AbstractSafeHandle<Project>
     {
@@ -182,6 +181,19 @@ namespace BinaryNinja
             );
         }
 
+		/// <summary>Gets every project currently open in this process.</summary>
+		public static Project[] GetOpenProjects()
+		{
+			ulong count;
+			IntPtr projects = NativeMethods.BNGetOpenProjects(out count);
+			return UnsafeUtils.TakeHandleArrayEx<Project>(
+				projects,
+				count,
+				Project.MustNewFromHandle,
+				NativeMethods.BNFreeProjectList
+			);
+		}
+
         // ---------------------------------------------------------------------
         // Open/close state
         // ---------------------------------------------------------------------
@@ -223,17 +235,94 @@ namespace BinaryNinja
             get { return UnsafeUtils.TakeAnsiString(NativeMethods.BNProjectGetName(this.handle)); }
         }
 
+		/// <summary>Sets the project's display name.</summary>
+		public bool SetName(string name)
+		{
+			if (null == name)
+			{
+				throw new ArgumentNullException(nameof(name));
+			}
+
+			return NativeMethods.BNProjectSetName(this.handle, name);
+		}
+
         /// <summary>The project's description.</summary>
         public string Description
         {
             get { return UnsafeUtils.TakeAnsiString(NativeMethods.BNProjectGetDescription(this.handle)); }
         }
 
+		/// <summary>Sets the project's description.</summary>
+		public bool SetDescription(string description)
+		{
+			if (null == description)
+			{
+				throw new ArgumentNullException(nameof(description));
+			}
+
+			return NativeMethods.BNProjectSetDescription(this.handle, description);
+		}
+
         /// <summary>The project's path on disk (the .bnpr directory).</summary>
         public string Path
         {
             get { return UnsafeUtils.TakeAnsiString(NativeMethods.BNProjectGetPath(this.handle)); }
         }
+
+		/// <summary>Gets the in-project path for a file owned by this project.</summary>
+		public string GetFilePathInProject(ProjectFile file)
+		{
+			if (null == file)
+			{
+				throw new ArgumentNullException(nameof(file));
+			}
+
+			return UnsafeUtils.TakeUtf8String(
+				NativeMethods.BNProjectGetFilePathInProject(this.handle, file.DangerousGetHandle())
+			);
+		}
+
+		/// <summary>Queries metadata stored under a project key.</summary>
+		public Metadata? QueryMetadata(string key)
+		{
+			if (null == key)
+			{
+				throw new ArgumentNullException(nameof(key));
+			}
+
+			return Metadata.TakeHandle(NativeMethods.BNProjectQueryMetadata(this.handle, key));
+		}
+
+		/// <summary>Stores metadata under a project key.</summary>
+		public bool StoreMetadata(string key, Metadata value)
+		{
+			if (null == key)
+			{
+				throw new ArgumentNullException(nameof(key));
+			}
+
+			if (null == value)
+			{
+				throw new ArgumentNullException(nameof(value));
+			}
+
+			return NativeMethods.BNProjectStoreMetadata(
+				this.handle,
+				key,
+				value.DangerousGetHandle()
+			);
+		}
+
+		/// <summary>Removes metadata stored under a project key.</summary>
+		public bool RemoveMetadata(string key)
+		{
+			if (null == key)
+			{
+				throw new ArgumentNullException(nameof(key));
+			}
+
+			return NativeMethods.BNProjectRemoveMetadata(this.handle, key);
+		}
 
         // ---------------------------------------------------------------------
         // Navigation to files and folders
@@ -362,6 +451,95 @@ namespace BinaryNinja
             );
         }
 
+		/// <summary>Recursively imports a directory into this project.</summary>
+		public ProjectFolder? CreateFolderFromPath(
+			string path,
+			ProjectFolder? parent = null,
+			string description = "",
+			ProgressDelegate? progress = null
+		)
+		{
+			if (null == path)
+			{
+				throw new ArgumentNullException(nameof(path));
+			}
+
+			ProgressCallbackContext progressContext = new ProgressCallbackContext(progress);
+			NativeDelegates.BNProgressFunction nativeProgress = progressContext.Invoke;
+			IntPtr result = NativeMethods.BNProjectCreateFolderFromPath(
+				this.handle,
+				path,
+				null == parent ? IntPtr.Zero : parent.DangerousGetHandle(),
+				description ?? string.Empty,
+				IntPtr.Zero,
+				Marshal.GetFunctionPointerForDelegate<NativeDelegates.BNProgressFunction>(nativeProgress)
+			);
+			GC.KeepAlive(nativeProgress);
+			progressContext.ThrowIfFailed();
+			return ProjectFolder.TakeHandle(result);
+		}
+
+		/// <summary>Creates a folder with an explicitly supplied stable identifier.</summary>
+		public ProjectFolder? CreateFolderUnsafe(
+			ProjectFolder? parent,
+			string name,
+			string description,
+			string id
+		)
+		{
+			if (null == name)
+			{
+				throw new ArgumentNullException(nameof(name));
+			}
+
+			if (null == id)
+			{
+				throw new ArgumentNullException(nameof(id));
+			}
+
+			return ProjectFolder.TakeHandle(
+				NativeMethods.BNProjectCreateFolderUnsafe(
+					this.handle,
+					null == parent ? IntPtr.Zero : parent.DangerousGetHandle(),
+					name,
+					description ?? string.Empty,
+					id
+				)
+			);
+		}
+
+		/// <summary>Pushes a folder to the project's backing store.</summary>
+		public bool PushFolder(ProjectFolder folder)
+		{
+			if (null == folder)
+			{
+				throw new ArgumentNullException(nameof(folder));
+			}
+
+			return NativeMethods.BNProjectPushFolder(this.handle, folder.DangerousGetHandle());
+		}
+
+		/// <summary>Recursively deletes a folder from this project.</summary>
+		public bool DeleteFolder(ProjectFolder folder, ProgressDelegate? progress = null)
+		{
+			if (null == folder)
+			{
+				throw new ArgumentNullException(nameof(folder));
+			}
+
+			ProgressCallbackContext progressContext = new ProgressCallbackContext(progress);
+			NativeDelegates.BNProgressFunction nativeProgress = progressContext.Invoke;
+			bool result = NativeMethods.BNProjectDeleteFolder(
+				this.handle,
+				folder.DangerousGetHandle(),
+				IntPtr.Zero,
+				Marshal.GetFunctionPointerForDelegate<NativeDelegates.BNProgressFunction>(nativeProgress)
+			);
+			GC.KeepAlive(nativeProgress);
+			progressContext.ThrowIfFailed();
+			return result;
+		}
+
         /// <summary>
         /// Imports the file at the given on-disk path into the project under the given folder
         /// (or the project root when folder is null). Returns the new project file, or null.
@@ -370,20 +548,167 @@ namespace BinaryNinja
             string path,
             ProjectFolder? folder,
             string name,
-            string description = ""
+            string description = "",
+			ProgressDelegate? progress = null
         )
         {
-            return ProjectFile.TakeHandle(
-                NativeMethods.BNProjectCreateFileFromPath(
+			ProgressCallbackContext progressContext = new ProgressCallbackContext(progress);
+			NativeDelegates.BNProgressFunction nativeProgress = progressContext.Invoke;
+			IntPtr result = NativeMethods.BNProjectCreateFileFromPath(
                     this.handle,
                     path ?? string.Empty,
                     null == folder ? IntPtr.Zero : folder.DangerousGetHandle(),
                     name ?? string.Empty,
                     description ?? string.Empty,
                     IntPtr.Zero,
-                    IntPtr.Zero
-                )
-            );
+					Marshal.GetFunctionPointerForDelegate<NativeDelegates.BNProgressFunction>(nativeProgress)
+			);
+			GC.KeepAlive(nativeProgress);
+			progressContext.ThrowIfFailed();
+			return ProjectFile.TakeHandle(result);
         }
+
+		/// <summary>Imports a file with an explicitly supplied identifier and timestamp.</summary>
+		public ProjectFile? CreateFileFromPathUnsafe(
+			string path,
+			ProjectFolder? folder,
+			string name,
+			string description,
+			string id,
+			long creationTimestamp,
+			ProgressDelegate? progress = null
+		)
+		{
+			ProgressCallbackContext progressContext = new ProgressCallbackContext(progress);
+			NativeDelegates.BNProgressFunction nativeProgress = progressContext.Invoke;
+			IntPtr result = NativeMethods.BNProjectCreateFileFromPathUnsafe(
+				this.handle,
+				path ?? string.Empty,
+				null == folder ? IntPtr.Zero : folder.DangerousGetHandle(),
+				name ?? string.Empty,
+				description ?? string.Empty,
+				id ?? string.Empty,
+				creationTimestamp,
+				IntPtr.Zero,
+				Marshal.GetFunctionPointerForDelegate<NativeDelegates.BNProgressFunction>(nativeProgress)
+			);
+			GC.KeepAlive(nativeProgress);
+			progressContext.ThrowIfFailed();
+			return ProjectFile.TakeHandle(result);
+		}
+
+		/// <summary>Creates a project file from in-memory contents.</summary>
+		public unsafe ProjectFile? CreateFile(
+			byte[] contents,
+			ProjectFolder? folder,
+			string name,
+			string description = "",
+			ProgressDelegate? progress = null
+		)
+		{
+			if (null == contents)
+			{
+				throw new ArgumentNullException(nameof(contents));
+			}
+
+			ProgressCallbackContext progressContext = new ProgressCallbackContext(progress);
+			NativeDelegates.BNProgressFunction nativeProgress = progressContext.Invoke;
+			IntPtr result;
+			fixed (byte* contentsPointer = contents)
+			{
+				result = NativeMethods.BNProjectCreateFile(
+					this.handle,
+					(IntPtr)contentsPointer,
+					(ulong)contents.Length,
+					null == folder ? IntPtr.Zero : folder.DangerousGetHandle(),
+					name ?? string.Empty,
+					description ?? string.Empty,
+					IntPtr.Zero,
+					Marshal.GetFunctionPointerForDelegate<NativeDelegates.BNProgressFunction>(nativeProgress)
+				);
+			}
+			GC.KeepAlive(nativeProgress);
+			progressContext.ThrowIfFailed();
+			return ProjectFile.TakeHandle(result);
+		}
+
+		/// <summary>Creates a project file with an explicitly supplied identifier and timestamp.</summary>
+		public unsafe ProjectFile? CreateFileUnsafe(
+			byte[] contents,
+			ProjectFolder? folder,
+			string name,
+			string description,
+			string id,
+			long creationTimestamp,
+			ProgressDelegate? progress = null
+		)
+		{
+			if (null == contents)
+			{
+				throw new ArgumentNullException(nameof(contents));
+			}
+
+			ProgressCallbackContext progressContext = new ProgressCallbackContext(progress);
+			NativeDelegates.BNProgressFunction nativeProgress = progressContext.Invoke;
+			IntPtr result;
+			fixed (byte* contentsPointer = contents)
+			{
+				result = NativeMethods.BNProjectCreateFileUnsafe(
+					this.handle,
+					(IntPtr)contentsPointer,
+					(ulong)contents.Length,
+					null == folder ? IntPtr.Zero : folder.DangerousGetHandle(),
+					name ?? string.Empty,
+					description ?? string.Empty,
+					id ?? string.Empty,
+					creationTimestamp,
+					IntPtr.Zero,
+					Marshal.GetFunctionPointerForDelegate<NativeDelegates.BNProgressFunction>(nativeProgress)
+				);
+			}
+			GC.KeepAlive(nativeProgress);
+			progressContext.ThrowIfFailed();
+			return ProjectFile.TakeHandle(result);
+		}
+
+		/// <summary>Pushes a file to the project's backing store.</summary>
+		public bool PushFile(ProjectFile file)
+		{
+			if (null == file)
+			{
+				throw new ArgumentNullException(nameof(file));
+			}
+
+			return NativeMethods.BNProjectPushFile(this.handle, file.DangerousGetHandle());
+		}
+
+		/// <summary>Deletes a file from this project.</summary>
+		public bool DeleteFile(ProjectFile file)
+		{
+			if (null == file)
+			{
+				throw new ArgumentNullException(nameof(file));
+			}
+
+			return NativeMethods.BNProjectDeleteFile(this.handle, file.DangerousGetHandle());
+		}
+
+		/// <summary>Begins a bulk project operation.</summary>
+		public bool BeginBulkOperation()
+		{
+			return NativeMethods.BNProjectBeginBulkOperation(this.handle);
+		}
+
+		/// <summary>Ends a bulk project operation.</summary>
+		public bool EndBulkOperation()
+		{
+			return NativeMethods.BNProjectEndBulkOperation(this.handle);
+		}
+
+		/// <summary>Gets the collaboration project associated with this local project.</summary>
+		public RemoteProject? RemoteProject
+		{
+			get { return RemoteProject.TakeHandle(NativeMethods.BNProjectGetRemoteProject(this.handle)); }
+		}
     }
 }
