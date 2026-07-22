@@ -7,6 +7,8 @@ namespace BinaryNinja
 {
 	public sealed class FileMetadata : AbstractSafeHandle<FileMetadata>
 	{
+		private NavigationHandler? navigationHandler;
+
 		public FileMetadata()
 			: this(NativeMethods.BNCreateFileMetadata() , true)
 		{
@@ -79,6 +81,12 @@ namespace BinaryNinja
 		{
 			if (!this.IsInvalid)
 			{
+				if (null != this.navigationHandler)
+				{
+					NativeMethods.BNSetFileMetadataNavigationHandler(this.handle, IntPtr.Zero);
+					this.navigationHandler = null;
+				}
+
 				NativeMethods.BNCloseFile(this.handle);
 				NativeMethods.BNFreeFileMetadata(this.handle);
 				this.SetHandleAsInvalid();
@@ -205,6 +213,49 @@ namespace BinaryNinja
 				binaryViewType ,
 				offset
 			);
+		}
+
+		/// <summary>
+		/// Gets or sets the handler used by the core to query and update the current navigation state.
+		/// </summary>
+		public NavigationHandler? Navigation
+		{
+			get
+			{
+				return this.navigationHandler;
+			}
+
+			set
+			{
+				this.SetNavigationHandler(value);
+			}
+		}
+
+		/// <summary>
+		/// Gets or sets the navigation handler. This is an alias for <see cref="Navigation"/>.
+		/// </summary>
+		public NavigationHandler? Nav
+		{
+			get
+			{
+				return this.Navigation;
+			}
+
+			set
+			{
+				this.Navigation = value;
+			}
+		}
+
+		/// <summary>
+		/// Registers a navigation handler, or unregisters the current handler when null is supplied.
+		/// </summary>
+		public void SetNavigationHandler(NavigationHandler? handler)
+		{
+			NativeMethods.BNSetFileMetadataNavigationHandler(
+				this.handle,
+				null == handler ? IntPtr.Zero : handler.Callbacks);
+			this.navigationHandler = handler;
 		}
 
 		public BinaryView? GetFileViewOfType(string binaryViewType)
@@ -479,11 +530,6 @@ namespace BinaryNinja
 			    NativeMethods.BNGetLastUndoEntry(this.handle)
 		    );
 	    }
-
-	    // TODO: SetNavigationHandler requires a BNNavigationHandler callback struct.
-	    //       The BNNavigationHandler contains function pointer fields (getCurrentView,
-	    //       getCurrentOffset, navigate) that need managed delegate wrappers.
-	    //       Implement when callback infrastructure is in place.
 
 	    /// <summary>
 	    /// Gets the title of the last redo entry in the undo history.

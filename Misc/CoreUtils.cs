@@ -1224,9 +1224,6 @@ namespace BinaryNinja
 
 		// TODO: BNPerformSearch — on BinaryView, requires callback context for search results.
 
-		// TODO: BNSetFileMetadataNavigationHandler — requires callback delegate for
-		//       navigation event handling.
-
 		// TODO: BNTypeArchiveMergeSnapshots / BNTypeArchiveNewSnapshotTransaction —
 		//       callback-based transaction functions requiring managed delegate infrastructure.
 
