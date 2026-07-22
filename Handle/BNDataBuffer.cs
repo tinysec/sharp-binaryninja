@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
+using System.Text;
 using Microsoft.Win32.SafeHandles;
 
 namespace BinaryNinja
@@ -180,12 +181,105 @@ namespace BinaryNinja
 	    }
 
 	    /// <summary>
+	    /// Convert the data buffer contents to a base64-encoded string. Mirrors Python
+	    /// <c>DataBuffer.base64_encode</c>.
+	    /// </summary>
+	    public string Base64Encode()
+	    {
+		    return this.ToBase64();
+	    }
+
+	    /// <summary>
+	    /// Decode the ASCII base64 text stored in this buffer.
+	    /// </summary>
+	    public DataBuffer Base64Decode()
+	    {
+		    string encoded = Encoding.UTF8.GetString(this.Contents);
+
+		    return DataBuffer.MustTakeHandle(
+			    NativeMethods.BNDecodeBase64(encoded)
+		    );
+	    }
+
+	    /// <summary>
 	    /// Convert the data buffer contents to an escaped string representation.
 	    /// </summary>
 	    public string ToEscapedString(bool nullTerminates = false , bool escapePrintable = false)
 	    {
 		    return UnsafeUtils.TakeAnsiString(
 			    NativeMethods.BNDataBufferToEscapedString(this.handle , nullTerminates , escapePrintable)
+		    );
+	    }
+
+	    /// <summary>
+	    /// Convert the buffer contents to Binary Ninja's escaped string representation. Mirrors
+	    /// Python <c>DataBuffer.escape</c>.
+	    /// </summary>
+	    public string Escape(bool nullTerminates = false, bool escapePrintable = false)
+	    {
+		    return this.ToEscapedString(nullTerminates, escapePrintable);
+	    }
+
+	    /// <summary>
+	    /// Decode Binary Ninja escaped-string text stored in this buffer.
+	    /// </summary>
+	    public DataBuffer Unescape()
+	    {
+		    string escaped = Encoding.UTF8.GetString(this.Contents);
+
+		    return DataBuffer.MustTakeHandle(
+			    NativeMethods.BNDecodeEscapedString(escaped)
+		    );
+	    }
+
+	    /// <summary>
+	    /// Compress this buffer using zlib, or return <c>null</c> when the core cannot compress it.
+	    /// </summary>
+	    public DataBuffer? ZlibCompress()
+	    {
+		    return DataBuffer.TakeHandle(
+			    NativeMethods.BNZlibCompress(this.handle)
+		    );
+	    }
+
+	    /// <summary>
+	    /// Decompress this zlib buffer, or return <c>null</c> when the data is not valid zlib data.
+	    /// </summary>
+	    public DataBuffer? ZlibDecompress()
+	    {
+		    return DataBuffer.TakeHandle(
+			    NativeMethods.BNZlibDecompress(this.handle)
+		    );
+	    }
+
+	    /// <summary>
+	    /// Decompress this LZMA stream, or return <c>null</c> when the data is not valid LZMA data.
+	    /// </summary>
+	    public DataBuffer? LzmaDecompress()
+	    {
+		    return DataBuffer.TakeHandle(
+			    NativeMethods.BNLzmaDecompress(this.handle)
+		    );
+	    }
+
+	    /// <summary>
+	    /// Decompress this raw LZMA2 stream, or return <c>null</c> when the data is not valid LZMA2
+	    /// data.
+	    /// </summary>
+	    public DataBuffer? Lzma2Decompress()
+	    {
+		    return DataBuffer.TakeHandle(
+			    NativeMethods.BNLzma2Decompress(this.handle)
+		    );
+	    }
+
+	    /// <summary>
+	    /// Decompress this XZ stream, or return <c>null</c> when the data is not valid XZ data.
+	    /// </summary>
+	    public DataBuffer? XzDecompress()
+	    {
+		    return DataBuffer.TakeHandle(
+			    NativeMethods.BNXzDecompress(this.handle)
 		    );
 	    }
 
