@@ -25,7 +25,7 @@ namespace BinaryNinja
 		    [MarshalAs(UnmanagedType.LPUTF8Str)] string version  , 
 			
 			// const char** errors
-		    string[] errors  , 
+		    out IntPtr errors  ,
 			
 			// void** progress
 		    IntPtr progress  , 
