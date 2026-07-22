@@ -21,7 +21,7 @@ namespace BinaryNinja
 		    [MarshalAs(UnmanagedType.LPUTF8Str)] string name  , 
 			
 			// BNRenderLayerCallbacks* callbacks
-		    IntPtr callbacks  , 
+		    in BNRenderLayerCallbacks callbacks  ,
 			
 			// BNRenderLayerDefaultEnableState enableState
 		    RenderLayerDefaultEnableState enableState  

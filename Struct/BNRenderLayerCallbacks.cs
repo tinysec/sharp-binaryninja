@@ -1,39 +1,64 @@
 using System;
-using System.Collections.Generic;
 using System.Runtime.InteropServices;
-using Microsoft.Win32.SafeHandles;
 
 namespace BinaryNinja
 {
+	internal static partial class NativeDelegates
+	{
+		[UnmanagedFunctionPointer(System.Runtime.InteropServices.CallingConvention.Cdecl)]
+		internal delegate void BNRenderLayerApplyToFlowGraph(
+			IntPtr context,
+			IntPtr graph
+		);
+
+		[UnmanagedFunctionPointer(System.Runtime.InteropServices.CallingConvention.Cdecl)]
+		internal delegate void BNRenderLayerApplyToLinearViewObject(
+			IntPtr context,
+			IntPtr linearView,
+			IntPtr previous,
+			IntPtr next,
+			IntPtr inputLines,
+			ulong inputLineCount,
+			IntPtr outputLines,
+			IntPtr outputLineCount
+		);
+
+		[UnmanagedFunctionPointer(System.Runtime.InteropServices.CallingConvention.Cdecl)]
+		internal delegate void BNRenderLayerFreeLines(
+			IntPtr context,
+			IntPtr lines,
+			ulong count
+		);
+	}
+
 	[StructLayout(LayoutKind.Sequential)]
-	internal unsafe struct BNRenderLayerCallbacks 
+	internal struct BNRenderLayerCallbacks
 	{
 		/// <summary>
 		/// void* context
 		/// </summary>
-		public IntPtr context;
+		internal IntPtr context;
 		
 		/// <summary>
 		/// void** applyToFlowGraph
 		/// </summary>
-		public IntPtr applyToFlowGraph;
+		internal IntPtr applyToFlowGraph;
 		
 		/// <summary>
 		/// void** applyToLinearViewObject
 		/// </summary>
-		public IntPtr applyToLinearViewObject;
+		internal IntPtr applyToLinearViewObject;
 		
 		/// <summary>
 		/// void** freeLines
 		/// </summary>
-		public IntPtr freeLines;
+		internal IntPtr freeLines;
 	}
 
-    public class RenderLayerCallbacks 
-    {
-		public RenderLayerCallbacks() 
-		{
-		    
-		}
-    }
+	/// <summary>
+	/// Retained for source compatibility. Custom layers derive from RenderLayer directly.
+	/// </summary>
+	public class RenderLayerCallbacks
+	{
+	}
 }
