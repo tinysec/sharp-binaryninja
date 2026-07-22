@@ -3,7 +3,8 @@ using System.Collections.Generic;
 
 namespace BinaryNinja
 {
-	public sealed class HighLevelILVariable : AbstractFunctionVariable<HighLevelILVariable>
+	public sealed class HighLevelILVariable : AbstractFunctionVariable<HighLevelILVariable>,
+		IHighLevelILVariable
 	{
 		public HighLevelILFunction ILFunction { get; }
 

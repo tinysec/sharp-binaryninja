@@ -3,7 +3,13 @@ using System;
 namespace BinaryNinja
 {
 	/// <summary>
-	/// BNHighLevelILOperation
+	/// BNHighLevelILOperation. Values are auto-numbered from declaration order,
+	/// so this ordering MUST match the installed Binary Ninja core (5.3.9757 /
+	/// python api revision aa25bfc) byte-for-byte. The installed core emits 126
+	/// operations; binding an instruction's native operation byte to this enum is
+	/// the foundation of <see cref="HighLevelILInstruction.Operation"/>,
+	/// <see cref="HighLevelILInstruction.FromExpressionIndex"/>, and the operand
+	/// tables.
 	/// </summary>
     public enum HighLevelILOperation : byte
 	{
@@ -35,8 +41,6 @@ namespace BinaryNinja
 		HLIL_DEREF,
 		HLIL_DEREF_FIELD,
 		HLIL_ADDRESS_OF,
-		HLIL_PASS_BY_REF,
-		HLIL_RETURN_BY_REF,
 		HLIL_CONST,
 		HLIL_CONST_DATA,
 		HLIL_CONST_PTR,
@@ -127,7 +131,6 @@ namespace BinaryNinja
 		HLIL_FORCE_VER_SSA,
 		HLIL_ASSERT_SSA,
 		HLIL_VAR_SSA,
-		HLIL_VAR_SSA_PARTIAL,
 		HLIL_ARRAY_INDEX_SSA,
 		HLIL_DEREF_SSA,
 		HLIL_DEREF_FIELD_SSA,
@@ -135,17 +138,6 @@ namespace BinaryNinja
 		HLIL_SYSCALL_SSA,
 		HLIL_INTRINSIC_SSA,
 		HLIL_VAR_PHI,
-		HLIL_MEM_PHI,
-		HLIL_BSWAP,
-		HLIL_POPCNT,
-		HLIL_CLZ,
-		HLIL_CTZ,
-		HLIL_RBIT,
-		HLIL_CLS,
-		HLIL_MINS,
-		HLIL_MAXS,
-		HLIL_MINU,
-		HLIL_MAXU,
-		HLIL_ABS
+		HLIL_MEM_PHI
 	}
 }

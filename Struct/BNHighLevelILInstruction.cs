@@ -45,7 +45,7 @@ namespace BinaryNinja
 		internal ulong parent;
 	}
 	
-    public abstract class HighLevelILInstruction : 
+    public abstract partial class HighLevelILInstruction :
 	    INativeWrapper<BNHighLevelILInstruction> ,
 	    IEquatable<HighLevelILInstruction>,
 	    IComparable<HighLevelILInstruction>
@@ -67,6 +67,11 @@ namespace BinaryNinja
 		internal HighLevelILFunction ILFunction { get;  }
 
 		public HighLevelILExpressionIndex ExpressionIndex { get;  } = 0;
+
+		/// <summary>
+		/// Whether this instruction and its operand expressions use the full AST representation.
+		/// </summary>
+		public bool AsFullAst { get; private set; }
 
 		private static Dictionary<HighLevelILOperation,int> OperationOperands = new Dictionary<HighLevelILOperation,int> {
 			{ HighLevelILOperation.HLIL_NOP, 0 },
@@ -209,18 +214,6 @@ namespace BinaryNinja
 
 			{ HighLevelILOperation.HLIL_VAR_PHI, 3 },  // destSSAVariable(var,version), sourceSSAVariableList
 			{ HighLevelILOperation.HLIL_MEM_PHI, 2 },  // destMemoryVersion, sourceMemoryVersions(list)
-
-			{ HighLevelILOperation.HLIL_ABS, 1 },                   // src
-			{ HighLevelILOperation.HLIL_BSWAP, 1 },                 // src
-			{ HighLevelILOperation.HLIL_CLS, 1 },                   // src
-			{ HighLevelILOperation.HLIL_CLZ, 1 },                   // src
-			{ HighLevelILOperation.HLIL_CTZ, 1 },                   // src
-			{ HighLevelILOperation.HLIL_POPCNT, 1 },                // src
-			{ HighLevelILOperation.HLIL_RBIT, 1 },                  // src
-			{ HighLevelILOperation.HLIL_MAXS, 2 },                  // left, right
-			{ HighLevelILOperation.HLIL_MAXU, 2 },                  // left, right
-			{ HighLevelILOperation.HLIL_MINS, 2 },                  // left, right
-			{ HighLevelILOperation.HLIL_MINU, 2 },                  // left, right
 		};
 
 		
@@ -319,7 +312,22 @@ namespace BinaryNinja
 				expressionIndex,
 				asFullAst
 			);
+			HighLevelILInstruction result = CreateFromNative(
+				ilFunction,
+				expressionIndex,
+				native
+			);
+			result.AsFullAst = asFullAst;
 
+			return result;
+		}
+
+		private static HighLevelILInstruction CreateFromNative(
+			HighLevelILFunction ilFunction,
+			HighLevelILExpressionIndex expressionIndex,
+			BNHighLevelILInstruction native
+		)
+		{
 			switch (native.operation)
 			{
 				case HighLevelILOperation.HLIL_NOP:
@@ -827,28 +835,10 @@ namespace BinaryNinja
 				{
 					return new HLILMemoryPhi(ilFunction, expressionIndex , native);
 				}
-				case HighLevelILOperation.HLIL_ABS:
-				case HighLevelILOperation.HLIL_BSWAP:
-				case HighLevelILOperation.HLIL_CLS:
-				case HighLevelILOperation.HLIL_CLZ:
-				case HighLevelILOperation.HLIL_CTZ:
-				case HighLevelILOperation.HLIL_POPCNT:
-				case HighLevelILOperation.HLIL_RBIT:
-				{
-					return new HLILGenericUnary(ilFunction, expressionIndex , native);
-				}
-				case HighLevelILOperation.HLIL_MAXS:
-				case HighLevelILOperation.HLIL_MAXU:
-				case HighLevelILOperation.HLIL_MINS:
-				case HighLevelILOperation.HLIL_MINU:
-				{
-					return new HLILGenericBinary(ilFunction, expressionIndex , native);
-				}
 				default:
 				{
-					// Unknown / not-yet-typed operation (e.g. PASS_BY_REF, RETURN_BY_REF,
-					// VAR_SSA_PARTIAL, or an op from a newer core). Degrade to a generic
-					// wrapper instead of throwing so navigation/iteration stays robust.
+					// Unknown operations from a newer core degrade to a generic wrapper so
+					// navigation and iteration stay robust.
 					return new HLILGeneric(ilFunction, expressionIndex , native);
 				}
 			}
@@ -1127,7 +1117,8 @@ namespace BinaryNinja
 		{
 			return HighLevelILInstruction.FromExpressionIndex(
 				this.ILFunction , 
-				(HighLevelILExpressionIndex)this.RawOperands[(ulong)operand]
+				(HighLevelILExpressionIndex)this.RawOperands[(ulong)operand],
+				this.AsFullAst
 			);
 		}
 
@@ -1155,7 +1146,8 @@ namespace BinaryNinja
 				expressions.Add(
 					HighLevelILInstruction.FromExpressionIndex(
 						this.ILFunction ,
-						expressionIndex
+						expressionIndex,
+						this.AsFullAst
 					)
 				);
 			}
@@ -1230,17 +1222,18 @@ namespace BinaryNinja
 		{
 			get
 			{
+				HighLevelILFunction ssaFunction = this.ILFunction.SSAForm;
 				HighLevelILExpressionIndex index = NativeMethods.BNGetHighLevelILSSAExprIndex(
 					this.ILFunction.DangerousGetHandle(),
 					this.ExpressionIndex
 				);
 				
-				if ((ulong)index >= this.ILFunction.ExpressionCount)
+				if ((ulong)index >= ssaFunction.ExpressionCount)
 				{
 					return null;
 				}
 				
-				return this.ILFunction.GetExpression((HighLevelILExpressionIndex)index);
+				return ssaFunction.GetExpression(index, this.AsFullAst);
 			}
 		}
 		
@@ -1248,17 +1241,23 @@ namespace BinaryNinja
 		{
 			get
 			{
+				HighLevelILFunction? nonSsaFunction = this.ILFunction.NonSSAForm;
+				if (null == nonSsaFunction)
+				{
+					return null;
+				}
+
 				HighLevelILExpressionIndex index = NativeMethods.BNGetHighLevelILNonSSAExprIndex(
 					this.ILFunction.DangerousGetHandle(),
 					this.ExpressionIndex
 				);
 				
-				if ((ulong)index >= this.ILFunction.ExpressionCount)
+				if ((ulong)index >= nonSsaFunction.ExpressionCount)
 				{
 					return null;
 				}
 				
-				return this.ILFunction.GetExpression((HighLevelILExpressionIndex)index);
+				return nonSsaFunction.GetExpression(index, this.AsFullAst);
 			}
 		}
 		
@@ -1266,17 +1265,18 @@ namespace BinaryNinja
 		{
 			get
 			{
+				HighLevelILFunction ssaFunction = this.ILFunction.SSAForm;
 				HighLevelILInstructionIndex? index = NativeMethods.BNGetHighLevelILSSAInstructionIndex(
 					this.ILFunction.DangerousGetHandle(),
 					this.InstructionIndex
 				);
 
-				if ((ulong)index >= this.ILFunction.InstructionCount)
+				if (null == index || (ulong)index >= ssaFunction.InstructionCount)
 				{
 					return null;
 				}
 				
-				return this.ILFunction.GetInstruction((HighLevelILInstructionIndex)index);
+				return ssaFunction.GetInstruction((HighLevelILInstructionIndex)index);
 			}
 		}
 		
@@ -1285,17 +1285,23 @@ namespace BinaryNinja
 		{
 			get
 			{
+				HighLevelILFunction? nonSsaFunction = this.ILFunction.NonSSAForm;
+				if (null == nonSsaFunction)
+				{
+					return null;
+				}
+
 				HighLevelILInstructionIndex? index = NativeMethods.BNGetHighLevelILNonSSAInstructionIndex(
 					this.ILFunction.DangerousGetHandle(),
 					this.InstructionIndex
 				);
 
-				if ((ulong)index >= this.ILFunction.InstructionCount)
+				if (null == index || (ulong)index >= nonSsaFunction.InstructionCount)
 				{
 					return null;
 				}
 				
-				return this.ILFunction.GetInstruction((HighLevelILInstructionIndex)index);
+				return nonSsaFunction.GetInstruction((HighLevelILInstructionIndex)index);
 			}
 		}
 
@@ -1661,7 +1667,8 @@ namespace BinaryNinja
 				}
 
 				return this.ILFunction.GetExpression(
-					(HighLevelILExpressionIndex)this.RawParent
+					(HighLevelILExpressionIndex)this.RawParent,
+					this.AsFullAst
 				);
 			}
 		}
