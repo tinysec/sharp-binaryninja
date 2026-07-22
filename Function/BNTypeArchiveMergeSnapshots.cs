@@ -32,22 +32,22 @@ namespace BinaryNinja
 		    [MarshalAs(UnmanagedType.LPUTF8Str)] string secondSnapshot  , 
 			
 			// const char** mergeConflictKeysIn
-		    string[] mergeConflictKeysIn  , 
+		    IntPtr mergeConflictKeysIn  ,
 			
 			// const char** mergeConflictValuesIn
-		    string[] mergeConflictValuesIn  , 
+		    IntPtr mergeConflictValuesIn  ,
 			
 			// uint64_t mergeConflictCountIn
 		    ulong mergeConflictCountIn  , 
 			
 			// const char*** mergeConflictsOut
-		    IntPtr mergeConflictsOut  , 
+		    out IntPtr mergeConflictsOut  ,
 			
 			// uint64_t* mergeConflictCountOut
-		    IntPtr mergeConflictCountOut  , 
+		    out ulong mergeConflictCountOut  ,
 			
 			// const char** result
-		    string[] result  , 
+		    out IntPtr result  ,
 			
 			// void** progress
 		    IntPtr progress  , 
