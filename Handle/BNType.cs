@@ -6,7 +6,7 @@ using Microsoft.Win32.SafeHandles;
 
 namespace BinaryNinja
 {
-	public class Type: AbstractSafeHandle<Type>
+	public partial class Type: AbstractSafeHandle<Type>
 	{
 	    internal Type(IntPtr handle , bool owner) 
 		    : base(handle , owner)
@@ -625,9 +625,6 @@ namespace BinaryNinja
 
 		    return ok;
 	    }
-
-	    // TODO: EnumerateTypesForAccess requires callback delegate infrastructure
-	    //       (void** terminal, void* ctxt).
 
 	    /// <summary>
 	    /// Gets the type class of this type (void, bool, integer, float, structure, etc.).
