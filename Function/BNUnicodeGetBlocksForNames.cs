@@ -19,7 +19,7 @@ namespace BinaryNinja
 		internal static extern void BNUnicodeGetBlocksForNames(
 			
 			// const char** names
-		    string[] names  , 
+		    IntPtr names,
 			
 			// uint64_t nameCount
 		    ulong nameCount  , 
