@@ -11,6 +11,11 @@ namespace BinaryNinja
     /// </summary>
     public sealed class Project : AbstractSafeHandle<Project>
     {
+		private readonly object notificationLock = new object();
+
+		private readonly List<ProjectNotification> notifications =
+			new List<ProjectNotification>();
+
         /// <summary>
         /// Initializes a new Project wrapper around an existing native handle.
         /// </summary>
@@ -127,6 +132,19 @@ namespace BinaryNinja
         {
             if (!this.IsInvalid)
             {
+				lock (this.notificationLock)
+				{
+					foreach (ProjectNotification notification in this.notifications)
+					{
+						NativeMethods.BNUnregisterProjectNotification(
+							this.handle,
+							notification.CallbacksPointer
+						);
+					}
+
+					this.notifications.Clear();
+				}
+
                 // Free the native project handle and mark it invalid to prevent double-free.
                 NativeMethods.BNFreeProject(this.handle);
                 this.SetHandleAsInvalid();
@@ -134,6 +152,51 @@ namespace BinaryNinja
 
             return true;
         }
+
+		/// <summary>Registers a notification receiver for this project.</summary>
+		public void RegisterNotification(ProjectNotification notification)
+		{
+			if (null == notification)
+			{
+				throw new ArgumentNullException(nameof(notification));
+			}
+
+			lock (this.notificationLock)
+			{
+				if (this.notifications.Contains(notification))
+				{
+					throw new InvalidOperationException("The notification is already registered.");
+				}
+
+				NativeMethods.BNRegisterProjectNotification(
+					this.handle,
+					notification.CallbacksPointer
+				);
+				this.notifications.Add(notification);
+			}
+		}
+
+		/// <summary>Unregisters a notification receiver from this project.</summary>
+		public void UnregisterNotification(ProjectNotification notification)
+		{
+			if (null == notification)
+			{
+				throw new ArgumentNullException(nameof(notification));
+			}
+
+			lock (this.notificationLock)
+			{
+				if (!this.notifications.Remove(notification))
+				{
+					return;
+				}
+
+				NativeMethods.BNUnregisterProjectNotification(
+					this.handle,
+					notification.CallbacksPointer
+				);
+			}
+		}
 
         /// <summary>
         /// Gets all plugin commands that are valid to run in the context of this project.
