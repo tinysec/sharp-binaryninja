@@ -57,5 +57,57 @@ namespace BinaryNinja
 		{
 		    
 		}
+
+		public ExprMapInfo(
+			ulong lowerIndex,
+			ulong higherIndex,
+			bool mapLowerToHigher,
+			bool mapHigherToLower,
+			bool lowerToHigherDirect,
+			bool higherToLowerDirect)
+		{
+			this.LowerIndex = lowerIndex;
+			this.HigherIndex = higherIndex;
+			this.MapLowerToHigher = mapLowerToHigher;
+			this.MapHigherToLower = mapHigherToLower;
+			this.LowerToHigherDirect = lowerToHigherDirect;
+			this.HigherToLowerDirect = higherToLowerDirect;
+		}
+
+		internal BNExprMapInfo ToNative()
+		{
+			return new BNExprMapInfo
+			{
+				lowerIndex = this.LowerIndex,
+				higherIndex = this.HigherIndex,
+				mapLowerToHigher = this.MapLowerToHigher,
+				mapHigherToLower = this.MapHigherToLower,
+				lowerToHigherDirect = this.LowerToHigherDirect,
+				higherToLowerDirect = this.HigherToLowerDirect,
+			};
+		}
     }
+
+	/// <summary>
+	/// Describes one LLIL SSA expression to MLIL expression mapping.
+	/// </summary>
+	public sealed class LLILSSAToMLILExpressionMap : ExprMapInfo
+	{
+		public LLILSSAToMLILExpressionMap(
+			LowLevelILExpressionIndex lowerIndex,
+			MediumLevelILExpressionIndex higherIndex,
+			bool mapLowerToHigher,
+			bool mapHigherToLower,
+			bool lowerToHigherDirect,
+			bool higherToLowerDirect)
+			: base(
+				(ulong)lowerIndex,
+				(ulong)higherIndex,
+				mapLowerToHigher,
+				mapHigherToLower,
+				lowerToHigherDirect,
+				higherToLowerDirect)
+		{
+		}
+	}
 }

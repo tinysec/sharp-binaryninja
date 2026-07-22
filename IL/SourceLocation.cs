@@ -9,6 +9,26 @@ namespace BinaryNinja
 		
 		public OperandIndex Operand { get; } = 0;
 
+		/// <summary>
+		/// Gets the source LLIL instruction when this location was derived from LLIL.
+		/// </summary>
+		public LowLevelILInstruction? SourceLowLevelILInstruction { get; private set; }
+
+		/// <summary>
+		/// Gets the source MLIL instruction when this location was derived from MLIL.
+		/// </summary>
+		public MediumLevelILInstruction? SourceMediumLevelILInstruction { get; private set; }
+
+		/// <summary>
+		/// Gets the source HLIL instruction when this location was derived from HLIL.
+		/// </summary>
+		public HighLevelILInstruction? SourceHighLevelILInstruction { get; private set; }
+
+		/// <summary>
+		/// Gets whether the source IL instruction maps directly to the generated expression.
+		/// </summary>
+		public bool ILDirect { get; private set; } = true;
+
 		public SourceLocation()
 		{
 			
@@ -18,6 +38,78 @@ namespace BinaryNinja
 		{
 			this.Address = address;
 			this.Operand = operand;
+		}
+
+		private SourceLocation(
+			ulong address,
+			OperandIndex operand,
+			bool ilDirect)
+			: this(address, operand)
+		{
+			this.ILDirect = ilDirect;
+		}
+
+		/// <summary>
+		/// Creates a source location derived from an LLIL instruction.
+		/// </summary>
+		public static SourceLocation FromInstruction(
+			LowLevelILInstruction instruction,
+			bool ilDirect = true)
+		{
+			if (null == instruction)
+			{
+				throw new ArgumentNullException(nameof(instruction));
+			}
+
+			SourceLocation result = new SourceLocation(
+				instruction.Address,
+				instruction.SourceOperand,
+				ilDirect);
+			result.SourceLowLevelILInstruction = instruction;
+
+			return result;
+		}
+
+		/// <summary>
+		/// Creates a source location derived from an MLIL instruction.
+		/// </summary>
+		public static SourceLocation FromInstruction(
+			MediumLevelILInstruction instruction,
+			bool ilDirect = true)
+		{
+			if (null == instruction)
+			{
+				throw new ArgumentNullException(nameof(instruction));
+			}
+
+			SourceLocation result = new SourceLocation(
+				instruction.Address,
+				instruction.SourceOperand,
+				ilDirect);
+			result.SourceMediumLevelILInstruction = instruction;
+
+			return result;
+		}
+
+		/// <summary>
+		/// Creates a source location derived from an HLIL instruction.
+		/// </summary>
+		public static SourceLocation FromInstruction(
+			HighLevelILInstruction instruction,
+			bool ilDirect = true)
+		{
+			if (null == instruction)
+			{
+				throw new ArgumentNullException(nameof(instruction));
+			}
+
+			SourceLocation result = new SourceLocation(
+				instruction.Address,
+				instruction.SourceOperand,
+				ilDirect);
+			result.SourceHighLevelILInstruction = instruction;
+
+			return result;
 		}
 		
 		public override bool Equals(object? other)

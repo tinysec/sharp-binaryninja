@@ -13,7 +13,7 @@ namespace BinaryNinja
     /// Analysis passes use the context to retrieve IL functions, inspect lifted code, and
     /// communicate structured requests back to the analysis pipeline via Inform().
     /// </summary>
-    public sealed class AnalysisContext : AbstractSafeHandle<AnalysisContext>
+    public sealed partial class AnalysisContext : AbstractSafeHandle<AnalysisContext>
     {
         /// <summary>
         /// Initializes a new AnalysisContext wrapper around an existing native handle.
@@ -357,21 +357,7 @@ namespace BinaryNinja
         /// <param name="mlilFunction">The Medium Level IL function to set.</param>
         public void SetMediumLevelILFunction(MediumLevelILFunction mlilFunction)
         {
-            // 1. Validate the required parameter.
-            if (null == mlilFunction)
-            {
-                throw new ArgumentNullException(nameof(mlilFunction));
-            }
-
-            // 2. Forward to the native API with empty mapping arrays.
-            NativeMethods.BNSetMediumLevelILFunction(
-                this.handle ,
-                mlilFunction.DangerousGetHandle() ,
-                IntPtr.Zero ,
-                0 ,
-                IntPtr.Zero ,
-                0
-            );
+            this.SetMediumLevelILFunction(mlilFunction, null, null);
         }
 
         // ---------------------------------------------------------------------
