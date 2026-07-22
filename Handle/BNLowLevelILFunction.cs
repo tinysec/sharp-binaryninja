@@ -1635,7 +1635,8 @@ namespace BinaryNinja
 			    location,
 			    size,
 			    null == flag ? 0 : (uint)flag,
-			    (ulong)register
+			    (ulong)register,
+			    (ulong)value
 		    );
 	    }
 	    
@@ -1653,7 +1654,8 @@ namespace BinaryNinja
 			    size,
 			    null == flag ? 0 : (uint)flag,
 			    (ulong)high,
-			    (ulong)low
+			    (ulong)low,
+			    (ulong)value
 		    );
 	    }
 	    
@@ -1703,7 +1705,8 @@ namespace BinaryNinja
 			    LowLevelILOperation.LLIL_SET_FLAG ,
 			    location,
 			    size,
-			    (uint)flag,
+			    0,
+			    (ulong)flag,
 			    (ulong)value
 		    );
 	    }

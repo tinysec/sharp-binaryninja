@@ -11,11 +11,20 @@ namespace BinaryNinja
 			
 		}
 
-		public LowLevelILInstruction Destionation
+		public LowLevelILInstruction Destination
 		{
 			get
 			{
 				return this.GetOperandAsExpression(0);
+			}
+		}
+
+		[System.Obsolete("Use Destination instead.")]
+		public LowLevelILInstruction Destionation
+		{
+			get
+			{
+				return this.Destination;
 			}
 		}
 		

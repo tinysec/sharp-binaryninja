@@ -149,7 +149,7 @@ namespace BinaryNinja
 			{ LowLevelILOperation.LLIL_JUMP, 1 },                    // dest
 			{ LowLevelILOperation.LLIL_JUMP_TO, 3 },                 // dest, table, targetReg
 			{ LowLevelILOperation.LLIL_CALL, 1 },                    // dest
-			{ LowLevelILOperation.LLIL_CALL_STACK_ADJUST, 2 },       // adjust, callExpr
+			{ LowLevelILOperation.LLIL_CALL_STACK_ADJUST, 4 },  // dest, adjust, regStackAdjustments(list)
 			{ LowLevelILOperation.LLIL_TAILCALL, 1 },                // dest
 			{ LowLevelILOperation.LLIL_RET, 1 },                     // src(list)
 			{ LowLevelILOperation.LLIL_NORET, 0 },                   // noreturn
@@ -173,7 +173,7 @@ namespace BinaryNinja
 			{ LowLevelILOperation.LLIL_BOOL_TO_INT, 2 },             // size, src
 			{ LowLevelILOperation.LLIL_ADD_OVERFLOW, 3 },            // size, left, right
 
-			{ LowLevelILOperation.LLIL_SYSCALL, 1 },                 // params(list)
+			{ LowLevelILOperation.LLIL_SYSCALL, 0 },                   // syscall
 			{ LowLevelILOperation.LLIL_BP, 0 },                      // breakpoint
 			{ LowLevelILOperation.LLIL_TRAP, 1 },                    // code
 			{ LowLevelILOperation.LLIL_INTRINSIC, 4 },  // outputRegisterOrFlagList(+1), intrinsic, parameterExprs
@@ -281,6 +281,7 @@ namespace BinaryNinja
 		{
 			this.Operation = native.operation ;
 			this.Attributes = native.attributes ;
+			this.Flags = native.flags;
 			this.SourceOperand = (OperandIndex)native.sourceOperand;
 			this.Size = native.size ;
 			this.Address = native.address ;
@@ -318,6 +319,7 @@ namespace BinaryNinja
 			{
 				operation = this.Operation ,
 				attributes = this.Attributes ,
+				flags = this.Flags,
 				sourceOperand = (uint)this.SourceOperand ,
 				size = this.Size ,
 				address = this.Address ,
@@ -1404,7 +1406,7 @@ namespace BinaryNinja
 			return regStacks.ToArray();
 		}
 		
-		public IDictionary<RegisterStackIndex,ulong> GetOperandAsRegisterStackDict(OperandIndex operand)
+		public IDictionary<RegisterStackIndex,long> GetOperandAsRegisterStackDict(OperandIndex operand)
 		{
 			IntPtr arrayPointer = NativeMethods.BNLowLevelILGetOperandList(
 				this.ILFunction.DangerousGetHandle() ,
@@ -1419,20 +1421,24 @@ namespace BinaryNinja
 				NativeMethods.BNLowLevelILFreeOperandList
 			);
 
-			Dictionary<RegisterStackIndex,ulong> target = new Dictionary<RegisterStackIndex,ulong>();
+			Dictionary<RegisterStackIndex,long> target = new Dictionary<RegisterStackIndex,long>();
 
 			for (int i = 0; i < paires.Length; i += 2)
 			{
 				RegisterStackIndex key = (RegisterStackIndex)( paires[i] );
 				
-				ulong adjust = paires[i+1];
-
-				if ( 0 != (adjust & 0x80000000) )
+				ulong rawAdjustment = paires[i + 1];
+				long adjustment;
+				if (rawAdjustment <= uint.MaxValue)
 				{
-					adjust |= ~0x80000000;
+					adjustment = unchecked((int)(uint)rawAdjustment);
 				}
-				
-				target[key] = adjust;
+				else
+				{
+					adjustment = unchecked((long)rawAdjustment);
+				}
+
+				target[key] = adjustment;
 			}
 			
 			return target;

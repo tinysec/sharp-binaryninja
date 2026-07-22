@@ -11,12 +11,21 @@ namespace BinaryNinja
 			
 		}
 		
-		public FlagOrRegister[] output
+		public FlagOrRegister[] Output
 		{
 			get
 			{
 				
 				return this.GetOperandAsFlagOrRegisterList(0);
+			}
+		}
+
+		[System.Obsolete("Use Output instead.")]
+		public FlagOrRegister[] output
+		{
+			get
+			{
+				return this.Output;
 			}
 		}
 		

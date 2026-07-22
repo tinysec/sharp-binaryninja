@@ -15,7 +15,9 @@ namespace BinaryNinja
 		{
 			get
 			{
-				return this.GetOperandAsExpression(0);
+				return LowLevelILInstruction.FromExpressionIndex(
+					this.ILFunction,
+					(LowLevelILExpressionIndex)this.Flags);
 			}
 		}
 		
@@ -23,7 +25,7 @@ namespace BinaryNinja
 		{
 			get
 			{
-				return this.GetOperandAsExpression((OperandIndex)1);
+				return this.GetOperandAsExpression(0);
 			}
 		}
 	}
