@@ -186,6 +186,14 @@ namespace BinaryNinja
 			return true;
 		}
 
+		/// <summary>Creates an independent mutable copy of this type builder.</summary>
+		public TypeBuilder Duplicate()
+		{
+			return TypeBuilder.MustTakeHandle(
+				NativeMethods.BNDuplicateTypeBuilder(this.handle)
+			);
+		}
+
 		public ulong Width
 		{
 			get
