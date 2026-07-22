@@ -1,12 +1,37 @@
 using System;
-using System.Collections.Generic;
 using System.Runtime.InteropServices;
-using Microsoft.Win32.SafeHandles;
 
 namespace BinaryNinja
 {
+	internal static partial class NativeDelegates
+	{
+		[UnmanagedFunctionPointer(System.Runtime.InteropServices.CallingConvention.Cdecl)]
+		[return: MarshalAs(UnmanagedType.I1)]
+		internal delegate bool BNDemanglerIsMangledString(
+			IntPtr context,
+			[MarshalAs(UnmanagedType.LPUTF8Str)] string name
+		);
+
+		[UnmanagedFunctionPointer(System.Runtime.InteropServices.CallingConvention.Cdecl)]
+		[return: MarshalAs(UnmanagedType.I1)]
+		internal delegate bool BNDemanglerDemangle(
+			IntPtr context,
+			IntPtr architecture,
+			[MarshalAs(UnmanagedType.LPUTF8Str)] string name,
+			IntPtr outType,
+			IntPtr outVarName,
+			IntPtr view
+		);
+
+		[UnmanagedFunctionPointer(System.Runtime.InteropServices.CallingConvention.Cdecl)]
+		internal delegate void BNDemanglerFreeVarName(
+			IntPtr context,
+			IntPtr name
+		);
+	}
+
 	[StructLayout(LayoutKind.Sequential)]
-	internal unsafe struct BNDemanglerCallbacks 
+	internal struct BNDemanglerCallbacks
 	{
 		/// <summary>
 		/// void* context
@@ -29,7 +54,7 @@ namespace BinaryNinja
 		public IntPtr freeVarName;
 	}
 
-    public class DemanglerCallbacks 
+	public class DemanglerCallbacks
     {
 		public DemanglerCallbacks() 
 		{

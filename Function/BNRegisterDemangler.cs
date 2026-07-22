@@ -22,7 +22,7 @@ namespace BinaryNinja
 		    [MarshalAs(UnmanagedType.LPUTF8Str)] string name  , 
 			
 			// BNDemanglerCallbacks* callbacks
-		    IntPtr callbacks  
+		    in BNDemanglerCallbacks callbacks
 			
 		);
 	}
