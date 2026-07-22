@@ -25,10 +25,10 @@ namespace BinaryNinja
 		    IntPtr str   , 
 			
 			// size_t* count
-		    IntPtr count   , 
+		    out UIntPtr count,
 			
 			// bool limit
-		    bool limit   , 
+		    [MarshalAs(UnmanagedType.I1)] bool limit,
 			
 			// size_t maxItems
 		    UIntPtr maxItems  
