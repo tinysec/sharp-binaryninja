@@ -35,7 +35,7 @@ namespace BinaryNinja
 		}
 
 		public FunctionType(BinaryNinja.Type type) 
-			: base( type.DangerousGetHandle() , true)
+			: base(BinaryNinja.Type.NewReferenceHandle(type), true)
 		{
 			
 		}
@@ -127,20 +127,12 @@ namespace BinaryNinja
 		{
 			using (ScopedAllocator allocator = new ScopedAllocator())
 			{
-				// ABI 176 combines the return type and its location into a single BNReturnValue.
 				BNTypeWithConfidence returnTypeNative = returnType.ToNative();
-
-				BNReturnValue returnValue = new BNReturnValue()
-				{
-					type = returnTypeNative.type,
-					typeConfidence = returnTypeNative.confidence,
-					defaultLocation = true,
-					location = default,
-					locationConfidence = 0
-				};
+				BNRegisterSetWithConfidence returnRegistersNative =
+					returnRegs.ToNativeEx(allocator);
 
 				return NativeMethods.BNCreateFunctionType(
-					returnValue,
+					returnTypeNative,
 					callingConvention.ToNative(),
 					allocator.ConvertToNativeArrayEx<BNFunctionParameter,FunctionParameter>(
 						parameters
@@ -154,6 +146,7 @@ namespace BinaryNinja
 						regStackAdjustValues
 					),
 					(ulong)regStackAdjustValues.Length,
+					returnRegistersNative,
 					ft,
 					pure.ToNative()
 				);

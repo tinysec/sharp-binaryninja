@@ -22,7 +22,7 @@ namespace BinaryNinja
 		}
 		
 		public PointerType(BinaryNinja.Type type) 
-			: base( type.DangerousGetHandle() , true)
+			: base(BinaryNinja.Type.NewReferenceHandle(type), true)
 		{
 			
 		}

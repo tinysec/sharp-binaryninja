@@ -10,7 +10,7 @@ namespace BinaryNinja
 		}
 		
 		public BoolType(BinaryNinja.Type type) 
-			: base( type.DangerousGetHandle() , true)
+			: base(BinaryNinja.Type.NewReferenceHandle(type), true)
 		{
 			
 		}

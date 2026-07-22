@@ -5,7 +5,7 @@ namespace BinaryNinja
 	public sealed class EnumerationType : BinaryNinja.Type
 	{
 		public EnumerationType(BinaryNinja.Type type) 
-			: base( type.DangerousGetHandle() , true)
+			: base(BinaryNinja.Type.NewReferenceHandle(type), true)
 		{
 			
 		}
@@ -33,7 +33,10 @@ namespace BinaryNinja
 		{
 			get
 			{
-				return this.Enumeration.Members;
+				using (Enumeration enumeration = this.Enumeration)
+				{
+					return enumeration.Members;
+				}
 			}
 		}
 
