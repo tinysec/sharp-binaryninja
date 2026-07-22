@@ -1179,6 +1179,52 @@ namespace BinaryNinja
 		}
 
 		/// <summary>
+		/// Searches an in-memory buffer using the core's advanced search query format.
+		/// </summary>
+		/// <param name="query">JSON search query accepted by the advanced binary search engine.</param>
+		/// <param name="buffer">Bytes to search.</param>
+		/// <param name="match">Callback receiving each match offset and length.</param>
+		/// <returns>True when the search completed, or false when the callback cancelled it.</returns>
+		public static unsafe bool PerformSearch(
+			string query,
+			byte[] buffer,
+			SearchMatchDelegate match)
+		{
+			if (null == query)
+			{
+				throw new ArgumentNullException(nameof(query));
+			}
+
+			if (null == buffer)
+			{
+				throw new ArgumentNullException(nameof(buffer));
+			}
+
+			if (null == match)
+			{
+				throw new ArgumentNullException(nameof(match));
+			}
+
+			SearchMatchContext callbackContext = new SearchMatchContext(match);
+			NativeDelegates.BNProgressFunction nativeCallback = callbackContext.Invoke;
+			bool result;
+
+			fixed (byte* bufferPointer = buffer)
+			{
+				result = NativeMethods.BNPerformSearch(
+					query,
+					(IntPtr)bufferPointer,
+					(ulong)buffer.Length,
+					Marshal.GetFunctionPointerForDelegate<NativeDelegates.BNProgressFunction>(nativeCallback),
+					IntPtr.Zero);
+			}
+
+			GC.KeepAlive(nativeCallback);
+			callbackContext.ThrowIfFailed();
+			return result;
+		}
+
+		/// <summary>
 		/// Executes a worker process with the given arguments, input data, and captures stdout/stderr.
 		/// </summary>
 		/// <param name="path">The filesystem path to the executable.</param>
@@ -1402,8 +1448,6 @@ namespace BinaryNinja
 
 		// TODO: BNPerformCustomRequest / BNPerformDownloadRequest — on DownloadInstance,
 		//       requires callback context parameters for progress/completion notifications.
-
-		// TODO: BNPerformSearch — on BinaryView, requires callback context for search results.
 
 		// TODO: BNTypeArchiveMergeSnapshots / BNTypeArchiveNewSnapshotTransaction —
 		//       callback-based transaction functions requiring managed delegate infrastructure.
