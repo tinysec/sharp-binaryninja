@@ -208,7 +208,7 @@ namespace BinaryNinja
         	{ MediumLevelILOperation.MLIL_VAR_ALIASED, 2 },  // var, version
         	{ MediumLevelILOperation.MLIL_VAR_ALIASED_FIELD, 3 },  // var, version, offset
         	{ MediumLevelILOperation.MLIL_VAR_SPLIT_SSA, 4 },  // destSSAVariable(var,version), high, low
-        	{ MediumLevelILOperation.MLIL_ASSERT_SSA, 2 },
+		{ MediumLevelILOperation.MLIL_ASSERT_SSA, 3 }, // variable, version, constraint
         	{ MediumLevelILOperation.MLIL_FORCE_VER_SSA, 4 },  // destSSAVariable(var,version), sourceSSAVariable(var,version)
         	{ MediumLevelILOperation.MLIL_CALL_SSA, 5 },  // output(wrapper holds destMem), dest, params(list), srcMemory
         	{ MediumLevelILOperation.MLIL_CALL_UNTYPED_SSA, 4 }, // dest, params, outputs, srcMem
@@ -1529,6 +1529,9 @@ namespace BinaryNinja
 
 				case ILOperandKind.ConstantData:
 					return this.GetOperandAsConstantData(index, secondaryIndex);
+
+				case ILOperandKind.PossibleValueSet:
+					return this.GetOperandAsPossibleValueSet(index);
 
 				case ILOperandKind.Intrinsic:
 					return this.GetOperandAsIntrinsic(index);

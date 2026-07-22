@@ -13,8 +13,8 @@ namespace BinaryNinja
 
 		/// <summary>
 		/// The operand value. The runtime type follows <see cref="Kind"/>: an IL instruction,
-		/// <c>long</c>, a Variable/SSAVariable, <c>float</c>, or an array of those. May be null
-		/// when the underlying native operand is absent.
+		/// <c>long</c>, a Variable/SSAVariable, <c>float</c>, a PossibleValueSet, or an array of
+		/// those. May be null when the underlying native operand is absent.
 		/// </summary>
 		public object? Value { get; }
 
