@@ -65,6 +65,21 @@ namespace BinaryNinja
 				return instruction.Source;
 			}
 		}
+
+		public ulong ParametersSourceMemory
+		{
+			get
+			{
+				MLILCallParamSSA? instruction = this.GetOperandAsExpression((OperandIndex)2) as MLILCallParamSSA;
+
+				if (null == instruction)
+				{
+					throw new Exception("must be MediumLevelILCallParamSSA");
+				}
+
+				return instruction.SourceMemory;
+			}
+		}
 		
 		public MediumLevelILInstruction Stack
 		{
