@@ -334,25 +334,12 @@ namespace BinaryNinja
 		{
 			IntPtr rawPtr = NativeMethods.BNGetStructureBuilderMemberByName(this.handle , name);
 
-			if (rawPtr == IntPtr.Zero)
-			{
-				return null;
-			}
-	
-			return StructureMember.FromNativePointer(rawPtr);
+			return StructureMember.TakeNativePointer(rawPtr);
 		}
 		
 		public StructureMember? GetMemberByOffset(ulong offset )
 		{
-			foreach (StructureMember member in Members)
-			{
-				if (member.Offset == offset)
-				{
-					return member;
-				}
-			}
-
-			return null;
+			return this.GetMemberAtOffset(checked((long)offset), out ulong _);
 		}
 		
 		public int? GetIndexByName(string name )

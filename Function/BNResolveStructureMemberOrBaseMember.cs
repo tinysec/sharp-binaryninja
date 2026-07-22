@@ -8,7 +8,9 @@ namespace BinaryNinja
     internal static partial class NativeMethods
     {
 	    /// <summary>
-		/// bool BNResolveStructureMemberOrBaseMember(BNStructure* s, BNBinaryView* data, uint64_t offset, uint64_t size, void* callbackContext, void** resolveFunc, bool memberIndexHintValid, uint64_t memberIndexHint)
+		/// bool BNResolveStructureMemberOrBaseMember(BNStructure* s, BNBinaryView* data,
+		/// uint64_t offset, size_t size, void* callbackContext, resolveFunc,
+		/// bool memberIndexHintValid, size_t memberIndexHint)
 		/// </summary>
 		[DllImport(
             "binaryninjacore", 
@@ -34,11 +36,11 @@ namespace BinaryNinja
 			// void* callbackContext
 		    IntPtr callbackContext  , 
 			
-			// void** resolveFunc
+			// Native resolution callback function pointer
 		    IntPtr resolveFunc  , 
 			
 			// bool memberIndexHintValid
-		    bool memberIndexHintValid  , 
+		    [MarshalAs(UnmanagedType.I1)] bool memberIndexHintValid  ,
 			
 			// uint64_t memberIndexHint
 		    ulong memberIndexHint  
