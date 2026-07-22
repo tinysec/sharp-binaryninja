@@ -1334,24 +1334,7 @@ namespace BinaryNinja
 		{
 			get
 			{
-				MediumLevelILExpressionIndex index = NativeMethods.BNGetMediumLevelILExprIndexFromHighLevelIL(
-					this.ILFunction.DangerousGetHandle() ,
-					this.ExpressionIndex
-				);
-
-				if (null == this.ILFunction.MediumLevelIL)
-				{
-					return null;
-				}
-				
-				if ((ulong)index >= this.ILFunction.MediumLevelIL.ExpressionCount)
-				{
-					return null;
-				}
-				
-				return this.ILFunction.MediumLevelIL?.GetExpression(
-					(MediumLevelILExpressionIndex)index
-				);
+				return this.ILFunction.GetMediumLevelILExpression(this.ExpressionIndex);
 			}
 		}
 		
@@ -1359,33 +1342,7 @@ namespace BinaryNinja
 		{
 			get
 			{
-				MediumLevelILFunction? mediumLevelIl = this.ILFunction.MediumLevelIL;
-
-				if (null == mediumLevelIl)
-				{
-					return Array.Empty<MediumLevelILInstruction>();
-				}
-				
-				IntPtr arrayPointer = NativeMethods.BNGetMediumLevelILExprIndexesFromHighLevelIL(
-					this.ILFunction.DangerousGetHandle() ,
-					this.ExpressionIndex,
-					out ulong arrayLength
-				);
-
-				ulong[] indexes = UnsafeUtils.TakeNumberArray<ulong>(
-					arrayPointer ,
-					arrayLength ,
-					NativeMethods.BNFreeILInstructionList
-				);
-				
-				List<MediumLevelILInstruction> targets = new List<MediumLevelILInstruction>();
-
-				foreach (MediumLevelILExpressionIndex index in indexes)
-				{
-					targets.Add(mediumLevelIl.MustGetExpression(index));
-				}
-				
-				return targets.ToArray();
+				return this.ILFunction.GetMediumLevelILExpressions(this.ExpressionIndex);
 			}
 		}
 
