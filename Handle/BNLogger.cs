@@ -38,6 +38,26 @@ namespace BinaryNinja
 		    
 		    return new Logger(handle, true);
 	    }
+
+	    internal static Logger? NewFromHandle(IntPtr handle)
+	    {
+		    if (IntPtr.Zero == handle)
+		    {
+			    return null;
+		    }
+
+		    return new Logger(NativeMethods.BNNewLoggerReference(handle), true);
+	    }
+
+	    internal static Logger MustNewFromHandle(IntPtr handle)
+	    {
+		    if (IntPtr.Zero == handle)
+		    {
+			    throw new ArgumentNullException(nameof(handle));
+		    }
+
+		    return new Logger(NativeMethods.BNNewLoggerReference(handle), true);
+	    }
 	    
 	    public static Logger? GetLogger(string name , ulong sessionId = 0)
 	    {
@@ -79,6 +99,12 @@ namespace BinaryNinja
 		    return Logger.MustTakeHandle(
 			    Logger.rawGetOrCreateLogger(name , sessionId)
 		    );
+	    }
+
+	    /// <summary>Acquires an independent native reference to this logger.</summary>
+	    public Logger Duplicate()
+	    {
+		    return Logger.MustNewFromHandle(this.handle);
 	    }
 
 	    public static string[] GetLoggerNames()

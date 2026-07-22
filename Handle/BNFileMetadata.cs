@@ -46,6 +46,26 @@ namespace BinaryNinja
 		    
 			return new FileMetadata(handle, true);
 		}
+
+		internal static FileMetadata? NewFromHandle(IntPtr handle)
+		{
+			if (IntPtr.Zero == handle)
+			{
+				return null;
+			}
+
+			return new FileMetadata(NativeMethods.BNNewFileReference(handle), true);
+		}
+
+		internal static FileMetadata MustNewFromHandle(IntPtr handle)
+		{
+			if (IntPtr.Zero == handle)
+			{
+				throw new ArgumentNullException(nameof(handle));
+			}
+
+			return new FileMetadata(NativeMethods.BNNewFileReference(handle), true);
+		}
 	    
 		internal static FileMetadata? BorrowHandle(IntPtr handle)
 		{
@@ -77,6 +97,12 @@ namespace BinaryNinja
 			return file;
 		}
 
+		/// <summary>Acquires an independent native reference to this file metadata object.</summary>
+		public FileMetadata Duplicate()
+		{
+			return FileMetadata.MustNewFromHandle(this.handle);
+		}
+
 		protected override bool ReleaseHandle()
 		{
 			if (!this.IsInvalid)
@@ -87,7 +113,6 @@ namespace BinaryNinja
 					this.navigationHandler = null;
 				}
 
-				NativeMethods.BNCloseFile(this.handle);
 				NativeMethods.BNFreeFileMetadata(this.handle);
 				this.SetHandleAsInvalid();
 			}
