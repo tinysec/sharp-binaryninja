@@ -91,6 +91,38 @@ namespace BinaryNinja
             );
         }
 
+		/// <summary>
+		/// Formats parser diagnostics using the core's canonical diagnostic representation.
+		/// </summary>
+		/// <param name="errors">The parser diagnostics to format.</param>
+		/// <returns>The formatted diagnostics.</returns>
+		public static string FormatParseErrors(IReadOnlyList<TypeParserError> errors)
+		{
+			if (null == errors)
+			{
+				throw new ArgumentNullException(nameof(errors));
+			}
+
+			using (ScopedAllocator allocator = new ScopedAllocator())
+			{
+				BNTypeParserError[] nativeErrors = new BNTypeParserError[errors.Count];
+				for (int i = 0; i < errors.Count; i++)
+				{
+					TypeParserError? error = errors[i];
+					if (null == error)
+					{
+						throw new ArgumentException("Parser error entries cannot be null.", nameof(errors));
+					}
+
+					nativeErrors[i] = error.ToNativeEx(allocator);
+				}
+
+				IntPtr nativeArray = allocator.AllocStructArray(nativeErrors);
+				return UnsafeUtils.TakeUtf8String(
+					NativeMethods.BNFormatTypeParserParseErrors(nativeArray, (ulong)nativeErrors.Length));
+			}
+		}
+
         /// <summary>
         /// Looks up a registered type parser by its name.
         /// Returns null if no parser is registered with the given name.
