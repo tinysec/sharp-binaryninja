@@ -6,7 +6,7 @@ using Microsoft.Win32.SafeHandles;
 
 namespace BinaryNinja
 {
-	public sealed class Structure : AbstractSafeHandle<Structure>
+	public sealed partial class Structure : AbstractSafeHandle<Structure>
 	{
 		public Structure(StructureType type) 
 			: base( NativeMethods.BNGetTypeStructure(type.DangerousGetHandle()) , true)
@@ -237,15 +237,17 @@ namespace BinaryNinja
 	    
 	    public StructureMember? GetMemberByOffset(ulong offset )
 	    {
-		    foreach (StructureMember member in Members)
-		    {
-			    if (member.Offset == offset)
-			    {
-				    return member;
-			    }
-		    }
+		    return this.GetMemberAtOffset(checked((long)offset));
+	    }
 
-		    return null;
+	    /// <summary>
+	    /// Gets the member containing the given byte offset, or null when no member covers it.
+	    /// </summary>
+	    public StructureMember? GetMemberAtOffset(long offset)
+	    {
+		    this.TryGetMemberByOffset(offset, out StructureMember? member, out ulong _);
+
+		    return member;
 	    }
 		
 	    public ulong? GetOffsetByName(string name )
@@ -360,29 +362,35 @@ namespace BinaryNinja
 			    return Array.Empty<InheritedStructureMember>();
 		    }
 
-		    // 4. Marshal each native BNInheritedStructureMember into a managed object.
-		    InheritedStructureMember[] results = new InheritedStructureMember[checked((int)count)];
-
-		    int structSize = Marshal.SizeOf<BNInheritedStructureMember>();
-
-		    for (ulong i = 0; i < count; i++)
+		    try
 		    {
-			    IntPtr elementPtr = IntPtr.Add(ptr , checked((int)(i * (ulong)structSize)));
+			    // 4. Marshal each native BNInheritedStructureMember into a managed object.
+			    InheritedStructureMember[] results =
+				    new InheritedStructureMember[checked((int)count)];
+			    int structSize = Marshal.SizeOf<BNInheritedStructureMember>();
 
-			    BNInheritedStructureMember native = Marshal.PtrToStructure<BNInheritedStructureMember>(elementPtr);
+			    for (ulong index = 0; index < count; index++)
+			    {
+				    IntPtr elementPointer = IntPtr.Add(
+					    ptr,
+					    checked((int)(index * (ulong)structSize)));
+				    BNInheritedStructureMember native =
+					    Marshal.PtrToStructure<BNInheritedStructureMember>(elementPointer);
 
-			    results[i] = new InheritedStructureMember(
-				    NamedTypeReference.MustNewFromHandle(native._base) ,
-				    native.baseOffset ,
-				    StructureMember.FromNative(native.member) ,
-				    native.memberIndex
-			    );
+				    results[index] = new InheritedStructureMember(
+					    NamedTypeReference.NewFromHandle(native._base),
+					    native.baseOffset,
+					    StructureMember.FromNative(native.member),
+					    native.memberIndex);
+			    }
+
+			    return results;
 		    }
-
-		    // 5. Free the native array.
-		    NativeMethods.BNFreeInheritedStructureMemberList(ptr , count);
-
-		    return results;
+		    finally
+		    {
+			    // 5. The core owns the returned array until it is freed here.
+			    NativeMethods.BNFreeInheritedStructureMemberList(ptr, count);
+		    }
 	    }
 
 	    public override string ToString()
@@ -451,21 +459,23 @@ namespace BinaryNinja
 			    return null;
 		    }
 
-		    // 3. Marshal the native struct.
-		    BNInheritedStructureMember native = Marshal.PtrToStructure<BNInheritedStructureMember>(resultPtr);
+		    try
+		    {
+			    // 3. Marshal and convert the native result.
+			    BNInheritedStructureMember native =
+				    Marshal.PtrToStructure<BNInheritedStructureMember>(resultPtr);
 
-		    // 4. Convert to managed type.
-		    InheritedStructureMember result = new InheritedStructureMember(
-			    NamedTypeReference.MustNewFromHandle(native._base) ,
-			    native.baseOffset ,
-			    StructureMember.FromNative(native.member) ,
-			    native.memberIndex
-		    );
-
-		    // 5. Free the native struct.
-		    NativeMethods.BNFreeInheritedStructureMember(resultPtr);
-
-		    return result;
+			    return new InheritedStructureMember(
+				    NamedTypeReference.NewFromHandle(native._base),
+				    native.baseOffset,
+				    StructureMember.FromNative(native.member),
+				    native.memberIndex);
+		    }
+		    finally
+		    {
+			    // 4. The core owns the returned struct until it is freed here.
+			    NativeMethods.BNFreeInheritedStructureMember(resultPtr);
+		    }
 	    }
 
 	}

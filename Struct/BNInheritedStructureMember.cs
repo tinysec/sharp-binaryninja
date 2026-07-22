@@ -33,7 +33,7 @@ namespace BinaryNinja
 
     public sealed class InheritedStructureMember 
     {
-		public NamedTypeReference BaseType { get; set; }
+		public NamedTypeReference? BaseType { get; set; }
 		
 		public ulong BaseOffset { get; set; } = 0;
 		
@@ -42,7 +42,7 @@ namespace BinaryNinja
 		public MemberIndex MemberIndex { get; set; } = 0;
 		
 		public InheritedStructureMember(
-			NamedTypeReference baseType, 
+			NamedTypeReference? baseType,
 			ulong baseOffset, 
 			StructureMember member,
 			MemberIndex memberIndex
