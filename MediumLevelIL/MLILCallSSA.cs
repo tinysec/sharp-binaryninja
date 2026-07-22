@@ -2,7 +2,7 @@ using System;
 
 namespace BinaryNinja
 {
-	public sealed class MLILCallSSA : MediumLevelILInstruction
+	public sealed class MLILCallSSA : AbstractMediumLevelILSSACallInstruction
 	{
 		internal MLILCallSSA(
 			MediumLevelILFunction ilFunction, 
@@ -13,7 +13,7 @@ namespace BinaryNinja
 			
 		}
 		
-		public MediumLevelILSSAVariable[] Output
+		public override MediumLevelILSSAVariable[] Output
 		{
 			get
 			{
@@ -51,7 +51,7 @@ namespace BinaryNinja
 			}
 		}
 		
-		public MediumLevelILInstruction[] Parameters
+		public override MediumLevelILInstruction[] Parameters
 		{
 			get
 			{

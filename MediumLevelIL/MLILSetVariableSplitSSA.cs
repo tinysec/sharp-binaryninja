@@ -42,6 +42,14 @@ namespace BinaryNinja
 				return this.Source.SSAVariablesRead;
 			}
 		}
+
+		public override MediumLevelILVariable[] VariablesRead
+		{
+			get
+			{
+				return this.Source.VariablesRead;
+			}
+		}
 		
 		public override MediumLevelILSSAVariable[] SSAVariablesWrite
 		{

@@ -2,7 +2,7 @@ using System;
 
 namespace BinaryNinja
 {
-	public sealed class MLILSysCallUntyped : MediumLevelILInstruction
+	public sealed class MLILSysCallUntyped : AbstractMediumLevelILCallInstruction
 	{
 		internal MLILSysCallUntyped(
 			MediumLevelILFunction ilFunction, 
@@ -13,7 +13,7 @@ namespace BinaryNinja
 			
 		}
 		
-		public MediumLevelILVariable[] Output
+		public override MediumLevelILVariable[] Output
 		{
 			get
 			{
@@ -28,7 +28,7 @@ namespace BinaryNinja
 			}
 		}
 		
-		public MediumLevelILInstruction[] Parameters
+		public override MediumLevelILInstruction[] Parameters
 		{
 			get
 			{

@@ -18,5 +18,13 @@ namespace BinaryNinja
 				return this.GetOperandAsVariable(0);
 			}
 		}
+
+		public override MediumLevelILVariable[] VariablesAddressTaken
+		{
+			get
+			{
+				return new MediumLevelILVariable[] { this.Source };
+			}
+		}
 	}
 }

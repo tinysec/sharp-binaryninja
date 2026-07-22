@@ -2,40 +2,19 @@ using System.Collections.Generic;
 
 namespace BinaryNinja
 {
-	public sealed class MLILIntrinsicSSA : MediumLevelILInstruction
+	public abstract class AbstractMediumLevelILSSACallInstruction : MediumLevelILInstruction
 	{
-		internal MLILIntrinsicSSA(
-			MediumLevelILFunction ilFunction, 
-			MediumLevelILExpressionIndex expressionIndex ,
-			BNMediumLevelILInstruction native
-		) :base(ilFunction, expressionIndex , native)
+		internal AbstractMediumLevelILSSACallInstruction(
+			MediumLevelILFunction ilFunction,
+			MediumLevelILExpressionIndex expressionIndex,
+			BNMediumLevelILInstruction native)
+			: base(ilFunction, expressionIndex, native)
 		{
-			
 		}
-		
-		public MediumLevelILSSAVariable[] Output
-		{
-			get
-			{
-				return this.GetOperandAsSSAVariableList(0);
-			}
-		}
-		
-		public Intrinsic Intrinsic
-		{
-			get
-			{
-				return this.GetOperandAsIntrinsic((OperandIndex)2);
-			}
-		}
-		
-		public MediumLevelILInstruction[] Parameters
-		{
-			get
-			{
-				return this.GetOperandAsExpressionList((OperandIndex)3);
-			}
-		}
+
+		public abstract MediumLevelILSSAVariable[] Output { get; }
+
+		public abstract MediumLevelILInstruction[] Parameters { get; }
 
 		public override MediumLevelILVariable[] VariablesRead
 		{
@@ -51,7 +30,7 @@ namespace BinaryNinja
 				return variables.ToArray();
 			}
 		}
-		
+
 		public override MediumLevelILSSAVariable[] SSAVariablesRead
 		{
 			get

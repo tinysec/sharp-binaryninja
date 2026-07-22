@@ -18,5 +18,13 @@ namespace BinaryNinja
 				return this.GetOperandAsVariableList(0);
 			}
 		}
+
+		public override MediumLevelILVariable[] VariablesWrite
+		{
+			get
+			{
+				return this.Destination;
+			}
+		}
 	}
 }

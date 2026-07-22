@@ -1,6 +1,6 @@
 namespace BinaryNinja
 {
-	public sealed class MLILTailCall : MediumLevelILInstruction
+	public sealed class MLILTailCall : AbstractMediumLevelILCallInstruction
 	{
 		internal MLILTailCall(
 			MediumLevelILFunction ilFunction, 
@@ -11,7 +11,7 @@ namespace BinaryNinja
 			
 		}
 		
-		public MediumLevelILVariable[] Output
+		public override MediumLevelILVariable[] Output
 		{
 			get
 			{
@@ -27,7 +27,7 @@ namespace BinaryNinja
 			}
 		}
 		
-		public MediumLevelILInstruction[] Parameters
+		public override MediumLevelILInstruction[] Parameters
 		{
 			get
 			{

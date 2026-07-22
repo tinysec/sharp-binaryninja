@@ -18,5 +18,13 @@ namespace BinaryNinja
 				return this.GetOperandAsSSAVariable((OperandIndex)0,(OperandIndex)1);
 			}
 		}
+
+		public MediumLevelILSSAVariable Source
+		{
+			get
+			{
+				return this.Variable;
+			}
+		}
 	}
 }

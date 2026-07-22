@@ -26,5 +26,21 @@ namespace BinaryNinja
 				return this.GetOperandAsSSAVariableList((OperandIndex)2);
 			}
 		}
+
+		public override MediumLevelILSSAVariable[] SSAVariablesRead
+		{
+			get
+			{
+				return this.Source;
+			}
+		}
+
+		public override MediumLevelILSSAVariable[] SSAVariablesWrite
+		{
+			get
+			{
+				return new MediumLevelILSSAVariable[] { this.Destination };
+			}
+		}
 	}
 }
