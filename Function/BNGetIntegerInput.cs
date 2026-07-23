@@ -7,10 +7,10 @@ namespace BinaryNinja
 {
 	public static partial class Core
 	{
-		public static ulong? GetIntegerInput(string prompt , string title )
+		public static long? GetIntegerInput(string prompt , string title )
 		{
 			bool ok = NativeMethods.BNGetIntegerInput(
-				out ulong result ,
+				out long result ,
 				prompt ,
 				title
 			);
@@ -39,7 +39,7 @@ namespace BinaryNinja
 		internal static extern bool BNGetIntegerInput(
 			
 			// int64_t* result
-		    out ulong result  , 
+		    out long result  ,
 			
 			// const char* prompt
 		    [MarshalAs(UnmanagedType.LPUTF8Str)] string prompt  , 

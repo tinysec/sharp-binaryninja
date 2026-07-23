@@ -21,6 +21,7 @@ namespace BinaryNinja
 		/// typedef bool (*BNProgressFunction)(void* param1, uint64_t param2, uint64_t param3)
 		/// </summary>
 		[UnmanagedFunctionPointer(System.Runtime.InteropServices.CallingConvention.Cdecl)]
+		[return: MarshalAs(UnmanagedType.I1)]
 		internal delegate bool BNProgressFunction(
 		
 			// void* param1

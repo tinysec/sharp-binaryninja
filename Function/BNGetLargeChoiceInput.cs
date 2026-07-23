@@ -7,7 +7,7 @@ namespace BinaryNinja
 {
 	public static partial class Core
 	{
-		public static int? GetLargeChoiceInput(
+		public static ulong? GetLargeChoiceInput(
 			string prompt  , 
 			string title ,
 			string[] choices 
@@ -26,7 +26,7 @@ namespace BinaryNinja
 				return null;
 			}
 
-			return (int)result;
+			return result;
 		}
 	}
 	
