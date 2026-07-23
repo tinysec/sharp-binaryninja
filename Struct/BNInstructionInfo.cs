@@ -58,21 +58,23 @@ namespace BinaryNinja
 		internal IntPtr branchArch_2;
 	}
 	
-    public sealed class InstructionInfo 
-    {	
-		public ulong Length { get;} = 0;
-		
-		public ulong BranchCount { get;} = 0;
+	public sealed class InstructionInfo
+	{
+		private const int MaximumBranchCount = 3;
 
-		public bool ArchTransitionByTargetAddr { get;} = false;
-	
-		public byte DelaySlots { get; } = 0;
-		
-		public BranchType[] BranchType { get;} = Array.Empty<BranchType>();
-		
-		public ulong[] BranchTarget { get;} = Array.Empty<ulong>();
-		
-		public Architecture[] BranchArch { get;} = Array.Empty<Architecture>();
+		public ulong Length { get; set; } = 0;
+
+		public ulong BranchCount { get; private set; } = 0;
+
+		public bool ArchTransitionByTargetAddr { get; set; } = false;
+
+		public byte DelaySlots { get; set; } = 0;
+
+		public BranchType[] BranchType { get; private set; } = Array.Empty<BranchType>();
+
+		public ulong[] BranchTarget { get; private set; } = Array.Empty<ulong>();
+
+		public Architecture?[] BranchArch { get; private set; } = Array.Empty<Architecture?>();
 		
 		public InstructionInfo() 
 		{
@@ -83,7 +85,7 @@ namespace BinaryNinja
 		{
 			this.Length = native.length;
 
-			this.BranchCount = native.branchCount;
+			this.BranchCount = Math.Min(native.branchCount, (ulong)MaximumBranchCount);
 
 			this.ArchTransitionByTargetAddr = native.archTransitionByTargetAddr;
 
@@ -116,33 +118,84 @@ namespace BinaryNinja
 			this.BranchTarget = branchTargets.ToArray();
 			
 			// BranchArch
-			List<Architecture> branchArches = new List<Architecture>();
+			List<Architecture?> branchArches = new List<Architecture?>();
 
-			if (this.BranchCount >= 1)
+			if (1 <= this.BranchCount)
 			{
-				if (IntPtr.Zero != native.branchArch_0)
-				{
-					branchArches.Add( new Architecture( native.branchArch_0 ) );
-				}
+				branchArches.Add(Architecture.FromHandle(native.branchArch_0));
 			}
 
-			if (this.BranchCount >= 2)
+			if (2 <= this.BranchCount)
 			{
-				if (IntPtr.Zero != native.branchArch_1)
-				{
-					branchArches.Add( new Architecture( native.branchArch_1 ) );
-				}
+				branchArches.Add(Architecture.FromHandle(native.branchArch_1));
 			}
 
-			if (this.BranchCount >= 3)
+			if (3 <= this.BranchCount)
 			{
-				if (IntPtr.Zero != native.branchArch_2)
-				{
-					branchArches.Add( new Architecture( native.branchArch_2 ) );
-				}
+				branchArches.Add(Architecture.FromHandle(native.branchArch_2));
 			}
 			
 			this.BranchArch = branchArches.ToArray();
+		}
+
+		public void AddBranch(
+			BranchType type,
+			ulong target = 0,
+			Architecture? architecture = null,
+			byte delaySlots = 0)
+		{
+			if (MaximumBranchCount <= this.BranchCount)
+			{
+				return;
+			}
+
+			List<BranchType> branchTypes = new List<BranchType>(this.BranchType);
+			List<ulong> branchTargets = new List<ulong>(this.BranchTarget);
+			List<Architecture?> branchArchitectures =
+				new List<Architecture?>(this.BranchArch);
+
+			branchTypes.Add(type);
+			branchTargets.Add(target);
+			branchArchitectures.Add(architecture);
+
+			this.BranchType = branchTypes.ToArray();
+			this.BranchTarget = branchTargets.ToArray();
+			this.BranchArch = branchArchitectures.ToArray();
+			this.BranchCount = (ulong)this.BranchType.Length;
+			this.DelaySlots = delaySlots;
+		}
+
+		internal unsafe BNInstructionInfo ToNative()
+		{
+			BNInstructionInfo native = new BNInstructionInfo
+			{
+				length = this.Length,
+				branchCount = this.BranchCount,
+				archTransitionByTargetAddr = this.ArchTransitionByTargetAddr,
+				delaySlots = this.DelaySlots
+			};
+
+			for (int index = 0; index < this.BranchType.Length; index++)
+			{
+				native.branchType[index] = (byte)this.BranchType[index];
+				native.branchTarget[index] = this.BranchTarget[index];
+			}
+
+			native.branchArch_0 = this.GetBranchArchitectureHandle(0);
+			native.branchArch_1 = this.GetBranchArchitectureHandle(1);
+			native.branchArch_2 = this.GetBranchArchitectureHandle(2);
+
+			return native;
+		}
+
+		private IntPtr GetBranchArchitectureHandle(int index)
+		{
+			if (this.BranchArch.Length <= index || null == this.BranchArch[index])
+			{
+				return IntPtr.Zero;
+			}
+
+			return this.BranchArch[index]!.DangerousGetHandle();
 		}
 
 		internal static InstructionInfo FromNative(BNInstructionInfo native)
