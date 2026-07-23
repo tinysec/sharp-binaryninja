@@ -837,7 +837,7 @@ namespace BinaryNinja
 			    return null;
 		    }
 		  
-		    return new LanguageRepresentationFunction(raw , true);
+		    return LanguageRepresentationFunction.MustTakeHandle(raw);
 	    }
 	    
 	    public FunctionType Type

@@ -1,13 +1,13 @@
 using System;
 using System.Collections.Generic;
-using System.Runtime.InteropServices;
 using System.Text;
-using Microsoft.Win32.SafeHandles;
 
 namespace BinaryNinja
 {
-	public sealed class LanguageRepresentationFunction : AbstractSafeHandle<LanguageRepresentationFunction>
+	public abstract partial class LanguageRepresentationFunction : AbstractSafeHandle<LanguageRepresentationFunction>
 	{
+		private bool custom;
+
 	    internal LanguageRepresentationFunction(IntPtr handle , bool owner) 
 		    : base(handle , owner)
 	    {
@@ -21,7 +21,7 @@ namespace BinaryNinja
 			    return null;
 		    }
 		    
-		    return new LanguageRepresentationFunction(
+		    return new CoreLanguageRepresentationFunction(
 			    NativeMethods.BNNewLanguageRepresentationFunctionReference(handle) ,
 			    true
 		    );
@@ -34,7 +34,7 @@ namespace BinaryNinja
 			    throw new ArgumentNullException(nameof(handle));
 		    }
 		    
-		    return new LanguageRepresentationFunction(
+		    return new CoreLanguageRepresentationFunction(
 			    NativeMethods.BNNewLanguageRepresentationFunctionReference(handle) ,
 			    true
 		    );
@@ -47,7 +47,7 @@ namespace BinaryNinja
 			    return null;
 		    }
 		    
-		    return new LanguageRepresentationFunction(handle, true);
+		    return new CoreLanguageRepresentationFunction(handle, true);
 	    }
 	    
 	    internal static LanguageRepresentationFunction MustTakeHandle(IntPtr handle)
@@ -57,7 +57,7 @@ namespace BinaryNinja
 			    throw new ArgumentNullException(nameof(handle));
 		    }
 		    
-		    return new LanguageRepresentationFunction(handle, true);
+		    return new CoreLanguageRepresentationFunction(handle, true);
 	    }
 	    
 	    internal static LanguageRepresentationFunction? BorrowHandle(IntPtr handle)
@@ -67,7 +67,7 @@ namespace BinaryNinja
 			    return null;
 		    }
 		    
-		    return new LanguageRepresentationFunction(handle, false);
+		    return new CoreLanguageRepresentationFunction(handle, false);
 	    }
 	    
 	    internal static LanguageRepresentationFunction MustBorrowHandle(IntPtr handle)
@@ -77,11 +77,22 @@ namespace BinaryNinja
 			    throw new ArgumentNullException(nameof(handle));
 		    }
 		    
-		    return new LanguageRepresentationFunction(handle, false);
+		    return new CoreLanguageRepresentationFunction(handle, false);
 	    }
 	    
 	    protected override bool ReleaseHandle()
 	    {
+		    if (this.custom)
+		    {
+			    if (this.initialReferencePending)
+			    {
+				    this.initialReferencePending = false;
+				    NativeMethods.BNFreeLanguageRepresentationFunction(this.handle);
+			    }
+
+			    return true;
+		    }
+
 	        if ( !this.IsInvalid )
 	        {
 	            NativeMethods.BNFreeLanguageRepresentationFunction(this.handle);
@@ -335,11 +346,16 @@ namespace BinaryNinja
 	    /// <summary>
 	    /// Gets the string that marks the start of an annotation in this language.
 	    /// </summary>
-	    public string AnnotationStartString
+	    public virtual string AnnotationStartString
 	    {
 		    get
 		    {
-			    return UnsafeUtils.TakeAnsiString(
+			    if (this.custom)
+			    {
+				    return "{";
+			    }
+
+			    return UnsafeUtils.TakeUtf8String(
 				    NativeMethods.BNGetLanguageRepresentationFunctionAnnotationStartString(this.handle)
 			    );
 		    }
@@ -348,11 +364,16 @@ namespace BinaryNinja
 	    /// <summary>
 	    /// Gets the string that marks the end of an annotation in this language.
 	    /// </summary>
-	    public string AnnotationEndString
+	    public virtual string AnnotationEndString
 	    {
 		    get
 		    {
-			    return UnsafeUtils.TakeAnsiString(
+			    if (this.custom)
+			    {
+				    return "}";
+			    }
+
+			    return UnsafeUtils.TakeUtf8String(
 				    NativeMethods.BNGetLanguageRepresentationFunctionAnnotationEndString(this.handle)
 			    );
 		    }
@@ -361,11 +382,16 @@ namespace BinaryNinja
 	    /// <summary>
 	    /// Gets the string that marks the start of a comment in this language.
 	    /// </summary>
-	    public string CommentStartString
+	    public virtual string CommentStartString
 	    {
 		    get
 		    {
-			    return UnsafeUtils.TakeAnsiString(
+			    if (this.custom)
+			    {
+				    return "// ";
+			    }
+
+			    return UnsafeUtils.TakeUtf8String(
 				    NativeMethods.BNGetLanguageRepresentationFunctionCommentStartString(this.handle)
 			    );
 		    }
@@ -374,108 +400,19 @@ namespace BinaryNinja
 	    /// <summary>
 	    /// Gets the string that marks the end of a comment in this language.
 	    /// </summary>
-	    public string CommentEndString
+	    public virtual string CommentEndString
 	    {
 		    get
 		    {
-			    return UnsafeUtils.TakeAnsiString(
+			    if (this.custom)
+			    {
+				    return string.Empty;
+			    }
+
+			    return UnsafeUtils.TakeUtf8String(
 				    NativeMethods.BNGetLanguageRepresentationFunctionCommentEndString(this.handle)
 			    );
 		    }
-	    }
-
-	    // ===================================================================
-	    // Highlight
-	    // ===================================================================
-
-	    /// <summary>
-	    /// Gets the highlight color for this language representation function at the specified basic block.
-	    /// </summary>
-	    /// <param name="block">The basic block to get the highlight for.</param>
-	    /// <returns>The highlight color for the block.</returns>
-	    public HighlightColor GetHighlight(BasicBlock block)
-	    {
-		    return HighlightColor.FromNative(
-			    NativeMethods.BNGetLanguageRepresentationFunctionHighlight(
-				    this.handle ,
-				    block.DangerousGetHandle()
-			    )
-		    );
-	    }
-
-	    // ===================================================================
-	    // Language type lookup
-	    // ===================================================================
-
-	    /// <summary>
-	    /// Gets the language representation function type associated with this instance.
-	    /// </summary>
-	    /// <returns>The LanguageRepresentationFunctionType, or null if not available.</returns>
-	    public LanguageRepresentationFunctionType? GetLanguageType()
-	    {
-		    return LanguageRepresentationFunctionType.BorrowHandle(
-			    NativeMethods.BNGetLanguageRepresentationType(this.handle)
-		    );
-	    }
-
-	    /// <summary>
-	    /// Gets a registered language representation function type by its name.
-	    /// </summary>
-	    /// <param name="name">The name of the language type (e.g., "Pseudo C").</param>
-	    /// <returns>The matching LanguageRepresentationFunctionType, or null if not found.</returns>
-	    public static LanguageRepresentationFunctionType? GetLanguageTypeByName(string name)
-	    {
-		    return LanguageRepresentationFunctionType.BorrowHandle(
-			    NativeMethods.BNGetLanguageRepresentationFunctionTypeByName(name)
-		    );
-	    }
-
-	    /// <summary>
-	    /// Gets the line formatter settings for this language representation function
-	    /// using the given disassembly settings. Returns a LineFormatterSettings populated
-	    /// with language-specific formatting defaults.
-	    /// </summary>
-	    /// <param name="settings">The disassembly settings providing base formatting context.</param>
-	    /// <returns>A LineFormatterSettings populated with language-appropriate values.</returns>
-	    public LineFormatterSettings GetLineFormatterSettings(DisassemblySettings settings)
-	    {
-		    // 1. Call the native API.
-		    IntPtr ptr = NativeMethods.BNGetLanguageRepresentationLineFormatterSettings(
-			    settings.DangerousGetHandle() ,
-			    this.handle
-		    );
-
-		    // 2. Handle null return.
-		    if (IntPtr.Zero == ptr)
-		    {
-			    return new LineFormatterSettings();
-		    }
-
-		    // 3. Read the native struct from the pointer.
-		    BNLineFormatterSettings native = Marshal.PtrToStructure<BNLineFormatterSettings>(ptr);
-
-		    // 4. Convert to managed type.
-		    LineFormatterSettings result = new LineFormatterSettings();
-		    result.DesiredLineLength = native.desiredLineLength;
-		    result.MinimumContentLength = native.minimumContentLength;
-		    result.TabWidth = native.tabWidth;
-		    result.MaximumAnnotationLength = native.maximumAnnotationLength;
-		    result.StringWrappingWidth = native.stringWrappingWidth;
-		    result.LanguageName = UnsafeUtils.ReadAnsiString(native.languageName);
-		    result.CommentStartString = UnsafeUtils.ReadAnsiString(native.commentStartString);
-		    result.CommentEndString = UnsafeUtils.ReadAnsiString(native.commentEndString);
-		    result.AnnotationStartString = UnsafeUtils.ReadAnsiString(native.annotationStartString);
-		    result.AnnotationEndString = UnsafeUtils.ReadAnsiString(native.annotationEndString);
-
-		    // 5. The HLIL function is a borrowed pointer inside the struct; wrap if non-null.
-		    result.HighLevelIL = (native.highLevelIL != IntPtr.Zero)
-			    ? HighLevelILFunction.NewFromHandle(native.highLevelIL)
-			    : null;
-
-		    // 6. Free the native struct allocation.
-		    NativeMethods.BNFreeLineFormatterSettings(ptr);
-
-		    return result;
 	    }
 
 	}

@@ -22,7 +22,7 @@ namespace BinaryNinja
 		    [MarshalAs(UnmanagedType.LPUTF8Str)] string name  , 
 			
 			// BNCustomLanguageRepresentationFunctionType* type
-		    IntPtr type  
+		    in BNCustomLanguageRepresentationFunctionType type
 			
 		);
 	}

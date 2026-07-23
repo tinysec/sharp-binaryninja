@@ -30,7 +30,7 @@ namespace BinaryNinja
 		    IntPtr highLevelIL  , 
 			
 			// BNCustomLanguageRepresentationFunction* callbacks
-		    IntPtr callbacks  
+		    in BNCustomLanguageRepresentationFunction callbacks
 		);
 	}
 }
