@@ -17,24 +17,12 @@ namespace BinaryNinja
             EntryPoint = "BNCreateCustomPlatformWithTypes"
         )]
 		internal static extern IntPtr BNCreateCustomPlatformWithTypes(
-			
-			// BNArchitecture* arch
-		    IntPtr arch  , 
-			
-			// const char* name
-		    [MarshalAs(UnmanagedType.LPUTF8Str)] string name  , 
-			
-			// BNCustomPlatform* impl
-		    IntPtr impl  , 
-			
-			// const char* typeFile
-		    [MarshalAs(UnmanagedType.LPUTF8Str)] string typeFile  , 
-			
-			// const char** includeDirs
-		    string[] includeDirs  , 
-			
-			// uint64_t includeDirCount
-		    ulong includeDirCount  
+			IntPtr arch,
+			[MarshalAs(UnmanagedType.LPUTF8Str)] string name,
+			in BNCustomPlatform implementation,
+			[MarshalAs(UnmanagedType.LPUTF8Str)] string typeFile,
+			IntPtr includeDirs,
+			ulong includeDirCount
 		);
 	}
 }
