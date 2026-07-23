@@ -28,6 +28,15 @@ namespace BinaryNinja
 		[UnmanagedFunctionPointer(System.Runtime.InteropServices.CallingConvention.Cdecl)]
 		private delegate void FreeInstructionTextCallback(IntPtr tokens, ulong count);
 
+		[UnmanagedFunctionPointer(System.Runtime.InteropServices.CallingConvention.Cdecl)]
+		[return: MarshalAs(UnmanagedType.I1)]
+		private delegate bool GetInstructionLowLevelILCallback(
+			IntPtr context,
+			IntPtr data,
+			ulong address,
+			ref ulong length,
+			IntPtr il);
+
 		private void AddInstructionCallbacks(ref BNCustomArchitecture callbacks)
 		{
 			callbacks.getInstructionInfo = UnsafeUtils.PinCallback<GetInstructionInfoCallback>(
@@ -36,6 +45,9 @@ namespace BinaryNinja
 				this.GetInstructionTextAdapter);
 			callbacks.freeInstructionText = UnsafeUtils.PinCallback<FreeInstructionTextCallback>(
 				this.FreeInstructionTextAdapter);
+			callbacks.getInstructionLowLevelIL =
+				UnsafeUtils.PinCallback<GetInstructionLowLevelILCallback>(
+					this.GetInstructionLowLevelILAdapter);
 		}
 
 		private bool GetInstructionTextAdapter(
@@ -79,6 +91,50 @@ namespace BinaryNinja
 					exception);
 				tokens = IntPtr.Zero;
 				count = 0;
+
+				return false;
+			}
+		}
+
+		private bool GetInstructionLowLevelILAdapter(
+			IntPtr context,
+			IntPtr data,
+			ulong address,
+			ref ulong length,
+			IntPtr ilHandle)
+		{
+			try
+			{
+				ulong maximumLength = length;
+				byte[] bytes = new byte[checked((int)maximumLength)];
+				if (0 != bytes.Length)
+				{
+					Marshal.Copy(data, bytes, 0, bytes.Length);
+				}
+
+				using (LowLevelILFunction il = LowLevelILFunction.MustNewFromHandle(
+					ilHandle,
+					false,
+					this.registeredArchitecture))
+				{
+					ulong? decodedLength = this.GetInstructionLowLevelIL(bytes, address, il);
+					if (null == decodedLength
+						|| 0 == decodedLength.Value
+						|| maximumLength < decodedLength.Value)
+					{
+						return false;
+					}
+
+					length = decodedLength.Value;
+
+					return true;
+				}
+			}
+			catch (Exception exception)
+			{
+				Core.LogError(
+					"Unhandled exception in CustomArchitecture.GetInstructionLowLevelIL: {0}",
+					exception);
 
 				return false;
 			}
