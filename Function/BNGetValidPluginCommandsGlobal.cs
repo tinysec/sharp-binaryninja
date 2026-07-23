@@ -19,7 +19,7 @@ namespace BinaryNinja
 		internal static extern IntPtr BNGetValidPluginCommandsGlobal(
 			
 			// size_t* count
-		    IntPtr count  
+		    out UIntPtr count
 		);
 	}
 }

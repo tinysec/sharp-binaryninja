@@ -381,7 +381,7 @@ namespace BinaryNinja
 		internal IntPtr projectIsValid;
 	}
 	
-    public sealed class PluginCommand
+    public sealed partial class PluginCommand
     {
 		public delegate void GlobalCommandDelegate();
 
