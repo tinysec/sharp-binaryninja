@@ -25,7 +25,7 @@ namespace BinaryNinja
 		    [MarshalAs(UnmanagedType.LPUTF8Str)] string apiName  , 
 			
 			// BNScriptingProviderCallbacks* callbacks
-		    IntPtr callbacks  
+		    in BNScriptingProviderCallbacks callbacks
 			
 		);
 	}

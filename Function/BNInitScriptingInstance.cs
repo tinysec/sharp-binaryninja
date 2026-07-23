@@ -22,7 +22,7 @@ namespace BinaryNinja
 		    IntPtr provider  , 
 			
 			// BNScriptingInstanceCallbacks* callbacks
-		    IntPtr callbacks  
+		    in BNScriptingInstanceCallbacks callbacks
 			
 		);
 	}

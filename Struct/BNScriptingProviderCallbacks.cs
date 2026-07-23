@@ -1,39 +1,48 @@
 using System;
-using System.Collections.Generic;
 using System.Runtime.InteropServices;
-using Microsoft.Win32.SafeHandles;
 
 namespace BinaryNinja
 {
-	[StructLayout(LayoutKind.Sequential)]
-	internal unsafe struct BNScriptingProviderCallbacks 
-	{
-		/// <summary>
-		/// void* context
-		/// </summary>
-		public IntPtr context;
-		
-		/// <summary>
-		/// void** createInstance
-		/// </summary>
-		public IntPtr createInstance;
-		
-		/// <summary>
-		/// void** loadModule
-		/// </summary>
-		public IntPtr loadModule;
-		
-		/// <summary>
-		/// void** installModules
-		/// </summary>
-		public IntPtr installModules;
-	}
-
-    public class ScriptingProviderCallbacks 
+    internal static partial class NativeDelegates
     {
-		public ScriptingProviderCallbacks() 
-		{
-		    
-		}
+        [UnmanagedFunctionPointer(System.Runtime.InteropServices.CallingConvention.Cdecl)]
+        internal delegate IntPtr BNScriptingProviderCreateInstance(
+            IntPtr context
+        );
+
+        [UnmanagedFunctionPointer(System.Runtime.InteropServices.CallingConvention.Cdecl)]
+        [return: MarshalAs(UnmanagedType.I1)]
+        internal delegate bool BNScriptingProviderLoadModule(
+            IntPtr context,
+            [MarshalAs(UnmanagedType.LPUTF8Str)] string repository,
+            [MarshalAs(UnmanagedType.LPUTF8Str)] string module,
+            [MarshalAs(UnmanagedType.I1)] bool force
+        );
+
+        [UnmanagedFunctionPointer(System.Runtime.InteropServices.CallingConvention.Cdecl)]
+        [return: MarshalAs(UnmanagedType.I1)]
+        internal delegate bool BNScriptingProviderInstallModules(
+            IntPtr context,
+            [MarshalAs(UnmanagedType.LPUTF8Str)] string modules
+        );
+    }
+
+    [StructLayout(LayoutKind.Sequential)]
+    internal struct BNScriptingProviderCallbacks
+    {
+        internal IntPtr context;
+
+        internal IntPtr createInstance;
+
+        internal IntPtr loadModule;
+
+        internal IntPtr installModules;
+    }
+
+    /// <summary>
+    /// Retained for source compatibility. Custom providers use ScriptingProvider directly.
+    /// </summary>
+    public class ScriptingProviderCallbacks
+    {
     }
 }
