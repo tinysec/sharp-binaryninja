@@ -1580,18 +1580,7 @@ namespace BinaryNinja
 		    ulong operand
 		)
 	    {
-		    IntPtr arrayPointer = NativeMethods.BNMediumLevelILGetOperandList(
-			    this.handle ,
-			    expression ,
-			    operand ,
-			    out ulong arrayLength
-		    );
-
-		    return UnsafeUtils.TakeNumberArray<ulong>(
-			    arrayPointer ,
-			    arrayLength ,
-			    NativeMethods.BNMediumLevelILFreeOperandList
-		    );
+		    return this.GetOperandList(expression, operand);
 	    }
 
 	    public MediumLevelILVariable[] GetExpressionVariables(
