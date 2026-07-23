@@ -60,6 +60,7 @@ namespace BinaryNinja
 							this.GetAssociatedArchitectureAdapter)
 				};
 				this.AddRegisterCallbacks(ref callbacks);
+				this.AddFlagCallbacks(ref callbacks);
 
 				using (ScopedAllocator allocator = new ScopedAllocator())
 				{

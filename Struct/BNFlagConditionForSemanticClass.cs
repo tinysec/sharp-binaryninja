@@ -24,6 +24,14 @@ namespace BinaryNinja
 		public uint SemanticClass { get; } = 0;
 		
 		public LowLevelILFlagCondition Condition { get;  } = LowLevelILFlagCondition.LLFC_E;
+
+		public FlagConditionForSemanticClass(
+			uint semanticClass,
+			LowLevelILFlagCondition condition)
+		{
+			this.SemanticClass = semanticClass;
+			this.Condition = condition;
+		}
 		
 		public FlagConditionForSemanticClass(BNFlagConditionForSemanticClass native)
 		{

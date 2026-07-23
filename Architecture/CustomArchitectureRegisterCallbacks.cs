@@ -124,23 +124,7 @@ namespace BinaryNinja
 			try
 			{
 				uint[] registers = callback() ?? Array.Empty<uint>();
-				count = (ulong)registers.Length;
-				if (0 == registers.Length)
-				{
-					return IntPtr.Zero;
-				}
-
-				IntPtr result = Marshal.AllocHGlobal(
-					checked(registers.Length * sizeof(uint)));
-				for (int index = 0; index < registers.Length; index++)
-				{
-					Marshal.WriteInt32(
-						result,
-						checked(index * sizeof(uint)),
-						unchecked((int)registers[index]));
-				}
-
-				return result;
+				return this.AllocateRegisterList(registers, out count);
 			}
 			catch (Exception exception)
 			{
@@ -151,6 +135,27 @@ namespace BinaryNinja
 				count = 0;
 				return IntPtr.Zero;
 			}
+		}
+
+		private IntPtr AllocateRegisterList(uint[] registers, out ulong count)
+		{
+			count = (ulong)registers.Length;
+			if (0 == registers.Length)
+			{
+				return IntPtr.Zero;
+			}
+
+			IntPtr result = Marshal.AllocHGlobal(
+				checked(registers.Length * sizeof(uint)));
+			for (int index = 0; index < registers.Length; index++)
+			{
+				Marshal.WriteInt32(
+					result,
+					checked(index * sizeof(uint)),
+					unchecked((int)registers[index]));
+			}
+
+			return result;
 		}
 
 		private void FreeRegisterListAdapter(
