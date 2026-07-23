@@ -671,6 +671,18 @@ namespace BinaryNinja
 		{
 			return null;
 		}
+
+		/// <summary>
+		/// Analyzes a function's basic blocks using the core-owned analysis context.
+		/// </summary>
+		public virtual void AnalyzeBasicBlocks(
+			Function function,
+			BasicBlockAnalysisContext context)
+		{
+			NativeMethods.BNArchitectureDefaultAnalyzeBasicBlocks(
+				function.DangerousGetHandle(),
+				context.DangerousGetHandle());
+		}
 		
 		public virtual string GetRegisterName(
 			RegisterIndex reg

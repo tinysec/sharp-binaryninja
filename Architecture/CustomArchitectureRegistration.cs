@@ -65,6 +65,7 @@ namespace BinaryNinja
 				this.AddAssemblyAndPatchCallbacks(ref callbacks);
 				this.AddIntrinsicCallbacks(ref callbacks);
 				this.AddFlagLoweringCallbacks(ref callbacks);
+				this.AddAnalysisCallbacks(ref callbacks);
 
 				using (ScopedAllocator allocator = new ScopedAllocator())
 				{
