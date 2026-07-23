@@ -59,6 +59,7 @@ namespace BinaryNinja
 						UnsafeUtils.PinCallback<GetAssociatedArchitectureCallback>(
 							this.GetAssociatedArchitectureAdapter)
 				};
+				this.AddRegisterCallbacks(ref callbacks);
 
 				using (ScopedAllocator allocator = new ScopedAllocator())
 				{
