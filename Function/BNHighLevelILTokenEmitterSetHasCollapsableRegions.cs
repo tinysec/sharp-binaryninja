@@ -21,7 +21,7 @@ namespace BinaryNinja
 		    IntPtr emitter  , 
 			
 			// bool state
-		    bool state  
+		    [MarshalAs(UnmanagedType.I1)] bool state
 		);
 	}
 }

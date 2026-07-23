@@ -21,7 +21,7 @@ namespace BinaryNinja
 		    IntPtr emitter  , 
 			
 			// bool forceSameLine
-		    bool forceSameLine  
+		    [MarshalAs(UnmanagedType.I1)] bool forceSameLine
 		);
 	}
 }
