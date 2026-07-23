@@ -1,44 +1,48 @@
 using System;
-using System.Collections.Generic;
 using System.Runtime.InteropServices;
-using Microsoft.Win32.SafeHandles;
 
 namespace BinaryNinja
 {
-	[StructLayout(LayoutKind.Sequential)]
-	internal unsafe struct BNWebsocketClientCallbacks 
-	{
-		/// <summary>
-		/// void* context
-		/// </summary>
-		public IntPtr context;
-		
-		/// <summary>
-		/// void** destroyClient
-		/// </summary>
-		public IntPtr destroyClient;
-		
-		/// <summary>
-		/// void** connect
-		/// </summary>
-		public IntPtr connect;
-		
-		/// <summary>
-		/// void** write
-		/// </summary>
-		public IntPtr write;
-		
-		/// <summary>
-		/// void** disconnect
-		/// </summary>
-		public IntPtr disconnect;
-	}
-
-    public class WebsocketClientCallbacks 
+    internal static partial class NativeDelegates
     {
-		public WebsocketClientCallbacks() 
-		{
-		    
-		}
+        [UnmanagedFunctionPointer(System.Runtime.InteropServices.CallingConvention.Cdecl)]
+        internal delegate void BNWebsocketDestroyClient(IntPtr context);
+
+        [UnmanagedFunctionPointer(System.Runtime.InteropServices.CallingConvention.Cdecl)]
+        [return: MarshalAs(UnmanagedType.I1)]
+        internal delegate bool BNWebsocketConnect(
+            IntPtr context,
+            [MarshalAs(UnmanagedType.LPUTF8Str)] string host,
+            ulong headerCount,
+            IntPtr headerKeys,
+            IntPtr headerValues
+        );
+
+        [UnmanagedFunctionPointer(System.Runtime.InteropServices.CallingConvention.Cdecl)]
+        [return: MarshalAs(UnmanagedType.I1)]
+        internal delegate bool BNWebsocketWrite(
+            IntPtr data,
+            ulong length,
+            IntPtr context
+        );
+
+        [UnmanagedFunctionPointer(System.Runtime.InteropServices.CallingConvention.Cdecl)]
+        [return: MarshalAs(UnmanagedType.I1)]
+        internal delegate bool BNWebsocketDisconnect(IntPtr context);
+    }
+
+    [StructLayout(LayoutKind.Sequential)]
+    internal struct BNWebsocketClientCallbacks
+    {
+        internal IntPtr context;
+        internal IntPtr destroyClient;
+        internal IntPtr connect;
+        internal IntPtr write;
+        internal IntPtr disconnect;
+    }
+
+    /// <summary>Retained for source compatibility.</summary>
+    public class WebsocketClientCallbacks
+    {
     }
 }

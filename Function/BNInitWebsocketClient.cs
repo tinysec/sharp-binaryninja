@@ -22,7 +22,7 @@ namespace BinaryNinja
 		    IntPtr provider  , 
 			
 			// BNWebsocketClientCallbacks* callbacks
-		    IntPtr callbacks  
+		    in BNWebsocketClientCallbacks callbacks
 			
 		);
 	}

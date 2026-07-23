@@ -22,7 +22,7 @@ namespace BinaryNinja
 		    [MarshalAs(UnmanagedType.LPUTF8Str)] string name  , 
 			
 			// BNWebsocketProviderCallbacks* callbacks
-		    IntPtr callbacks  
+		    in BNWebsocketProviderCallbacks callbacks
 			
 		);
 	}

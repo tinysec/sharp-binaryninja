@@ -1,135 +1,138 @@
 using System;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
-using Microsoft.Win32.SafeHandles;
 
 namespace BinaryNinja
 {
-    /// <summary>
-    /// Represents a WebSocket client instance created by a WebSocket provider.
-    /// The caller takes ownership of the handle returned from the provider's CreateClient method.
-    /// </summary>
-    public sealed class WebsocketClient : AbstractSafeHandle<WebsocketClient>
+    /// <summary>Represents a WebSocket client created by a provider.</summary>
+    public abstract partial class WebsocketClient :
+        AbstractSafeHandle<WebsocketClient>
     {
-        /// <summary>
-        /// Initializes a new WebsocketClient wrapper around an existing native handle.
-        /// </summary>
-        /// <param name="handle">The native pointer to the BNWebsocketClient object.</param>
-        /// <param name="owner">True if this wrapper owns the handle and should free it on dispose.</param>
-        internal WebsocketClient(IntPtr handle, bool owner)
+        private WebsocketConnectedDelegate? connectedHandler;
+        private WebsocketDisconnectedDelegate? disconnectedHandler;
+        private WebsocketErrorDelegate? errorHandler;
+        private WebsocketDataDelegate? dataHandler;
+        private NativeDelegates.BNWebsocketConnected? connectedCallback;
+        private NativeDelegates.BNWebsocketDisconnected? disconnectedCallback;
+        private NativeDelegates.BNWebsocketError? errorCallback;
+        private NativeDelegates.BNWebsocketRead? readCallback;
+        private bool connectionStarted;
+
+        private protected WebsocketClient(IntPtr handle, bool owner)
             : base(handle, owner)
         {
         }
 
-        /// <summary>
-        /// Creates an owned reference by incrementing the native reference count.
-        /// Returns null if the handle is zero.
-        /// </summary>
-        /// <param name="handle">The native BNWebsocketClient pointer.</param>
-        /// <returns>A new owned WebsocketClient, or null if the handle is zero.</returns>
-        internal static WebsocketClient? NewFromHandle(IntPtr handle)
-        {
-            if (handle == IntPtr.Zero)
-            {
-                return null;
-            }
-
-            return new WebsocketClient(
-                NativeMethods.BNNewWebsocketClientReference(handle),
-                true
-            );
-        }
-
-        /// <summary>
-        /// Creates an owned reference by incrementing the native reference count.
-        /// Throws if the handle is zero.
-        /// </summary>
-        /// <param name="handle">The native BNWebsocketClient pointer.</param>
-        /// <returns>A new owned WebsocketClient.</returns>
-        internal static WebsocketClient MustNewFromHandle(IntPtr handle)
-        {
-            if (handle == IntPtr.Zero)
-            {
-                throw new ArgumentNullException(nameof(handle));
-            }
-
-            return new WebsocketClient(
-                NativeMethods.BNNewWebsocketClientReference(handle),
-                true
-            );
-        }
-
-        /// <summary>
-        /// Takes ownership of an existing handle without incrementing the reference count.
-        /// Returns null if the handle is zero.
-        /// </summary>
-        /// <param name="handle">The native BNWebsocketClient pointer.</param>
-        /// <returns>A new owned WebsocketClient, or null if the handle is zero.</returns>
         internal static WebsocketClient? TakeHandle(IntPtr handle)
         {
-            if (handle == IntPtr.Zero)
-            {
-                return null;
-            }
-
-            return new WebsocketClient(handle, true);
+            return IntPtr.Zero == handle
+                ? null
+                : new CoreWebsocketClient(handle);
         }
 
-        /// <summary>
-        /// Takes ownership of an existing handle without incrementing the reference count.
-        /// Throws if the handle is zero.
-        /// </summary>
-        /// <param name="handle">The native BNWebsocketClient pointer.</param>
-        /// <returns>A new owned WebsocketClient.</returns>
-        internal static WebsocketClient MustTakeHandle(IntPtr handle)
+        /// <summary>Starts an asynchronous connection.</summary>
+        public bool Connect(
+            string url,
+            IReadOnlyDictionary<string, string>? headers = null,
+            WebsocketConnectedDelegate? onConnected = null,
+            WebsocketDisconnectedDelegate? onDisconnected = null,
+            WebsocketErrorDelegate? onError = null,
+            WebsocketDataDelegate? onData = null
+        )
         {
-            if (handle == IntPtr.Zero)
+            if (this.connectionStarted)
             {
-                throw new ArgumentNullException(nameof(handle));
+                throw new InvalidOperationException(
+                    "A WebSocket client cannot connect more than once."
+                );
             }
 
-            return new WebsocketClient(handle, true);
+            this.connectionStarted = true;
+            this.connectedHandler = onConnected;
+            this.disconnectedHandler = onDisconnected;
+            this.errorHandler = onError;
+            this.dataHandler = onData;
+            this.connectedCallback = new NativeDelegates.BNWebsocketConnected(
+                this.InvokeConnected
+            );
+            this.disconnectedCallback =
+                new NativeDelegates.BNWebsocketDisconnected(
+                    this.InvokeDisconnected
+                );
+            this.errorCallback = new NativeDelegates.BNWebsocketError(
+                this.InvokeError
+            );
+            this.readCallback = new NativeDelegates.BNWebsocketRead(
+                this.InvokeRead
+            );
+
+            string[] keys;
+            string[] values;
+            CopyHeaders(headers, out keys, out values);
+            BNWebsocketClientOutputCallbacks callbacks =
+                new BNWebsocketClientOutputCallbacks();
+            callbacks.context = IntPtr.Zero;
+            callbacks.connectedCallback = Pointer(this.connectedCallback);
+            callbacks.disconnectedCallback = Pointer(
+                this.disconnectedCallback
+            );
+            callbacks.errorCallback = Pointer(this.errorCallback);
+            callbacks.readCallback = Pointer(this.readCallback);
+
+            using ScopedAllocator allocator = new ScopedAllocator();
+            return NativeMethods.BNConnectWebsocketClient(
+                this.handle,
+                url,
+                (ulong)keys.Length,
+                allocator.AllocUtf8StringArray(keys),
+                allocator.AllocUtf8StringArray(values),
+                in callbacks
+            );
         }
 
-        /// <summary>
-        /// Borrows a native handle without taking ownership. Returns null if the handle is zero.
-        /// </summary>
-        /// <param name="handle">The native BNWebsocketClient pointer.</param>
-        /// <returns>A new WebsocketClient that will not free the handle on dispose.</returns>
-        internal static WebsocketClient? BorrowHandle(IntPtr handle)
+        /// <summary>Writes data to this client.</summary>
+        public bool Write(byte[] data)
         {
-            if (handle == IntPtr.Zero)
+            if (null == data)
             {
-                return null;
+                throw new ArgumentNullException(nameof(data));
             }
 
-            return new WebsocketClient(handle, false);
+            GCHandle pin = GCHandle.Alloc(data, GCHandleType.Pinned);
+            try
+            {
+                return 0 != NativeMethods.BNWriteWebsocketClientData(
+                    this.handle,
+                    0 == data.Length ? IntPtr.Zero : pin.AddrOfPinnedObject(),
+                    (ulong)data.Length
+                );
+            }
+            finally
+            {
+                pin.Free();
+            }
         }
 
-        /// <summary>
-        /// Borrows a native handle without taking ownership. Throws if the handle is zero.
-        /// </summary>
-        /// <param name="handle">The native BNWebsocketClient pointer.</param>
-        /// <returns>A new WebsocketClient that will not free the handle on dispose.</returns>
-        internal static WebsocketClient MustBorrowHandle(IntPtr handle)
+        /// <summary>Writes a raw buffer and returns the core result.</summary>
+        public ulong WriteData(IntPtr data, ulong length)
         {
-            if (handle == IntPtr.Zero)
-            {
-                throw new ArgumentNullException(nameof(handle));
-            }
-
-            return new WebsocketClient(handle, false);
+            return NativeMethods.BNWriteWebsocketClientData(
+                this.handle,
+                data,
+                length
+            );
         }
 
-        /// <summary>
-        /// Releases the native BNWebsocketClient handle when this instance is disposed or finalized.
-        /// </summary>
-        /// <returns>True if the handle was successfully released.</returns>
+        /// <summary>Disconnects this client.</summary>
+        public bool Disconnect()
+        {
+            return NativeMethods.BNDisconnectWebsocketClient(this.handle);
+        }
+
         protected override bool ReleaseHandle()
         {
             if (!this.IsInvalid)
             {
-                // Free the native client handle and mark it invalid to prevent double-free.
                 NativeMethods.BNFreeWebsocketClient(this.handle);
                 this.SetHandleAsInvalid();
             }
@@ -137,27 +140,60 @@ namespace BinaryNinja
             return true;
         }
 
-        /// <summary>
-        /// Disconnects this WebSocket client, closing the underlying connection.
-        /// </summary>
-        /// <returns>True if the disconnect succeeded; false on failure.</returns>
-        public bool Disconnect()
+        private static void CopyHeaders(
+            IReadOnlyDictionary<string, string>? headers,
+            out string[] keys,
+            out string[] values
+        )
         {
-            // Delegate to the native disconnect API.
-            return NativeMethods.BNDisconnectWebsocketClient(this.handle);
+            if (null == headers || 0 == headers.Count)
+            {
+                keys = Array.Empty<string>();
+                values = Array.Empty<string>();
+                return;
+            }
+
+            keys = new string[headers.Count];
+            values = new string[headers.Count];
+            int index = 0;
+            foreach (KeyValuePair<string, string> header in headers)
+            {
+                keys[index] = header.Key;
+                values[index] = header.Value;
+                index++;
+            }
         }
 
-        /// <summary>
-        /// Writes raw byte data to the WebSocket connection.
-        /// The caller is responsible for ensuring the pointer is valid for the given length.
-        /// </summary>
-        /// <param name="data">Pointer to the byte buffer to send.</param>
-        /// <param name="length">Number of bytes to send from the buffer.</param>
-        /// <returns>The number of bytes actually written; zero on failure.</returns>
-        public ulong WriteData(IntPtr data, ulong length)
+        private static IntPtr Pointer<TDelegate>(TDelegate callback)
+            where TDelegate : Delegate
         {
-            // Forward the raw data pointer and byte count to the native write API.
-            return NativeMethods.BNWriteWebsocketClientData(this.handle, data, length);
+            return Marshal.GetFunctionPointerForDelegate(callback);
+        }
+
+        private sealed class CoreWebsocketClient : WebsocketClient
+        {
+            internal CoreWebsocketClient(IntPtr handle)
+                : base(handle, true)
+            {
+            }
+
+            protected override bool PerformConnect(
+                string host,
+                IReadOnlyDictionary<string, string> headers
+            )
+            {
+                return false;
+            }
+
+            protected override bool PerformWrite(byte[] data)
+            {
+                return false;
+            }
+
+            protected override bool PerformDisconnect()
+            {
+                return false;
+            }
         }
     }
 }

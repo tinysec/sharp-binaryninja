@@ -1,44 +1,44 @@
 using System;
-using System.Collections.Generic;
 using System.Runtime.InteropServices;
-using Microsoft.Win32.SafeHandles;
 
 namespace BinaryNinja
 {
-	[StructLayout(LayoutKind.Sequential)]
-	internal unsafe struct BNWebsocketClientOutputCallbacks 
-	{
-		/// <summary>
-		/// void* context
-		/// </summary>
-		public IntPtr context;
-		
-		/// <summary>
-		/// void** connectedCallback
-		/// </summary>
-		public IntPtr connectedCallback;
-		
-		/// <summary>
-		/// void** disconnectedCallback
-		/// </summary>
-		public IntPtr disconnectedCallback;
-		
-		/// <summary>
-		/// void** errorCallback
-		/// </summary>
-		public IntPtr errorCallback;
-		
-		/// <summary>
-		/// void** readCallback
-		/// </summary>
-		public IntPtr readCallback;
-	}
-
-    public class WebsocketClientOutputCallbacks 
+    internal static partial class NativeDelegates
     {
-		public WebsocketClientOutputCallbacks() 
-		{
-		    
-		}
+        [UnmanagedFunctionPointer(System.Runtime.InteropServices.CallingConvention.Cdecl)]
+        [return: MarshalAs(UnmanagedType.I1)]
+        internal delegate bool BNWebsocketConnected(IntPtr context);
+
+        [UnmanagedFunctionPointer(System.Runtime.InteropServices.CallingConvention.Cdecl)]
+        internal delegate void BNWebsocketDisconnected(IntPtr context);
+
+        [UnmanagedFunctionPointer(System.Runtime.InteropServices.CallingConvention.Cdecl)]
+        internal delegate void BNWebsocketError(
+            [MarshalAs(UnmanagedType.LPUTF8Str)] string message,
+            IntPtr context
+        );
+
+        [UnmanagedFunctionPointer(System.Runtime.InteropServices.CallingConvention.Cdecl)]
+        [return: MarshalAs(UnmanagedType.I1)]
+        internal delegate bool BNWebsocketRead(
+            IntPtr data,
+            ulong length,
+            IntPtr context
+        );
+    }
+
+    [StructLayout(LayoutKind.Sequential)]
+    internal struct BNWebsocketClientOutputCallbacks
+    {
+        internal IntPtr context;
+        internal IntPtr connectedCallback;
+        internal IntPtr disconnectedCallback;
+        internal IntPtr errorCallback;
+        internal IntPtr readCallback;
+    }
+
+    /// <summary>Retained for source compatibility.</summary>
+    public class WebsocketClientOutputCallbacks
+    {
     }
 }
