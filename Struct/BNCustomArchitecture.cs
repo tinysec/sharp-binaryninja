@@ -683,6 +683,25 @@ namespace BinaryNinja
 				function.DangerousGetHandle(),
 				context.DangerousGetHandle());
 		}
+
+		/// <summary>
+		/// Lifts a function using the core-owned function-level lifting context.
+		/// </summary>
+		public virtual bool LiftFunction(
+			LowLevelILFunction function,
+			FunctionLifterContext context)
+		{
+			return NativeMethods.BNArchitectureDefaultLiftFunction(
+				function.DangerousGetHandle(),
+				context.DangerousGetHandle());
+		}
+
+		/// <summary>
+		/// Releases architecture-specific context created during basic-block analysis.
+		/// </summary>
+		public virtual void FreeFunctionArchContext(IntPtr context)
+		{
+		}
 		
 		public virtual string GetRegisterName(
 			RegisterIndex reg
