@@ -640,6 +640,21 @@ namespace BinaryNinja
 			return Array.Empty<InstructionTextToken>();
 		}
 
+		/// <summary>
+		/// Retrieves instruction text using architecture-defined function context.
+		/// </summary>
+		/// <remarks>
+		/// The default implementation preserves the ordinary instruction text behavior.
+		/// </remarks>
+		public virtual InstructionTextToken[] GetInstructionTextWithContext(
+			byte[] data,
+			ulong address,
+			IntPtr context,
+			out ulong length)
+		{
+			return this.GetInstructionText(data, address, out length);
+		}
+
 		public virtual void FreeInstructionText(
 			IntPtr tokens ,
 			ulong count

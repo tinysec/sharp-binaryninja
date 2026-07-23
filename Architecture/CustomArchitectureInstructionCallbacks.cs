@@ -26,6 +26,17 @@ namespace BinaryNinja
 			out ulong count);
 
 		[UnmanagedFunctionPointer(System.Runtime.InteropServices.CallingConvention.Cdecl)]
+		[return: MarshalAs(UnmanagedType.I1)]
+		private delegate bool GetInstructionTextWithContextCallback(
+			IntPtr context,
+			IntPtr data,
+			ulong address,
+			ref ulong length,
+			IntPtr functionContext,
+			out IntPtr tokens,
+			out ulong count);
+
+		[UnmanagedFunctionPointer(System.Runtime.InteropServices.CallingConvention.Cdecl)]
 		private delegate void FreeInstructionTextCallback(IntPtr tokens, ulong count);
 
 		[UnmanagedFunctionPointer(System.Runtime.InteropServices.CallingConvention.Cdecl)]
@@ -43,6 +54,9 @@ namespace BinaryNinja
 				this.GetInstructionInfoAdapter);
 			callbacks.getInstructionText = UnsafeUtils.PinCallback<GetInstructionTextCallback>(
 				this.GetInstructionTextAdapter);
+			callbacks.getInstructionTextWithContext =
+				UnsafeUtils.PinCallback<GetInstructionTextWithContextCallback>(
+					this.GetInstructionTextWithContextAdapter);
 			callbacks.freeInstructionText = UnsafeUtils.PinCallback<FreeInstructionTextCallback>(
 				this.FreeInstructionTextAdapter);
 			callbacks.getInstructionLowLevelIL =
@@ -58,6 +72,44 @@ namespace BinaryNinja
 			out IntPtr tokens,
 			out ulong count)
 		{
+			return this.GetInstructionTextCore(
+				data,
+				address,
+				ref length,
+				IntPtr.Zero,
+				false,
+				out tokens,
+				out count);
+		}
+
+		private bool GetInstructionTextWithContextAdapter(
+			IntPtr context,
+			IntPtr data,
+			ulong address,
+			ref ulong length,
+			IntPtr functionContext,
+			out IntPtr tokens,
+			out ulong count)
+		{
+			return this.GetInstructionTextCore(
+				data,
+				address,
+				ref length,
+				functionContext,
+				true,
+				out tokens,
+				out count);
+		}
+
+		private bool GetInstructionTextCore(
+			IntPtr data,
+			ulong address,
+			ref ulong length,
+			IntPtr functionContext,
+			bool useFunctionContext,
+			out IntPtr tokens,
+			out ulong count)
+		{
 			tokens = IntPtr.Zero;
 			count = 0;
 
@@ -70,9 +122,25 @@ namespace BinaryNinja
 					Marshal.Copy(data, bytes, 0, bytes.Length);
 				}
 
-				InstructionTextToken[] managedTokens =
-					this.GetInstructionText(bytes, address, out ulong decodedLength)
-					?? Array.Empty<InstructionTextToken>();
+				InstructionTextToken[] managedTokens;
+				ulong decodedLength;
+				if (useFunctionContext)
+				{
+					managedTokens = this.GetInstructionTextWithContext(
+						bytes,
+						address,
+						functionContext,
+						out decodedLength);
+				}
+				else
+				{
+					managedTokens = this.GetInstructionText(
+						bytes,
+						address,
+						out decodedLength);
+				}
+
+				managedTokens = managedTokens ?? Array.Empty<InstructionTextToken>();
 				if (0 == decodedLength || maximumLength < decodedLength)
 				{
 					return false;
@@ -87,7 +155,7 @@ namespace BinaryNinja
 			catch (Exception exception)
 			{
 				Core.LogError(
-					"Unhandled exception in CustomArchitecture.GetInstructionText: {0}",
+					"Unhandled exception in CustomArchitecture instruction text callback: {0}",
 					exception);
 				tokens = IntPtr.Zero;
 				count = 0;
