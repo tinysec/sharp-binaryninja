@@ -1,79 +1,77 @@
 using System;
-using System.Collections.Generic;
 using System.Runtime.InteropServices;
-using Microsoft.Win32.SafeHandles;
 
 namespace BinaryNinja
 {
-	[StructLayout(LayoutKind.Sequential)]
-	internal unsafe struct BNCustomLanguageRepresentationFunction 
-	{
-		/// <summary>
-		/// void* context
-		/// </summary>
-		public IntPtr context;
-		
-		/// <summary>
-		/// void** freeObject
-		/// </summary>
-		public IntPtr freeObject;
-		
-		/// <summary>
-		/// void** externalRefTaken
-		/// </summary>
-		public IntPtr externalRefTaken;
-		
-		/// <summary>
-		/// void** externalRefReleased
-		/// </summary>
-		public IntPtr externalRefReleased;
-		
-		/// <summary>
-		/// void** initTokenEmitter
-		/// </summary>
-		public IntPtr initTokenEmitter;
-		
-		/// <summary>
-		/// void** getExprText
-		/// </summary>
-		public IntPtr getExprText;
-		
-		/// <summary>
-		/// void** beginLines
-		/// </summary>
-		public IntPtr beginLines;
-		
-		/// <summary>
-		/// void** endLines
-		/// </summary>
-		public IntPtr endLines;
-		
-		/// <summary>
-		/// void** getCommentStartString
-		/// </summary>
-		public IntPtr getCommentStartString;
-		
-		/// <summary>
-		/// void** getCommentEndString
-		/// </summary>
-		public IntPtr getCommentEndString;
-		
-		/// <summary>
-		/// void** getAnnotationStartString
-		/// </summary>
-		public IntPtr getAnnotationStartString;
-		
-		/// <summary>
-		/// void** getAnnotationEndString
-		/// </summary>
-		public IntPtr getAnnotationEndString;
-	}
-
-    public class CustomLanguageRepresentationFunction 
+    internal static partial class NativeDelegates
     {
-		public CustomLanguageRepresentationFunction() 
-		{
-		    
-		}
+        [UnmanagedFunctionPointer(System.Runtime.InteropServices.CallingConvention.Cdecl)]
+        internal delegate void BNLanguageRepresentationFunctionEvent(
+            IntPtr context
+        );
+
+        [UnmanagedFunctionPointer(System.Runtime.InteropServices.CallingConvention.Cdecl)]
+        internal delegate void BNLanguageRepresentationTokenEmitter(
+            IntPtr context,
+            IntPtr emitter
+        );
+
+        [UnmanagedFunctionPointer(System.Runtime.InteropServices.CallingConvention.Cdecl)]
+        internal delegate void BNLanguageRepresentationExpression(
+            IntPtr context,
+            IntPtr highLevelIL,
+            UIntPtr expressionIndex,
+            IntPtr emitter,
+            IntPtr settings,
+            [MarshalAs(UnmanagedType.I1)] bool asFullAst,
+            OperatorPrecedence precedence,
+            [MarshalAs(UnmanagedType.I1)] bool statement
+        );
+
+        [UnmanagedFunctionPointer(System.Runtime.InteropServices.CallingConvention.Cdecl)]
+        internal delegate void BNLanguageRepresentationLines(
+            IntPtr context,
+            IntPtr highLevelIL,
+            UIntPtr expressionIndex,
+            IntPtr emitter
+        );
+
+        [UnmanagedFunctionPointer(System.Runtime.InteropServices.CallingConvention.Cdecl)]
+        internal delegate IntPtr BNLanguageRepresentationString(IntPtr context);
+    }
+
+    [StructLayout(LayoutKind.Sequential)]
+    internal struct BNCustomLanguageRepresentationFunction
+    {
+        internal IntPtr context;
+
+        internal IntPtr freeObject;
+
+        internal IntPtr externalRefTaken;
+
+        internal IntPtr externalRefReleased;
+
+        internal IntPtr initTokenEmitter;
+
+        internal IntPtr getExprText;
+
+        internal IntPtr beginLines;
+
+        internal IntPtr endLines;
+
+        internal IntPtr getCommentStartString;
+
+        internal IntPtr getCommentEndString;
+
+        internal IntPtr getAnnotationStartString;
+
+        internal IntPtr getAnnotationEndString;
+    }
+
+    /// <summary>
+    /// Retained for source compatibility. Custom functions use the managed type directly.
+    /// </summary>
+    public class CustomLanguageRepresentationFunction
+    {
     }
 }

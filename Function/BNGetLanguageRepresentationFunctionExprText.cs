@@ -30,13 +30,13 @@ namespace BinaryNinja
 		    IntPtr settings  , 
 			
 			// bool asFullAst
-		    bool asFullAst  , 
+		    [MarshalAs(UnmanagedType.I1)] bool asFullAst  ,
 			
 			// BNOperatorPrecedence precedence
 		    OperatorPrecedence precedence  , 
 			
 			// bool statement
-		    bool statement  , 
+		    [MarshalAs(UnmanagedType.I1)] bool statement  ,
 			
 			// uint64_t* count
 		    out ulong count  

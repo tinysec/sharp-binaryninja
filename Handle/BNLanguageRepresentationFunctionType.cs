@@ -1,193 +1,287 @@
 using System;
-using System.Collections.Generic;
-using System.Runtime.InteropServices;
-using Microsoft.Win32.SafeHandles;
 
 namespace BinaryNinja
 {
-    /// <summary>
-    /// Represents a registered language representation function type, which defines a
-    /// decompilation language (e.g., C, C++, LLIL). Handles are always borrowed from
-    /// the native engine's global registry and must not be freed by this wrapper.
-    /// </summary>
-    public sealed class LanguageRepresentationFunctionType : AbstractSafeHandle<LanguageRepresentationFunctionType>
+    /// <summary>Defines a registered high-level language representation.</summary>
+    public abstract partial class LanguageRepresentationFunctionType :
+        AbstractSafeHandle<LanguageRepresentationFunctionType>
     {
-        /// <summary>
-        /// Initializes a new LanguageRepresentationFunctionType wrapper around an existing
-        /// borrowed handle. The handle is never owned by this instance.
-        /// </summary>
-        /// <param name="handle">The native pointer to the BNLanguageRepresentationFunctionType object.</param>
-        internal LanguageRepresentationFunctionType(IntPtr handle)
+        private readonly string? registrationName;
+
+        private bool custom;
+
+        private bool registered;
+
+        internal IntPtr RegistrationHandle
+        {
+            get
+            {
+                return this.handle;
+            }
+        }
+
+        /// <summary>Creates an unregistered custom representation type.</summary>
+        protected LanguageRepresentationFunctionType(string name)
+            : base(false)
+        {
+            if (null == name)
+            {
+                throw new ArgumentNullException(nameof(name));
+            }
+
+            this.custom = true;
+            this.registrationName = name;
+        }
+
+        private LanguageRepresentationFunctionType(IntPtr handle)
             : base(handle, false)
         {
         }
 
-        /// <summary>
-        /// Borrows a native handle without taking ownership. Returns null if the handle is zero.
-        /// </summary>
-        /// <param name="handle">The native BNLanguageRepresentationFunctionType pointer.</param>
-        /// <returns>A new LanguageRepresentationFunctionType instance that will not free the handle on dispose.</returns>
-        internal static LanguageRepresentationFunctionType? BorrowHandle(IntPtr handle)
+        internal static LanguageRepresentationFunctionType? BorrowHandle(
+            IntPtr handle
+        )
         {
-            if (handle == IntPtr.Zero)
+            if (IntPtr.Zero == handle)
             {
                 return null;
             }
 
-            return new LanguageRepresentationFunctionType(handle);
+            return new CoreLanguageRepresentationFunctionType(handle);
         }
 
-        /// <summary>
-        /// Borrows a native handle without taking ownership. Throws if the handle is zero.
-        /// </summary>
-        /// <param name="handle">The native BNLanguageRepresentationFunctionType pointer.</param>
-        /// <returns>A new LanguageRepresentationFunctionType instance that will not free the handle on dispose.</returns>
-        internal static LanguageRepresentationFunctionType MustBorrowHandle(IntPtr handle)
+        internal static LanguageRepresentationFunctionType MustBorrowHandle(
+            IntPtr handle
+        )
         {
-            if (handle == IntPtr.Zero)
+            LanguageRepresentationFunctionType? type =
+                LanguageRepresentationFunctionType.BorrowHandle(handle);
+            if (null == type)
             {
                 throw new ArgumentNullException(nameof(handle));
             }
 
-            return new LanguageRepresentationFunctionType(handle);
+            return type;
         }
 
-        /// <summary>
-        /// No-op release: language representation function type handles are always borrowed
-        /// from the global registry and must not be freed by this wrapper.
-        /// </summary>
-        /// <returns>True (always, since no deallocation is performed).</returns>
-        protected override bool ReleaseHandle()
-        {
-            // Objects are borrowed from the global registry; the native engine owns their lifetime.
-            return true;
-        }
-
-        /// <summary>
-        /// Gets the registered name that uniquely identifies this language representation type.
-        /// </summary>
+        /// <summary>Gets the unique registered language name.</summary>
         public string Name
         {
             get
             {
-                // 1. Retrieve the native ANSI string pointer for the language type name.
-                IntPtr raw = NativeMethods.BNGetLanguageRepresentationFunctionTypeName(this.handle);
+                if (this.IsInvalid)
+                {
+                    return this.registrationName ?? string.Empty;
+                }
 
-                // 2. Copy and free the native string, returning empty on null.
-                return UnsafeUtils.TakeAnsiString(raw) ?? string.Empty;
+                return UnsafeUtils.TakeUtf8String(
+                    NativeMethods.BNGetLanguageRepresentationFunctionTypeName(
+                        this.handle
+                    )
+                );
             }
         }
 
-        /// <summary>
-        /// Gets the line formatter associated with this language representation type.
-        /// Returns null if no line formatter is registered.
-        /// </summary>
-        public LineFormatter? Formatter
+        /// <summary>Gets the associated line formatter.</summary>
+        public virtual LineFormatter? Formatter
         {
             get
             {
-                // Borrow the native line formatter handle; it is owned by the global registry.
+                if (this.custom)
+                {
+                    return null;
+                }
+
                 return LineFormatter.BorrowHandle(
-                    NativeMethods.BNGetLanguageRepresentationFunctionTypeLineFormatter(this.handle)
+                    NativeMethods.BNGetLanguageRepresentationFunctionTypeLineFormatter(
+                        this.handle
+                    )
                 );
             }
         }
 
-        /// <summary>
-        /// Gets the type parser associated with this language representation type.
-        /// Returns null if no parser is registered.
-        /// </summary>
-        public TypeParser? Parser
+        /// <summary>Gets the associated type parser.</summary>
+        public virtual TypeParser? Parser
         {
             get
             {
-                // Borrow the native type parser handle; it is owned by the global registry.
+                if (this.custom)
+                {
+                    return null;
+                }
+
                 return TypeParser.BorrowHandle(
-                    NativeMethods.BNGetLanguageRepresentationFunctionTypeParser(this.handle)
+                    NativeMethods.BNGetLanguageRepresentationFunctionTypeParser(
+                        this.handle
+                    )
                 );
             }
         }
 
-        /// <summary>
-        /// Gets the type printer associated with this language representation type.
-        /// Returns null if no printer is registered.
-        /// </summary>
-        public TypePrinter? Printer
+        /// <summary>Gets the associated type printer.</summary>
+        public virtual TypePrinter? Printer
         {
             get
             {
-                // Borrow the native type printer handle; it is owned by the global registry.
+                if (this.custom)
+                {
+                    return null;
+                }
+
                 return TypePrinter.BorrowHandle(
-                    NativeMethods.BNGetLanguageRepresentationFunctionTypePrinter(this.handle)
+                    NativeMethods.BNGetLanguageRepresentationFunctionTypePrinter(
+                        this.handle
+                    )
                 );
             }
         }
 
-        /// <summary>
-        /// Determines whether this language representation type is valid for the given binary view.
-        /// </summary>
-        /// <param name="view">The binary view to check validity against.</param>
-        /// <returns>True if this language representation type is applicable to the given view.</returns>
-        public bool IsValidFor(BinaryView view)
+        /// <summary>Registers this custom representation type.</summary>
+        public void Register()
         {
-            // Retrieve the raw handle for the view; pass zero if null (although view should not be null).
-            IntPtr viewHandle = (view != null) ? view.DangerousGetHandle() : IntPtr.Zero;
+            if (!this.custom)
+            {
+                throw new InvalidOperationException(
+                    "Core representation types cannot be registered again."
+                );
+            }
 
-            // Delegate to the native validity check.
-            return NativeMethods.BNIsLanguageRepresentationFunctionTypeValid(this.handle, viewHandle);
+            if (this.registered || !this.IsInvalid)
+            {
+                throw new InvalidOperationException(
+                    "The language representation type is already registered."
+                );
+            }
+
+            this.RegisterCustomType(this.registrationName ?? string.Empty);
+            this.registered = true;
         }
 
-        /// <summary>
-        /// Retrieves all registered language representation function types from the engine.
-        /// Each returned instance is a borrowed reference managed by the native engine.
-        /// </summary>
-        /// <returns>An array of all registered LanguageRepresentationFunctionType instances.</returns>
-        /// <summary>
-        /// Gets the function type declaration tokens for the given function using this language
-        /// representation type. Returns the declaration as an array of disassembly text lines.
-        /// </summary>
-        /// <param name="func">The function to get type tokens for.</param>
-        /// <param name="settings">Optional disassembly settings. Pass null for defaults.</param>
-        /// <returns>An array of DisassemblyTextLine containing the function type tokens.</returns>
-        public unsafe DisassemblyTextLine[] GetFunctionTypeTokens(
-            Function func ,
+        /// <summary>Creates a language representation for one high-level IL function.</summary>
+        public abstract LanguageRepresentationFunction? Create(
+            Architecture architecture,
+            Function owner,
+            HighLevelILFunction highLevelIL
+        );
+
+        /// <summary>Determines whether this type applies to a view.</summary>
+        public virtual bool IsValidFor(BinaryView view)
+        {
+            if (null == view)
+            {
+                throw new ArgumentNullException(nameof(view));
+            }
+
+            if (this.custom)
+            {
+                return true;
+            }
+
+            return NativeMethods.BNIsLanguageRepresentationFunctionTypeValid(
+                this.handle,
+                view.DangerousGetHandle()
+            );
+        }
+
+        /// <summary>Gets function declaration lines for this language.</summary>
+        public virtual unsafe DisassemblyTextLine[] GetFunctionTypeTokens(
+            Function function,
             DisassemblySettings? settings = null
         )
         {
-            // 1. Stack-allocate the count variable.
+            if (this.custom)
+            {
+                return Array.Empty<DisassemblyTextLine>();
+            }
+
             ulong count = 0;
+            IntPtr lines =
+                NativeMethods.BNGetLanguageRepresentationFunctionTypeFunctionTypeTokens(
+                    this.handle,
+                    function.DangerousGetHandle(),
+                    null == settings
+                        ? IntPtr.Zero
+                        : settings.DangerousGetHandle(),
+                    (IntPtr)(&count)
+                );
 
-            // 2. Call the native API.
-            IntPtr arrayPointer = NativeMethods.BNGetLanguageRepresentationFunctionTypeFunctionTypeTokens(
-                this.handle ,
-                func.DangerousGetHandle() ,
-                (null != settings) ? settings.DangerousGetHandle() : IntPtr.Zero ,
-                (IntPtr)(&count)
-            );
-
-            // 3. Convert the native array to managed objects and free the native memory.
-            return UnsafeUtils.TakeStructArrayEx<BNDisassemblyTextLine , DisassemblyTextLine>(
-                arrayPointer ,
-                count ,
-                DisassemblyTextLine.FromNative ,
+            return UnsafeUtils.TakeStructArrayEx<
+                BNDisassemblyTextLine,
+                DisassemblyTextLine
+            >(
+                lines,
+                count,
+                DisassemblyTextLine.FromNative,
                 NativeMethods.BNFreeDisassemblyTextLines
             );
         }
 
+        /// <summary>Looks up a registered representation type by name.</summary>
+        public static LanguageRepresentationFunctionType? GetByName(string name)
+        {
+            if (null == name)
+            {
+                throw new ArgumentNullException(nameof(name));
+            }
+
+            return LanguageRepresentationFunctionType.BorrowHandle(
+                NativeMethods.BNGetLanguageRepresentationFunctionTypeByName(name)
+            );
+        }
+
+        /// <summary>Checks a named representation type against a view.</summary>
+        public static bool IsValidByName(string name, BinaryView view)
+        {
+            using LanguageRepresentationFunctionType? type =
+                LanguageRepresentationFunctionType.GetByName(name);
+
+            return null != type && type.IsValidFor(view);
+        }
+
+        /// <summary>Gets every registered representation type.</summary>
         public static LanguageRepresentationFunctionType[] GetList()
         {
-            // 1. Call the native API to get the array of language representation function type pointers.
-            IntPtr arrayPointer = NativeMethods.BNGetLanguageRepresentationFunctionTypeList(
-                out ulong count
-            );
+            IntPtr types =
+                NativeMethods.BNGetLanguageRepresentationFunctionTypeList(
+                    out ulong count
+                );
 
-            // 2. Convert to managed array of borrowed handles and free the native pointer array.
             return UnsafeUtils.TakeHandleArray<LanguageRepresentationFunctionType>(
-                arrayPointer ,
-                count ,
-                LanguageRepresentationFunctionType.MustBorrowHandle ,
+                types,
+                count,
+                LanguageRepresentationFunctionType.MustBorrowHandle,
                 NativeMethods.BNFreeLanguageRepresentationFunctionTypeList
             );
+        }
+
+        protected override bool ReleaseHandle()
+        {
+            return true;
+        }
+
+        private sealed class CoreLanguageRepresentationFunctionType :
+            LanguageRepresentationFunctionType
+        {
+            internal CoreLanguageRepresentationFunctionType(IntPtr handle)
+                : base(handle)
+            {
+            }
+
+            public override LanguageRepresentationFunction? Create(
+                Architecture architecture,
+                Function owner,
+                HighLevelILFunction highLevelIL
+            )
+            {
+                return LanguageRepresentationFunction.TakeHandle(
+                    NativeMethods.BNCreateLanguageRepresentationFunction(
+                        this.handle,
+                        architecture.DangerousGetHandle(),
+                        owner.DangerousGetHandle(),
+                        highLevelIL.DangerousGetHandle()
+                    )
+                );
+            }
         }
     }
 }
