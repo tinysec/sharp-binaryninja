@@ -5,12 +5,27 @@ using Microsoft.Win32.SafeHandles;
 
 namespace BinaryNinja
 {
-	public sealed class Platform :  AbstractSafeHandle<Platform>
+	public partial class Platform : AbstractSafeHandle<Platform>
 	{
 		public Platform(Architecture arch , string name)
-			:this( NativeMethods.BNCreatePlatform(arch.DangerousGetHandle() , name) , true)
+			: base(true)
 		{
-			
+			this.custom = true;
+			this.InitializeCustomPlatform(arch, name, null, Array.Empty<string>());
+		}
+
+		protected Platform(
+			Architecture arch,
+			string name,
+			string typeFile,
+			string[] includeDirs
+		)
+			: base(true)
+		{
+			this.custom = true;
+			this.InitializeCustomPlatform(
+				arch, name, typeFile, includeDirs ?? Array.Empty<string>()
+			);
 		}
 		
 	    internal Platform(IntPtr handle , bool owner) 
@@ -87,7 +102,7 @@ namespace BinaryNinja
 	    
 	    protected override bool ReleaseHandle()
 	    {
-	        if ( !this.IsInvalid )
+	        if (!this.IsInvalid && !this.registered)
 	        {
 	            NativeMethods.BNFreePlatform(this.handle);
 	            this.SetHandleAsInvalid();
@@ -144,6 +159,7 @@ namespace BinaryNinja
 	    public void RegisterPlatform(string os)
 	    {
 		    NativeMethods.BNRegisterPlatform(os , this.handle);
+		    Platform.RootForRegistration(this);
 	    }
 
 	    public string Name
@@ -280,10 +296,15 @@ namespace BinaryNinja
 		    );
 	    }
 
-	    public uint[] GlobalRegisters
+	    public virtual uint[] GlobalRegisters
 	    {
 		    get
 		    {
+			    if (this.custom)
+			    {
+				    return this.GetDefaultGlobalRegisters();
+			    }
+
 			    IntPtr arrayPointer = NativeMethods.BNGetPlatformGlobalRegisters(
 				    this.handle,
 				    out ulong arrayLength
@@ -297,10 +318,15 @@ namespace BinaryNinja
 		    }
 	    }
 
-	    public ulong AddressSize
+	    public virtual ulong AddressSize
 	    {
 		    get
 		    {
+			    if (this.custom)
+			    {
+				    return this.Architecture.AddressSize;
+			    }
+
 			    return NativeMethods.BNGetPlatformAddressSize(this.handle);
 		    }
 	    }
@@ -551,8 +577,13 @@ namespace BinaryNinja
 	    /// <summary>
 	    /// Gets the type of a global register on this platform.
 	    /// </summary>
-	    public BinaryNinja.Type? GetGlobalRegisterType(uint reg)
+	    public virtual BinaryNinja.Type? GetGlobalRegisterType(uint reg)
 	    {
+		    if (this.custom)
+		    {
+			    return null;
+		    }
+
 		    return BinaryNinja.Type.TakeHandle(
 			    NativeMethods.BNGetPlatformGlobalRegisterType(this.handle , reg)
 		    );

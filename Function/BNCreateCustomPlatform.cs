@@ -17,15 +17,9 @@ namespace BinaryNinja
             EntryPoint = "BNCreateCustomPlatform"
         )]
 		internal static extern IntPtr BNCreateCustomPlatform(
-			
-			// BNArchitecture* arch
-		    IntPtr arch  , 
-			
-			// const char* name
-		    [MarshalAs(UnmanagedType.LPUTF8Str)] string name  , 
-			
-			// BNCustomPlatform* impl
-		    IntPtr impl  
+			IntPtr arch,
+			[MarshalAs(UnmanagedType.LPUTF8Str)] string name,
+			in BNCustomPlatform implementation
 		);
 	}
 }
