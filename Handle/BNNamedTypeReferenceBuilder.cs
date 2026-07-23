@@ -81,6 +81,12 @@ namespace BinaryNinja
 		    
 		    return new NamedTypeReferenceBuilder(handle, false);
 	    }
+
+		internal void TransferOwnershipToCore()
+		{
+			this.SetHandle(IntPtr.Zero);
+			this.SetHandleAsInvalid();
+		}
 	    
         /// <summary>
         /// Releases the native BNNamedTypeReferenceBuilder handle when this instance is disposed or finalized.

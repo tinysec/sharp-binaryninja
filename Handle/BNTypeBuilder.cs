@@ -5,7 +5,7 @@ using Microsoft.Win32.SafeHandles;
 
 namespace BinaryNinja
 {
-	public class TypeBuilder : AbstractSafeHandle<TypeBuilder>
+	public partial class TypeBuilder : AbstractSafeHandle<TypeBuilder>
 	{
 		internal TypeBuilder(IntPtr handle , bool owner)
 			: base(handle , owner)
@@ -81,6 +81,7 @@ namespace BinaryNinja
         /// </summary>
         /// <param name="builder">The structure builder to create a type builder from.</param>
         /// <returns>A new owned TypeBuilder for the structure type.</returns>
+        /// <remarks>The core takes ownership and invalidates <paramref name="builder"/>.</remarks>
         public static TypeBuilder CreateStructureTypeWithBuilder(StructureBuilder builder)
         {
             // 1. Validate the required builder parameter.
@@ -90,9 +91,13 @@ namespace BinaryNinja
             }
 
             // 2. Create a structure type builder from the builder; the returned handle is owned.
-            return TypeBuilder.MustTakeHandle(
-                NativeMethods.BNCreateStructureTypeBuilderWithBuilder(builder.DangerousGetHandle())
-            );
+			IntPtr handle = NativeMethods.BNCreateStructureTypeBuilderWithBuilder(
+				builder.DangerousGetHandle()
+			);
+			TypeBuilder result = TypeBuilder.MustTakeHandle(handle);
+			builder.TransferOwnershipToCore();
+
+			return result;
         }
 
         /// <summary>
@@ -713,6 +718,7 @@ namespace BinaryNinja
 		/// <param name="width">The width of the enumeration type in bytes.</param>
 		/// <param name="isSigned">The signedness with confidence.</param>
 		/// <returns>A new owned TypeBuilder for the enumeration type.</returns>
+		/// <remarks>The core takes ownership and invalidates <paramref name="builder"/>.</remarks>
 		public static unsafe TypeBuilder CreateEnumerationTypeWithBuilder(
 			Architecture arch ,
 			EnumerationBuilder builder ,
@@ -735,14 +741,16 @@ namespace BinaryNinja
 			BNBoolWithConfidence nativeSigned = isSigned.ToNative();
 
 			// 3. Create an enumeration type builder from the builder; the returned handle is owned.
-			return TypeBuilder.MustTakeHandle(
-				NativeMethods.BNCreateEnumerationTypeBuilderWithBuilder(
+			IntPtr handle = NativeMethods.BNCreateEnumerationTypeBuilderWithBuilder(
 					arch.DangerousGetHandle() ,
 					builder.DangerousGetHandle() ,
 					width ,
 					(IntPtr)(&nativeSigned)
-				)
-			);
+				);
+			TypeBuilder result = TypeBuilder.MustTakeHandle(handle);
+			builder.TransferOwnershipToCore();
+
+			return result;
 		}
 
 		/// <summary>
@@ -815,6 +823,7 @@ namespace BinaryNinja
 		/// <param name="cnst">The const qualifier with confidence.</param>
 		/// <param name="vltl">The volatile qualifier with confidence.</param>
 		/// <returns>A new owned TypeBuilder for the named type reference.</returns>
+		/// <remarks>The core takes ownership and invalidates <paramref name="builder"/>.</remarks>
 		public static unsafe TypeBuilder CreateNamedTypeReferenceBuilderWithBuilder(
 			NamedTypeReferenceBuilder builder ,
 			ulong width ,
@@ -834,15 +843,18 @@ namespace BinaryNinja
 			BNBoolWithConfidence nativeVltl = vltl.ToNative();
 
 			// 3. Create the builder; the returned handle is owned.
-			return TypeBuilder.MustTakeHandle(
+			IntPtr handle =
 				NativeMethods.BNCreateNamedTypeReferenceBuilderWithBuilder(
 					builder.DangerousGetHandle() ,
 					width ,
 					align ,
 					(IntPtr)(&nativeCnst) ,
 					(IntPtr)(&nativeVltl)
-				)
-			);
+				);
+			TypeBuilder result = TypeBuilder.MustTakeHandle(handle);
+			builder.TransferOwnershipToCore();
+
+			return result;
 		}
 
 		/// <summary>
