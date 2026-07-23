@@ -1,44 +1,34 @@
 using System;
-using System.Collections.Generic;
 using System.Runtime.InteropServices;
-using Microsoft.Win32.SafeHandles;
 
 namespace BinaryNinja
 {
-	[StructLayout(LayoutKind.Sequential)]
-	internal unsafe struct BNScriptingOutputListener 
-	{
-		/// <summary>
-		/// void* context
-		/// </summary>
-		public IntPtr context;
-		
-		/// <summary>
-		/// void** output
-		/// </summary>
-		public IntPtr output;
-		
-		/// <summary>
-		/// void** warning
-		/// </summary>
-		public IntPtr warning;
-		
-		/// <summary>
-		/// void** error
-		/// </summary>
-		public IntPtr error;
-		
-		/// <summary>
-		/// void** inputReadyStateChanged
-		/// </summary>
-		public IntPtr inputReadyStateChanged;
-	}
-
-    public class ScriptingOutputListener 
+    internal static partial class NativeDelegates
     {
-		public ScriptingOutputListener() 
-		{
-		    
-		}
+        [UnmanagedFunctionPointer(System.Runtime.InteropServices.CallingConvention.Cdecl)]
+        internal delegate void BNScriptingOutput(
+            IntPtr context,
+            [MarshalAs(UnmanagedType.LPUTF8Str)] string text
+        );
+
+        [UnmanagedFunctionPointer(System.Runtime.InteropServices.CallingConvention.Cdecl)]
+        internal delegate void BNScriptingInputReadyStateChanged(
+            IntPtr context,
+            ScriptingProviderInputReadyState state
+        );
+    }
+
+    [StructLayout(LayoutKind.Sequential)]
+    internal struct BNScriptingOutputListener
+    {
+        internal IntPtr context;
+
+        internal IntPtr output;
+
+        internal IntPtr warning;
+
+        internal IntPtr error;
+
+        internal IntPtr inputReadyStateChanged;
     }
 }

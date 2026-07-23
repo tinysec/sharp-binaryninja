@@ -29,7 +29,7 @@ namespace BinaryNinja
 		    [MarshalAs(UnmanagedType.LPUTF8Str)] string module  , 
 			
 			// bool force
-		    bool force  
+		    [MarshalAs(UnmanagedType.I1)] bool force
 			
 		);
 	}
