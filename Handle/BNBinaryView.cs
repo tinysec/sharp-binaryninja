@@ -6213,7 +6213,7 @@ namespace BinaryNinja
 
 	    public Symbol? ChooseSymbol(string prompt = "Choose" , string title = "Choose a symbol")
 	    {
-		    int? index = Core.GetLargeChoiceInput(
+		    ulong? index = Core.GetLargeChoiceInput(
 			    prompt ,
 			    title ,
 			    this.SymbolNames
@@ -6224,12 +6224,14 @@ namespace BinaryNinja
 			    return null;
 		    }
 		    
-		    return this.GetSymbolByRawName(this.SymbolNames[(int)index]);
+		    return this.GetSymbolByRawName(
+			    this.SymbolNames[checked((int)index.Value)]
+		    );
 	    }
 	    
 	    public Function? ChooseFunction(string prompt = "Choose" , string title = "Choose a function")
 	    {
-		    int? index = Core.GetLargeChoiceInput(
+		    ulong? index = Core.GetLargeChoiceInput(
 			    prompt ,
 			    title ,
 			    this.SymbolNames
@@ -6240,7 +6242,9 @@ namespace BinaryNinja
 			    return null;
 		    }
 		    
-		    return this.GetFunctionByRawName(this.SymbolNames[(int)index]);
+		    return this.GetFunctionByRawName(
+			    this.SymbolNames[checked((int)index.Value)]
+		    );
 	    }
 
 	    // ─── Type archive association methods ────────────────────────────────────

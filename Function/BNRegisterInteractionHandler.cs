@@ -17,10 +17,7 @@ namespace BinaryNinja
             EntryPoint = "BNRegisterInteractionHandler"
         )]
 		internal static extern void BNRegisterInteractionHandler(
-			
-			// BNInteractionHandlerCallbacks* callbacks
-		    IntPtr callbacks  
-			
+			in BNInteractionHandlerCallbacks callbacks
 		);
 	}
 }

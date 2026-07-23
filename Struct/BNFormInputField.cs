@@ -94,7 +94,6 @@ namespace BinaryNinja
 		internal ulong indexDefault;
 	}
 
-	/*
     public class FormInputField
     {
 	    public FormInputFieldType Type { get; set; } = FormInputFieldType.LabelFormField;
@@ -133,8 +132,98 @@ namespace BinaryNinja
 		{
 		    
 		}
+
+		internal static FormInputField FromNative(BNFormInputField native)
+		{
+			FormInputField field = new FormInputField();
+			field.Type = native.type;
+			field.Prompt = UnsafeUtils.ReadUtf8String(native.prompt);
+			field.View = BinaryView.TakeHandle(
+				IntPtr.Zero == native.view
+					? IntPtr.Zero
+					: NativeMethods.BNNewViewReference(native.view)
+			);
+			field.CurrentAddress = native.currentAddress;
+			field.Choices = UnsafeUtils.ReadUtf8StringArray(
+				native.choices,
+				native.count
+			);
+			field.Ext = UnsafeUtils.ReadUtf8String(native.ext);
+			field.DefaultName = UnsafeUtils.ReadUtf8String(native.defaultName);
+			field.HasDefault = native.hasDefault;
+			field.IntDefault = native.intDefault;
+			field.AddressDefault = native.addressDefault;
+			field.StringDefault = UnsafeUtils.ReadUtf8String(
+				native.stringDefault
+			);
+			field.IndexDefault = native.indexDefault;
+
+			return field;
+		}
+
+		internal BNFormInputField ToNative(ScopedAllocator allocator)
+		{
+			BNFormInputField native = new BNFormInputField();
+			native.type = this.Type;
+			native.prompt = allocator.AllocUtf8String(this.Prompt);
+			native.view = null == this.View
+				? IntPtr.Zero
+				: this.View.DangerousGetHandle();
+			native.currentAddress = this.CurrentAddress;
+			native.choices = allocator.AllocUtf8StringArray(this.Choices);
+			native.count = (ulong)this.Choices.Length;
+			native.ext = allocator.AllocUtf8String(this.Ext);
+			native.defaultName = allocator.AllocUtf8String(this.DefaultName);
+			native.hasDefault = this.HasDefault;
+			native.intDefault = this.IntDefault;
+			native.addressDefault = this.AddressDefault;
+			native.stringDefault = allocator.AllocUtf8String(
+				this.StringDefault
+			);
+			native.indexDefault = this.IndexDefault;
+
+			return native;
+		}
+
+		internal void ReadResult(BNFormInputField native)
+		{
+			this.IntResult = native.intResult;
+			this.AddressResult = native.addressResult;
+			this.StringResult = UnsafeUtils.ReadUtf8String(native.stringResult);
+			this.IndexResult = native.indexResult;
+		}
+
+		internal IntPtr WriteResult(ref BNFormInputField native)
+		{
+			native.intResult = this.IntResult;
+			native.addressResult = this.AddressResult;
+			native.indexResult = this.IndexResult;
+			native.stringResult = IntPtr.Zero;
+			if (
+				FormInputFieldType.TextLineFormField == this.Type
+				|| FormInputFieldType.MultilineTextFormField == this.Type
+				|| FormInputFieldType.OpenFileNameFormField == this.Type
+				|| FormInputFieldType.SaveFileNameFormField == this.Type
+				|| FormInputFieldType.DirectoryNameFormField == this.Type
+			)
+			{
+				native.stringResult = NativeMethods.BNAllocString(
+					this.StringResult ?? string.Empty
+				);
+			}
+
+			return native.stringResult;
+		}
+
+		internal void ReleaseCallbackReferences()
+		{
+			if (null != this.View)
+			{
+				this.View.Dispose();
+				this.View = null;
+			}
+		}
     }
-    */
 
     public abstract class AbstractFormInputField
     {

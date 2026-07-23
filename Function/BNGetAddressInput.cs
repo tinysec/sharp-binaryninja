@@ -7,14 +7,19 @@ namespace BinaryNinja
 {
 	public static partial class Core
 	{
-		public static ulong? GetAddressInput(string prompt = "PROMPT>" , string title = "get_address" )
+		public static ulong? GetAddressInput(
+			string prompt = "PROMPT>",
+			string title = "get_address",
+			BinaryView? view = null,
+			ulong currentAddress = 0
+		)
 		{
 			bool ok = NativeMethods.BNGetAddressInput(
 				out ulong result ,
 				prompt ,
 				title,
-				IntPtr.Zero ,
-				0
+				null == view ? IntPtr.Zero : view.DangerousGetHandle(),
+				currentAddress
 			);
 
 			if (!ok)

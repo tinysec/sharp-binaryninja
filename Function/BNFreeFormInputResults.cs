@@ -18,7 +18,7 @@ namespace BinaryNinja
 		internal static extern void BNFreeFormInputResults(
 			
 			// BNFormInputField* fields
-		    in BNFormInputField[] fields  , 
+		    [In] BNFormInputField[] fields  ,
 			
 			// uint64_t count
 		    ulong count  

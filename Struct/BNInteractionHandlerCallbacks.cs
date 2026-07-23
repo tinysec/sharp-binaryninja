@@ -1,114 +1,171 @@
 using System;
-using System.Collections.Generic;
 using System.Runtime.InteropServices;
-using Microsoft.Win32.SafeHandles;
 
 namespace BinaryNinja
 {
-	[StructLayout(LayoutKind.Sequential)]
-	internal unsafe struct BNInteractionHandlerCallbacks 
-	{
-		/// <summary>
-		/// void* context
-		/// </summary>
-		public IntPtr context;
-		
-		/// <summary>
-		/// void** showPlainTextReport
-		/// </summary>
-		public IntPtr showPlainTextReport;
-		
-		/// <summary>
-		/// void** showMarkdownReport
-		/// </summary>
-		public IntPtr showMarkdownReport;
-		
-		/// <summary>
-		/// void** showHTMLReport
-		/// </summary>
-		public IntPtr showHTMLReport;
-		
-		/// <summary>
-		/// void** showGraphReport
-		/// </summary>
-		public IntPtr showGraphReport;
-		
-		/// <summary>
-		/// void** showReportCollection
-		/// </summary>
-		public IntPtr showReportCollection;
-		
-		/// <summary>
-		/// void** getTextLineInput
-		/// </summary>
-		public IntPtr getTextLineInput;
-		
-		/// <summary>
-		/// void** getIntegerInput
-		/// </summary>
-		public IntPtr getIntegerInput;
-		
-		/// <summary>
-		/// void** getAddressInput
-		/// </summary>
-		public IntPtr getAddressInput;
-		
-		/// <summary>
-		/// void** getChoiceInput
-		/// </summary>
-		public IntPtr getChoiceInput;
-		
-		/// <summary>
-		/// void** getLargeChoiceInput
-		/// </summary>
-		public IntPtr getLargeChoiceInput;
-		
-		/// <summary>
-		/// void** getOpenFileNameInput
-		/// </summary>
-		public IntPtr getOpenFileNameInput;
-		
-		/// <summary>
-		/// void** getSaveFileNameInput
-		/// </summary>
-		public IntPtr getSaveFileNameInput;
-		
-		/// <summary>
-		/// void** getDirectoryNameInput
-		/// </summary>
-		public IntPtr getDirectoryNameInput;
-		
-		/// <summary>
-		/// void** getCheckboxInput
-		/// </summary>
-		public IntPtr getCheckboxInput;
-		
-		/// <summary>
-		/// void** getFormInput
-		/// </summary>
-		public IntPtr getFormInput;
-		
-		/// <summary>
-		/// void** showMessageBox
-		/// </summary>
-		public IntPtr showMessageBox;
-		
-		/// <summary>
-		/// void** openUrl
-		/// </summary>
-		public IntPtr openUrl;
-		
-		/// <summary>
-		/// void** runProgressDialog
-		/// </summary>
-		public IntPtr runProgressDialog;
-	}
-
-    public class InteractionHandlerCallbacks 
+    internal static partial class NativeDelegates
     {
-		public InteractionHandlerCallbacks() 
-		{
-		    
-		}
+        [UnmanagedFunctionPointer(System.Runtime.InteropServices.CallingConvention.Cdecl)]
+        internal delegate void BNInteractionReport(
+            IntPtr context,
+            IntPtr view,
+            [MarshalAs(UnmanagedType.LPUTF8Str)] string title,
+            [MarshalAs(UnmanagedType.LPUTF8Str)] string contents
+        );
+
+        [UnmanagedFunctionPointer(System.Runtime.InteropServices.CallingConvention.Cdecl)]
+        internal delegate void BNInteractionRichReport(
+            IntPtr context,
+            IntPtr view,
+            [MarshalAs(UnmanagedType.LPUTF8Str)] string title,
+            [MarshalAs(UnmanagedType.LPUTF8Str)] string contents,
+            [MarshalAs(UnmanagedType.LPUTF8Str)] string plainText
+        );
+
+        [UnmanagedFunctionPointer(System.Runtime.InteropServices.CallingConvention.Cdecl)]
+        internal delegate void BNInteractionGraphReport(
+            IntPtr context,
+            IntPtr view,
+            [MarshalAs(UnmanagedType.LPUTF8Str)] string title,
+            IntPtr graph
+        );
+
+        [UnmanagedFunctionPointer(System.Runtime.InteropServices.CallingConvention.Cdecl)]
+        internal delegate void BNInteractionReportCollection(
+            IntPtr context,
+            [MarshalAs(UnmanagedType.LPUTF8Str)] string title,
+            IntPtr reports
+        );
+
+        [UnmanagedFunctionPointer(System.Runtime.InteropServices.CallingConvention.Cdecl)]
+        [return: MarshalAs(UnmanagedType.I1)]
+        internal delegate bool BNInteractionStringInput(
+            IntPtr context,
+            IntPtr result,
+            [MarshalAs(UnmanagedType.LPUTF8Str)] string prompt,
+            [MarshalAs(UnmanagedType.LPUTF8Str)] string value
+        );
+
+        [UnmanagedFunctionPointer(System.Runtime.InteropServices.CallingConvention.Cdecl)]
+        [return: MarshalAs(UnmanagedType.I1)]
+        internal delegate bool BNInteractionIntegerInput(
+            IntPtr context,
+            IntPtr result,
+            [MarshalAs(UnmanagedType.LPUTF8Str)] string prompt,
+            [MarshalAs(UnmanagedType.LPUTF8Str)] string title
+        );
+
+        [UnmanagedFunctionPointer(System.Runtime.InteropServices.CallingConvention.Cdecl)]
+        [return: MarshalAs(UnmanagedType.I1)]
+        internal delegate bool BNInteractionAddressInput(
+            IntPtr context,
+            IntPtr result,
+            [MarshalAs(UnmanagedType.LPUTF8Str)] string prompt,
+            [MarshalAs(UnmanagedType.LPUTF8Str)] string title,
+            IntPtr view,
+            ulong currentAddress
+        );
+
+        [UnmanagedFunctionPointer(System.Runtime.InteropServices.CallingConvention.Cdecl)]
+        [return: MarshalAs(UnmanagedType.I1)]
+        internal delegate bool BNInteractionChoiceInput(
+            IntPtr context,
+            IntPtr result,
+            [MarshalAs(UnmanagedType.LPUTF8Str)] string prompt,
+            [MarshalAs(UnmanagedType.LPUTF8Str)] string title,
+            IntPtr choices,
+            UIntPtr count
+        );
+
+        [UnmanagedFunctionPointer(System.Runtime.InteropServices.CallingConvention.Cdecl)]
+        [return: MarshalAs(UnmanagedType.I1)]
+        internal delegate bool BNInteractionSaveFileInput(
+            IntPtr context,
+            IntPtr result,
+            [MarshalAs(UnmanagedType.LPUTF8Str)] string prompt,
+            [MarshalAs(UnmanagedType.LPUTF8Str)] string extension,
+            [MarshalAs(UnmanagedType.LPUTF8Str)] string defaultName
+        );
+
+        [UnmanagedFunctionPointer(System.Runtime.InteropServices.CallingConvention.Cdecl)]
+        [return: MarshalAs(UnmanagedType.I1)]
+        internal delegate bool BNInteractionCheckboxInput(
+            IntPtr context,
+            IntPtr result,
+            [MarshalAs(UnmanagedType.LPUTF8Str)] string prompt,
+            [MarshalAs(UnmanagedType.LPUTF8Str)] string title,
+            IntPtr defaultChoice
+        );
+
+        [UnmanagedFunctionPointer(System.Runtime.InteropServices.CallingConvention.Cdecl)]
+        [return: MarshalAs(UnmanagedType.I1)]
+        internal delegate bool BNInteractionFormInput(
+            IntPtr context,
+            IntPtr fields,
+            UIntPtr count,
+            [MarshalAs(UnmanagedType.LPUTF8Str)] string title
+        );
+
+        [UnmanagedFunctionPointer(System.Runtime.InteropServices.CallingConvention.Cdecl)]
+        internal delegate MessageBoxButtonResult BNInteractionMessageBox(
+            IntPtr context,
+            [MarshalAs(UnmanagedType.LPUTF8Str)] string title,
+            [MarshalAs(UnmanagedType.LPUTF8Str)] string text,
+            MessageBoxButtonSet buttons,
+            MessageBoxIcon icon
+        );
+
+        [UnmanagedFunctionPointer(System.Runtime.InteropServices.CallingConvention.Cdecl)]
+        [return: MarshalAs(UnmanagedType.I1)]
+        internal delegate bool BNInteractionOpenUrl(
+            IntPtr context,
+            [MarshalAs(UnmanagedType.LPUTF8Str)] string url
+        );
+
+        [UnmanagedFunctionPointer(System.Runtime.InteropServices.CallingConvention.Cdecl)]
+        [return: MarshalAs(UnmanagedType.I1)]
+        internal delegate bool BNInteractionProgressDialog(
+            IntPtr context,
+            [MarshalAs(UnmanagedType.LPUTF8Str)] string title,
+            [MarshalAs(UnmanagedType.I1)] bool canCancel,
+            IntPtr task,
+            IntPtr taskContext
+        );
+
+        [UnmanagedFunctionPointer(System.Runtime.InteropServices.CallingConvention.Cdecl)]
+        internal delegate void BNInteractionProgressTask(
+            IntPtr taskContext,
+            IntPtr progress,
+            IntPtr progressContext
+        );
+    }
+
+    [StructLayout(LayoutKind.Sequential)]
+    internal struct BNInteractionHandlerCallbacks
+    {
+        internal IntPtr context;
+        internal IntPtr showPlainTextReport;
+        internal IntPtr showMarkdownReport;
+        internal IntPtr showHTMLReport;
+        internal IntPtr showGraphReport;
+        internal IntPtr showReportCollection;
+        internal IntPtr getTextLineInput;
+        internal IntPtr getIntegerInput;
+        internal IntPtr getAddressInput;
+        internal IntPtr getChoiceInput;
+        internal IntPtr getLargeChoiceInput;
+        internal IntPtr getOpenFileNameInput;
+        internal IntPtr getSaveFileNameInput;
+        internal IntPtr getDirectoryNameInput;
+        internal IntPtr getCheckboxInput;
+        internal IntPtr getFormInput;
+        internal IntPtr showMessageBox;
+        internal IntPtr openUrl;
+        internal IntPtr runProgressDialog;
+    }
+
+    /// <summary>Retained for source compatibility.</summary>
+    public class InteractionHandlerCallbacks
+    {
     }
 }

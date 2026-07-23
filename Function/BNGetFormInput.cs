@@ -20,7 +20,7 @@ namespace BinaryNinja
 		internal static extern bool BNGetFormInput(
 			
 			// BNFormInputField* fields
-			BNFormInputField[] fields  , 
+			[In, Out] BNFormInputField[] fields  ,
 			
 			// uint64_t count
 		    ulong count  , 
