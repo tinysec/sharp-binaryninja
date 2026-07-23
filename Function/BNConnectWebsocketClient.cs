@@ -29,13 +29,13 @@ namespace BinaryNinja
 		    ulong headerCount  , 
 			
 			// const char** headerKeys
-		    string[] headerKeys  , 
+		    IntPtr headerKeys  ,
 			
 			// const char** headerValues
-		    string[] headerValues  , 
+		    IntPtr headerValues  ,
 			
 			// BNWebsocketClientOutputCallbacks* callbacks
-		    IntPtr callbacks  
+		    in BNWebsocketClientOutputCallbacks callbacks
 		);
 	}
 }
