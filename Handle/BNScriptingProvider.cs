@@ -93,6 +93,52 @@ namespace BinaryNinja
             }
         }
 
+        /// <summary>Gets every registered scripting provider.</summary>
+        /// <returns>The registered providers as borrowed handles.</returns>
+        public static unsafe ScriptingProvider[] GetList()
+        {
+            ulong count = 0;
+            IntPtr providers = NativeMethods.BNGetScriptingProviderList(
+                (IntPtr)(&count)
+            );
+            return UnsafeUtils.TakeHandleArray<ScriptingProvider>(
+                providers,
+                count,
+                ScriptingProvider.MustBorrowHandle,
+                NativeMethods.BNFreeScriptingProviderList
+            );
+        }
+
+        /// <summary>Looks up a scripting provider by its display name.</summary>
+        /// <param name="name">The provider display name.</param>
+        /// <returns>The borrowed provider, or null when no provider has that name.</returns>
+        public static ScriptingProvider? GetByName(string name)
+        {
+            if (null == name)
+            {
+                throw new ArgumentNullException(nameof(name));
+            }
+
+            return ScriptingProvider.BorrowHandle(
+                NativeMethods.BNGetScriptingProviderByName(name)
+            );
+        }
+
+        /// <summary>Looks up a scripting provider by its programmatic API name.</summary>
+        /// <param name="name">The provider API name.</param>
+        /// <returns>The borrowed provider, or null when no provider has that API name.</returns>
+        public static ScriptingProvider? GetByApiName(string name)
+        {
+            if (null == name)
+            {
+                throw new ArgumentNullException(nameof(name));
+            }
+
+            return ScriptingProvider.BorrowHandle(
+                NativeMethods.BNGetScriptingProviderByAPIName(name)
+            );
+        }
+
         /// <summary>
         /// Creates a new scripting instance for this provider.
         /// The caller is responsible for disposing the returned instance.
