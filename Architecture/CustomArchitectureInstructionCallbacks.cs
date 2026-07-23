@@ -112,10 +112,7 @@ namespace BinaryNinja
 					Marshal.Copy(data, bytes, 0, bytes.Length);
 				}
 
-				using (LowLevelILFunction il = LowLevelILFunction.MustNewFromHandle(
-					ilHandle,
-					false,
-					this.registeredArchitecture))
+				using (LowLevelILFunction il = this.CreateCallbackLowLevelIL(ilHandle))
 				{
 					ulong? decodedLength = this.GetInstructionLowLevelIL(bytes, address, il);
 					if (null == decodedLength
