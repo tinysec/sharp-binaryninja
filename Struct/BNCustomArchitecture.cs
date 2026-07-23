@@ -334,7 +334,7 @@ namespace BinaryNinja
 		internal IntPtr skipAndReturnValue;
 	}
 
-    public abstract class CustomArchitecture 
+    public abstract partial class CustomArchitecture
     {
 		internal delegate void InitDelegate(
 			Architecture arch
