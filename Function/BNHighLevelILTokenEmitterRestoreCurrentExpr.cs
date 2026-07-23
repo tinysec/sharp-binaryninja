@@ -21,7 +21,7 @@ namespace BinaryNinja
 		    IntPtr emitter  , 
 			
 			// BNTokenEmitterExpr expr
-		    in BNTokenEmitterExpr expr  
+		    BNTokenEmitterExpr expr
 		);
 	}
 }

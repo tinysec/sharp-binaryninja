@@ -5,7 +5,7 @@ using Microsoft.Win32.SafeHandles;
 
 namespace BinaryNinja
 {
-	public sealed class HighLevelILTokenEmitter : AbstractSafeHandle<HighLevelILTokenEmitter>
+	public sealed partial class HighLevelILTokenEmitter : AbstractSafeHandle<HighLevelILTokenEmitter>
 	{
 	    internal HighLevelILTokenEmitter(IntPtr handle , bool owner) 
 		    : base(handle , owner)
@@ -181,16 +181,29 @@ namespace BinaryNinja
 		    );
 	    }
 	    
-	    public void SetCurrentExpr(TokenEmitterExpression expr)
+	    public TokenEmitterExpression SetCurrentExpr(TokenEmitterExpression expr)
 	    {
-		    NativeMethods.BNHighLevelILTokenEmitterSetCurrentExpr(
+		    if (null == expr)
+		    {
+			    throw new ArgumentNullException(nameof(expr));
+		    }
+
+		    BNTokenEmitterExpr previous =
+			    NativeMethods.BNHighLevelILTokenEmitterSetCurrentExpr(
 			    this.handle ,
 			    expr.ToNative()
 		    );
+
+		    return TokenEmitterExpression.FromNative(previous);
 	    }
 	    
 	    public void RestoreCurrentExpr(TokenEmitterExpression expr)
 	    {
+		    if (null == expr)
+		    {
+			    throw new ArgumentNullException(nameof(expr));
+		    }
+
 		    NativeMethods.BNHighLevelILTokenEmitterRestoreCurrentExpr(
 			    this.handle,
 			    expr.ToNative()
@@ -206,6 +219,11 @@ namespace BinaryNinja
 	    
 	    public void Append(InstructionTextToken token)
 	    {
+		    if (null == token)
+		    {
+			    throw new ArgumentNullException(nameof(token));
+		    }
+
 		    using (ScopedAllocator allocator = new ScopedAllocator())
 		    {
 			    NativeMethods.BNHighLevelILTokenEmitterAppend(
@@ -272,6 +290,11 @@ namespace BinaryNinja
 				    this.handle
 			    );
 		    }
+
+		    set
+		    {
+			    this.SetBraceRequirement(value);
+		    }
 	    }
 
 	    public InstructionTextToken[] GetCurrentTokens()
@@ -298,6 +321,11 @@ namespace BinaryNinja
 
 	    public void SetCurrentTokens(InstructionTextToken[] tokens)
 	    {
+		    if (null == tokens)
+		    {
+			    throw new ArgumentNullException(nameof(tokens));
+		    }
+
 		    using (ScopedAllocator allocator = new ScopedAllocator())
 		    {
 			    NativeMethods.BNHighLevelILTokenEmitterSetCurrentTokens(
@@ -401,6 +429,11 @@ namespace BinaryNinja
 		    return NativeMethods.BNHighLevelILTokenEmitterGetMaxTernarySimplficationTokens(
 			    this.handle
 		    );
+	    }
+
+	    public ulong GetMaxTernarySimplificationTokens()
+	    {
+		    return this.GetMaxTernarySimplficationTokens();
 	    }
 
 	    /// <summary>

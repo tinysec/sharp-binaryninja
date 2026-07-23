@@ -54,5 +54,38 @@ namespace BinaryNinja
 				instrIndex = (ulong)this.InstructionIndex ,
 			};
 		}
+
+		internal static TokenEmitterExpression FromNative(
+			BNTokenEmitterExpr native
+		)
+		{
+			TokenEmitterExpression expression = new TokenEmitterExpression();
+			expression.Address = native.address;
+			expression.SourceOperand = native.sourceOperand;
+			expression.ExpressionIndex =
+				(HighLevelILExpressionIndex)native.exprIndex;
+			expression.InstructionIndex =
+				(HighLevelILInstructionIndex)native.instrIndex;
+
+			return expression;
+		}
+
+		internal static TokenEmitterExpression FromInstruction(
+			HighLevelILInstruction instruction
+		)
+		{
+			if (null == instruction)
+			{
+				throw new ArgumentNullException(nameof(instruction));
+			}
+
+			TokenEmitterExpression expression = new TokenEmitterExpression();
+			expression.Address = instruction.Address;
+			expression.SourceOperand = (uint)instruction.SourceOperand;
+			expression.ExpressionIndex = instruction.ExpressionIndex;
+			expression.InstructionIndex = instruction.InstructionIndex;
+
+			return expression;
+		}
     }
 }

@@ -22,7 +22,7 @@ namespace BinaryNinja
 		    IntPtr emitter  , 
 			
 			// bool allowed
-		    bool allowed  
+		    [MarshalAs(UnmanagedType.I1)] bool allowed
 			
 		);
 	}

@@ -22,7 +22,7 @@ namespace BinaryNinja
 		    IntPtr emitter  , 
 			
 			// bool sameLine
-		    bool sameLine  
+		    [MarshalAs(UnmanagedType.I1)] bool sameLine
 			
 		);
 	}

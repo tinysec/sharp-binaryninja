@@ -39,7 +39,7 @@ namespace BinaryNinja
 		    OperatorPrecedence precedence  , 
 			
 			// bool allowShortString
-		    bool allowShortString  
+		    [MarshalAs(UnmanagedType.I1)] bool allowShortString
 		);
 	}
 }
