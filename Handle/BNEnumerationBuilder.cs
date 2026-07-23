@@ -67,6 +67,12 @@ namespace BinaryNinja
 		    
 		    return new EnumerationBuilder(handle, false);
 	    }
+
+		internal void TransferOwnershipToCore()
+		{
+			this.SetHandle(IntPtr.Zero);
+			this.SetHandleAsInvalid();
+		}
 	    
 	    protected override bool ReleaseHandle()
 	    {

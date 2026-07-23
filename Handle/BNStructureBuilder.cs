@@ -94,6 +94,12 @@ namespace BinaryNinja
 		    
 			return new StructureBuilder(handle, false);
 		}
+
+		internal void TransferOwnershipToCore()
+		{
+			this.SetHandle(IntPtr.Zero);
+			this.SetHandleAsInvalid();
+		}
 		
 		protected override bool ReleaseHandle()
 		{
