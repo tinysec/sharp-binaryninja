@@ -5,8 +5,10 @@ using Microsoft.Win32.SafeHandles;
 
 namespace BinaryNinja
 {
-	public sealed class CallingConvention : AbstractSafeHandle<CallingConvention>
+	public partial class CallingConvention : AbstractSafeHandle<CallingConvention>
 	{
+		private bool custom;
+
 	    internal CallingConvention(IntPtr handle , bool owner)
 		    : base(handle , owner)
 	    {
@@ -81,6 +83,13 @@ namespace BinaryNinja
         /// <returns>True if the handle was successfully released.</returns>
         protected override bool ReleaseHandle()
         {
+            if (this.custom)
+            {
+                NativeMethods.BNFreeCallingConvention(this.handle);
+
+                return true;
+            }
+
             if (!this.IsInvalid)
             {
                 // Free the native calling convention handle and mark it invalid to prevent double-free.
@@ -99,11 +108,9 @@ namespace BinaryNinja
         {
             get
             {
-                // 1. Retrieve the native ANSI string pointer for the calling convention name.
                 IntPtr raw = NativeMethods.BNGetCallingConventionName(this.handle);
 
-                // 2. Copy and free the native string, returning empty on null.
-                return UnsafeUtils.TakeAnsiString(raw) ?? string.Empty;
+                return UnsafeUtils.TakeUtf8String(raw);
             }
         }
 
@@ -125,22 +132,26 @@ namespace BinaryNinja
         /// <summary>
         /// Gets the register used to return integer values from functions using this calling convention.
         /// </summary>
-        public uint IntegerReturnValueRegister
+        public virtual uint IntegerReturnValueRegister
         {
             get
             {
-                return NativeMethods.BNGetIntegerReturnValueRegister(this.handle);
+                return this.custom
+                    ? uint.MaxValue
+                    : NativeMethods.BNGetIntegerReturnValueRegister(this.handle);
             }
         }
 
         /// <summary>
         /// Gets the register used to return floating-point values from functions using this calling convention.
         /// </summary>
-        public uint FloatReturnValueRegister
+        public virtual uint FloatReturnValueRegister
         {
             get
             {
-                return NativeMethods.BNGetFloatReturnValueRegister(this.handle);
+                return this.custom
+                    ? uint.MaxValue
+                    : NativeMethods.BNGetFloatReturnValueRegister(this.handle);
             }
         }
 
@@ -148,24 +159,41 @@ namespace BinaryNinja
         /// Gets the register used for the high half of a 64-bit integer return value
         /// on architectures that split return values across two registers.
         /// </summary>
-        public uint HighIntegerReturnValueRegister
+        public virtual uint HighIntegerReturnValueRegister
         {
             get
             {
-                return NativeMethods.BNGetHighIntegerReturnValueRegister(this.handle);
+                return this.custom
+                    ? uint.MaxValue
+                    : NativeMethods.BNGetHighIntegerReturnValueRegister(this.handle);
             }
         }
 
         /// <summary>
         /// Gets the registers used as global pointers (e.g., GP on MIPS) for this calling convention.
         /// </summary>
-        public unsafe uint[] GlobalPointerRegisters
+        public uint[] GlobalPointerRegisters
         {
             get
             {
-                IntPtr ptr = NativeMethods.BNGetGlobalPointerRegisters(this.handle, out ulong count);
+                uint register = this.GlobalPointerRegister;
+                if (uint.MaxValue == register)
+                {
+                    return Array.Empty<uint>();
+                }
 
-                return UnsafeUtils.TakeNumberArray<uint>(ptr, count, NativeMethods.BNFreeRegisterList);
+                return new uint[] { register };
+            }
+        }
+
+        /// <summary>Gets the global pointer register used by this convention.</summary>
+        public virtual uint GlobalPointerRegister
+        {
+            get
+            {
+                return this.custom
+                    ? uint.MaxValue
+                    : NativeMethods.BNGetGlobalPointerRegister(this.handle);
             }
         }
 
@@ -173,11 +201,12 @@ namespace BinaryNinja
         /// Gets whether integer and float argument registers share a single index counter,
         /// meaning a float argument consumes an integer register slot and vice versa.
         /// </summary>
-        public bool AreArgumentRegistersSharedIndex
+        public virtual bool AreArgumentRegistersSharedIndex
         {
             get
             {
-                return NativeMethods.BNAreArgumentRegistersSharedIndex(this.handle);
+                return !this.custom &&
+                    NativeMethods.BNAreArgumentRegistersSharedIndex(this.handle);
             }
         }
 
@@ -185,11 +214,12 @@ namespace BinaryNinja
         /// Gets whether the argument registers defined by this calling convention
         /// are also used for variadic (varargs) arguments.
         /// </summary>
-        public bool AreArgumentRegistersUsedForVarArgs
+        public virtual bool AreArgumentRegistersUsedForVarArgs
         {
             get
             {
-                return NativeMethods.BNAreArgumentRegistersUsedForVarArgs(this.handle);
+                return this.custom ||
+                    NativeMethods.BNAreArgumentRegistersUsedForVarArgs(this.handle);
             }
         }
 
@@ -197,11 +227,12 @@ namespace BinaryNinja
         /// Gets whether the stack pointer is adjusted by the callee on return
         /// (e.g., stdcall pops arguments off the stack before returning).
         /// </summary>
-        public bool IsStackAdjustedOnReturn
+        public virtual bool IsStackAdjustedOnReturn
         {
             get
             {
-                return NativeMethods.BNIsStackAdjustedOnReturn(this.handle);
+                return !this.custom &&
+                    NativeMethods.BNIsStackAdjustedOnReturn(this.handle);
             }
         }
 
@@ -209,11 +240,12 @@ namespace BinaryNinja
         /// Gets whether stack space is reserved for argument registers even when
         /// arguments are passed in registers (e.g., the Windows x64 shadow space).
         /// </summary>
-        public bool IsStackReservedForArgumentRegisters
+        public virtual bool IsStackReservedForArgumentRegisters
         {
             get
             {
-                return NativeMethods.BNIsStackReservedForArgumentRegisters(this.handle);
+                return !this.custom &&
+                    NativeMethods.BNIsStackReservedForArgumentRegisters(this.handle);
             }
         }
 
@@ -221,8 +253,13 @@ namespace BinaryNinja
         /// Returns the set of registers that a callee must preserve (save and restore)
         /// according to this calling convention.
         /// </summary>
-        public unsafe uint[] GetCalleeSavedRegisters()
+        public virtual unsafe uint[] GetCalleeSavedRegisters()
         {
+            if (this.custom)
+            {
+                return Array.Empty<uint>();
+            }
+
             // 1. Call the native API to retrieve the callee-saved register list.
             ulong count = 0;
             IntPtr ptr = NativeMethods.BNGetCalleeSavedRegisters(this.handle, (IntPtr)(&count));
@@ -241,8 +278,13 @@ namespace BinaryNinja
         /// Returns the set of registers that the caller must assume are clobbered (not preserved)
         /// across a function call using this calling convention.
         /// </summary>
-        public unsafe uint[] GetCallerSavedRegisters()
+        public virtual unsafe uint[] GetCallerSavedRegisters()
         {
+            if (this.custom)
+            {
+                return Array.Empty<uint>();
+            }
+
             // 1. Call the native API to retrieve the caller-saved register list.
             ulong count = 0;
             IntPtr ptr = NativeMethods.BNGetCallerSavedRegisters(this.handle, (IntPtr)(&count));
@@ -261,8 +303,13 @@ namespace BinaryNinja
         /// Returns the registers that must be used as arguments for the heuristic calling
         /// convention detection to pick this convention. Mirrors Python required_arg_regs.
         /// </summary>
-        public unsafe uint[] GetRequiredArgumentRegisters()
+        public virtual unsafe uint[] GetRequiredArgumentRegisters()
         {
+            if (this.custom)
+            {
+                return Array.Empty<uint>();
+            }
+
             // 1. Call the native API to retrieve the required-argument register list.
             ulong count = 0;
             IntPtr ptr = NativeMethods.BNGetRequiredArgumentRegisters(this.handle, (IntPtr)(&count));
@@ -281,8 +328,13 @@ namespace BinaryNinja
         /// Returns the registers that must be clobbered for the heuristic calling convention
         /// detection to pick this convention. Mirrors Python required_clobbered_regs.
         /// </summary>
-        public unsafe uint[] GetRequiredClobberedRegisters()
+        public virtual unsafe uint[] GetRequiredClobberedRegisters()
         {
+            if (this.custom)
+            {
+                return Array.Empty<uint>();
+            }
+
             // 1. Call the native API to retrieve the required-clobbered register list.
             ulong count = 0;
             IntPtr ptr = NativeMethods.BNGetRequiredClobberedRegisters(this.handle, (IntPtr)(&count));
@@ -301,8 +353,13 @@ namespace BinaryNinja
         /// Returns the ordered list of registers used to pass integer arguments
         /// to functions using this calling convention.
         /// </summary>
-        public unsafe uint[] GetIntegerArgumentRegisters()
+        public virtual unsafe uint[] GetIntegerArgumentRegisters()
         {
+            if (this.custom)
+            {
+                return Array.Empty<uint>();
+            }
+
             // 1. Call the native API to retrieve the integer argument register list.
             ulong count = 0;
             IntPtr ptr = NativeMethods.BNGetIntegerArgumentRegisters(this.handle, (IntPtr)(&count));
@@ -321,8 +378,13 @@ namespace BinaryNinja
         /// Returns the ordered list of registers used to pass floating-point arguments
         /// to functions using this calling convention.
         /// </summary>
-        public unsafe uint[] GetFloatArgumentRegisters()
+        public virtual unsafe uint[] GetFloatArgumentRegisters()
         {
+            if (this.custom)
+            {
+                return Array.Empty<uint>();
+            }
+
             // 1. Call the native API to retrieve the float argument register list.
             ulong count = 0;
             IntPtr ptr = NativeMethods.BNGetFloatArgumentRegisters(this.handle, (IntPtr)(&count));
@@ -341,8 +403,13 @@ namespace BinaryNinja
         /// Returns the set of registers that are implicitly defined (written) by any function call
         /// using this calling convention, beyond the explicit return value registers.
         /// </summary>
-        public unsafe uint[] GetImplicitlyDefinedRegisters()
+        public virtual unsafe uint[] GetImplicitlyDefinedRegisters()
         {
+            if (this.custom)
+            {
+                return Array.Empty<uint>();
+            }
+
             // 1. Call the native API to retrieve the implicitly defined register list.
             ulong count = 0;
             IntPtr ptr = NativeMethods.BNGetImplicitlyDefinedRegisters(this.handle, (IntPtr)(&count));
@@ -355,199 +422,6 @@ namespace BinaryNinja
 
             // 3. Marshal the native array into a managed uint[] and free the native buffer.
             return UnsafeUtils.TakeNumberArray<uint>(ptr, count, NativeMethods.BNFreeRegisterList);
-        }
-
-        /// <summary>
-        /// Maps a parameter variable (how the caller passes an argument) to the corresponding
-        /// incoming variable (how the callee receives it) using the default convention rules,
-        /// without considering any function-specific overrides.
-        /// </summary>
-        /// <param name="var">The parameter variable to map.</param>
-        /// <returns>The corresponding incoming variable as seen by the callee.</returns>
-        public unsafe BNVariable GetDefaultIncomingVariableForParameterVariable(BNVariable var)
-        {
-            // 1. Pin the variable on the stack and pass its address to the native API.
-            BNVariable native = var;
-
-            return NativeMethods.BNGetDefaultIncomingVariableForParameterVariable(
-                this.handle, (IntPtr)(&native)
-            );
-        }
-
-        /// <summary>
-        /// Maps an incoming variable (how the callee receives an argument) to the corresponding
-        /// parameter variable (how the caller passes it) using the default convention rules,
-        /// without considering any function-specific overrides.
-        /// </summary>
-        /// <param name="var">The incoming variable to map.</param>
-        /// <returns>The corresponding parameter variable as seen by the caller.</returns>
-        public unsafe BNVariable GetDefaultParameterVariableForIncomingVariable(BNVariable var)
-        {
-            // 1. Pin the variable on the stack and pass its address to the native API.
-            BNVariable native = var;
-
-            return NativeMethods.BNGetDefaultParameterVariableForIncomingVariable(
-                this.handle, (IntPtr)(&native)
-            );
-        }
-
-        /// <summary>
-        /// Maps a parameter variable to the corresponding incoming variable, taking into
-        /// account any function-specific calling convention overrides. Falls back to the
-        /// default mapping when no function is provided.
-        /// </summary>
-        /// <param name="var">The parameter variable to map.</param>
-        /// <param name="func">Optional function providing context for overrides; null uses defaults.</param>
-        /// <returns>The corresponding incoming variable as seen by the callee.</returns>
-        public unsafe BNVariable GetIncomingVariableForParameterVariable(BNVariable var, Function? func = null)
-        {
-            // 1. Pin the variable on the stack.
-            BNVariable native = var;
-
-            // 2. Resolve the function handle, using IntPtr.Zero when no function is provided.
-            IntPtr funcHandle = null == func ? IntPtr.Zero : func.DangerousGetHandle();
-
-            return NativeMethods.BNGetIncomingVariableForParameterVariable(
-                this.handle, (IntPtr)(&native), funcHandle
-            );
-        }
-
-        /// <summary>
-        /// Maps an incoming variable to the corresponding parameter variable, taking into
-        /// account any function-specific calling convention overrides. Falls back to the
-        /// default mapping when no function is provided.
-        /// </summary>
-        /// <param name="var">The incoming variable to map.</param>
-        /// <param name="func">Optional function providing context for overrides; null uses defaults.</param>
-        /// <returns>The corresponding parameter variable as seen by the caller.</returns>
-        public unsafe BNVariable GetParameterVariableForIncomingVariable(BNVariable var, Function? func = null)
-        {
-            // 1. Pin the variable on the stack.
-            BNVariable native = var;
-
-            // 2. Resolve the function handle, using IntPtr.Zero when no function is provided.
-            IntPtr funcHandle = null == func ? IntPtr.Zero : func.DangerousGetHandle();
-
-            return NativeMethods.BNGetParameterVariableForIncomingVariable(
-                this.handle, (IntPtr)(&native), funcHandle
-            );
-        }
-
-        /// <summary>
-        /// Checks whether this calling convention is eligible for heuristic analysis.
-        /// </summary>
-        /// <returns>True if the calling convention can be used for heuristics.</returns>
-        public bool IsEligibleForHeuristics
-        {
-            get
-            {
-                return NativeMethods.BNIsEligibleForHeuristics(this.handle);
-            }
-        }
-
-        /// <summary>
-        /// Gets the incoming value of a flag register at function entry according to this calling convention.
-        /// </summary>
-        /// <param name="reg">The flag register index to query.</param>
-        /// <param name="func">The function providing context for the query.</param>
-        /// <returns>The register value representing the incoming state of the flag.</returns>
-        public RegisterValue GetIncomingFlagValue(uint reg , Function func)
-        {
-            return RegisterValue.FromNative(
-                NativeMethods.BNGetIncomingFlagValue(
-                    this.handle ,
-                    reg ,
-                    func.DangerousGetHandle()
-                )
-            );
-        }
-
-        /// <summary>
-        /// Gets the incoming value of a register at function entry according to this calling convention.
-        /// </summary>
-        /// <param name="reg">The register index to query.</param>
-        /// <param name="func">The function providing context for the query.</param>
-        /// <returns>The register value representing the incoming state of the register.</returns>
-        public RegisterValue GetIncomingRegisterValue(uint reg , Function func)
-        {
-            return RegisterValue.FromNative(
-                NativeMethods.BNGetIncomingRegisterValue(
-                    this.handle ,
-                    reg ,
-                    func.DangerousGetHandle()
-                )
-            );
-        }
-
-        /// <summary>
-        /// Gets the parameter ordering for an array of variables and their types.
-        /// Returns the ordered variable array according to this calling convention's rules.
-        /// </summary>
-        /// <param name="paramVars">The parameter variables to order.</param>
-        /// <param name="paramTypes">The types corresponding to each parameter variable.</param>
-        /// <returns>An array of BNVariable structs in the correct parameter order.</returns>
-        public unsafe CoreVariable[] GetParameterOrderingForVariables(
-            BinaryView view ,
-            CoreVariable[] paramVars ,
-            BinaryNinja.Type[] paramTypes
-        )
-        {
-            // 1. Validate inputs.
-            if (null == paramVars || null == paramTypes || paramVars.Length != paramTypes.Length)
-            {
-                return Array.Empty<CoreVariable>();
-            }
-
-            using (ScopedAllocator allocator = new ScopedAllocator())
-            {
-                // 2. Marshal the variable array.
-                BNVariable[] nativeVars = new BNVariable[paramVars.Length];
-                for (int i = 0; i < paramVars.Length; i++)
-                {
-                    nativeVars[i] = paramVars[i].ToNative();
-                }
-                IntPtr varsPtr = allocator.AllocStructArray<BNVariable>(nativeVars);
-
-                // 3. Marshal the type handle array (BNType**).
-                IntPtr[] typeHandles = new IntPtr[paramTypes.Length];
-                for (int i = 0; i < paramTypes.Length; i++)
-                {
-                    typeHandles[i] = paramTypes[i].DangerousGetHandle();
-                }
-                IntPtr typesPtr = allocator.AllocStructArray<IntPtr>(typeHandles);
-
-                // 4. Stack-allocate the output count.
-                ulong count = 0;
-
-                // 5. Call the native API.
-                IntPtr resultPtr = NativeMethods.BNGetParameterOrderingForVariables(
-                    this.handle ,
-                    view.DangerousGetHandle() ,
-                    varsPtr ,
-                    typesPtr ,
-                    (UIntPtr)paramVars.Length ,
-                    (IntPtr)(&count)
-                );
-
-                // 6. Marshal the result array.
-                if (IntPtr.Zero == resultPtr || 0 == count)
-                {
-                    return Array.Empty<CoreVariable>();
-                }
-
-                CoreVariable[] result = new CoreVariable[(int)count];
-                BNVariable* rawResult = (BNVariable*)resultPtr;
-
-                for (ulong i = 0; i < count; i++)
-                {
-                    result[i] = new CoreVariable(rawResult[i]);
-                }
-
-                // 7. Free the native result array.
-                NativeMethods.BNFreeVariableList(resultPtr);
-
-                return result;
-            }
         }
 
     }

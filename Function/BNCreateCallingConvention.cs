@@ -25,7 +25,7 @@ namespace BinaryNinja
 		    [MarshalAs(UnmanagedType.LPUTF8Str)] string name  , 
 			
 			// BNCustomCallingConvention* cc
-		    IntPtr cc  
+		    in BNCustomCallingConvention convention
 		);
 	}
 }
